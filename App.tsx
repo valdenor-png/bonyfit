@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -17,11 +17,12 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import AuthNavigator from './src/navigation/AuthNavigator';
 import AppNavigator from './src/navigation/AppNavigator';
+import { useAuth } from './src/hooks/useAuth';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, loading, loadUser } = useAuth();
 
   const [fontsLoaded] = useFonts({
     PlusJakartaSans_400Regular,
@@ -32,13 +33,17 @@ export default function App() {
     Sora_800ExtraBold,
   });
 
+  useEffect(() => {
+    loadUser();
+  }, []);
+
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
+    if (fontsLoaded && !loading) {
       await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, loading]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || loading) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color="#F26522" />
@@ -71,7 +76,7 @@ export default function App() {
         {isAuthenticated ? (
           <AppNavigator />
         ) : (
-          <AuthNavigator onComplete={() => setIsAuthenticated(true)} />
+          <AuthNavigator onComplete={() => loadUser()} />
         )}
       </NavigationContainer>
     </View>

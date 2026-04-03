@@ -1,4 +1,6 @@
 export type AuthStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
   Dados: undefined;
   Unidade: undefined;
   Plano: undefined;

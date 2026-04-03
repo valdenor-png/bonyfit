@@ -21,6 +21,7 @@ export interface DadosForm {
   cpf: string;
   email: string;
   phone: string;
+  password: string;
 }
 
 function ProgressBar({ step, total }: { step: number; total: number }) {
@@ -60,13 +61,15 @@ export default function DadosScreen({ navigation, onNext }: Props) {
     cpf: '',
     email: '',
     phone: '',
+    password: '',
   });
 
   const isValid =
     form.name.length >= 3 &&
     form.cpf.replace(/\D/g, '').length === 11 &&
     form.email.includes('@') &&
-    form.phone.replace(/\D/g, '').length >= 10;
+    form.phone.replace(/\D/g, '').length >= 10 &&
+    form.password.length >= 6;
 
   const handleContinue = () => {
     if (isValid) {
@@ -119,11 +122,23 @@ export default function DadosScreen({ navigation, onNext }: Props) {
             <Input
               label="Telefone"
               value={form.phone}
-              onChangeText={(phone) => setForm((f) => ({ ...f, phone }))}
+              onChangeText={(phone: string) => setForm((f) => ({ ...f, phone }))}
               placeholder="(00) 00000-0000"
               mask="phone"
               keyboardType="phone-pad"
             />
+            <Input
+              label="Senha"
+              value={form.password}
+              onChangeText={(password: string) => setForm((f) => ({ ...f, password }))}
+              placeholder="Mínimo 6 caracteres"
+              secureTextEntry
+            />
+            {form.password.length > 0 && form.password.length < 6 && (
+              <Text style={{ fontSize: 11, fontFamily: fonts.body, color: colors.danger, marginTop: -8 }}>
+                A senha deve ter no mínimo 6 caracteres
+              </Text>
+            )}
           </View>
 
           <Button
