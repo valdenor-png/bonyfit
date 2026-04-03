@@ -115,7 +115,14 @@ export default function FacialScreen({ navigation, onNext }: Props) {
         <View style={styles.buttons}>
           <Button title="Voltar" variant="outline" onPress={() => navigation.goBack()} />
           {!captured ? (
-            <Button title="Abrir câmera" onPress={handleOpenCamera} />
+            <>
+              <Button title="Abrir câmera" onPress={handleOpenCamera} />
+              <Button
+                title="Pular por enquanto"
+                variant="ghost"
+                onPress={() => navigation.navigate('Contrato')}
+              />
+            </>
           ) : (
             <Button title="Continuar" onPress={handleContinue} />
           )}
