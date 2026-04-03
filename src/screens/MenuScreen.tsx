@@ -22,31 +22,29 @@ interface MenuItem {
 
 const SECTIONS: { title: string; items: MenuItem[] }[] = [
   {
-    title: 'Meu perfil',
+    title: 'Treino',
     items: [
-      { icon: '👤', label: 'Meu perfil', sub: 'Dados, conquistas e stats', screen: 'ProfileMain' },
-      { icon: '⚙', label: 'Configurações', sub: 'Conta, privacidade, plano', screen: 'Settings' },
+      { icon: '📋', label: 'Treinos prontos', sub: 'Hipertrofia, emagrecimento, funcional', screen: 'TreinosProntos' },
+      { icon: '📊', label: 'Histórico de treinos', sub: 'Seus treinos anteriores', screen: 'HistoricoTreino' },
+      { icon: '📅', label: 'Frequência', sub: 'Calendário de presença', screen: 'Frequencia' },
     ],
   },
   {
-    title: 'Treino',
+    title: 'Ranking e recompensas',
     items: [
       { icon: '🏆', label: 'Ranking', sub: 'Sua posição entre os alunos', screen: 'Ranking' },
-      { icon: '📋', label: 'Treinos prontos', sub: 'Hipertrofia, emagrecimento, etc.', screen: 'TreinosProntos' },
-      { icon: '📊', label: 'Histórico de treinos', sub: 'Seus treinos anteriores', screen: 'HistoricoTreino' },
-      { icon: '📅', label: 'Frequência', sub: 'Calendário de presença', screen: 'Frequencia' },
+      { icon: '🎁', label: 'Recompensas', sub: 'Troque pontos por prêmios', screen: 'Recompensas' },
+      { icon: '🎯', label: 'Desafios', sub: 'Desafios entre alunos e unidades', screen: 'Desafios' },
     ],
   },
   {
     title: 'Social',
     items: [
       { icon: '👥', label: 'Grupos', sub: 'Comunidades por afinidade', screen: 'Grupos' },
-      { icon: '🎯', label: 'Desafios', sub: 'Desafios entre alunos e unidades', screen: 'Desafios' },
-      { icon: '🎁', label: 'Recompensas', sub: 'Troque pontos por prêmios', screen: 'Recompensas' },
     ],
   },
   {
-    title: 'Saúde',
+    title: 'Saúde e nutrição',
     items: [
       { icon: '📝', label: 'Anamnese', sub: 'Questionário de saúde', screen: 'Anamnese' },
       { icon: '📐', label: 'Avaliação física', sub: 'Medidas, composição, fotos', screen: 'AvaliacaoFisica' },
@@ -60,7 +58,6 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
       { icon: '👨‍🏫', label: 'Personal trainers', sub: 'Quem está no salão agora', screen: 'Personal' },
       { icon: '🏋', label: 'Aulas coletivas', sub: 'Spinning, yoga, HIIT...', screen: 'Aulas' },
       { icon: '🎥', label: 'Aulas online', sub: 'Treinos em vídeo', screen: 'AulasOnline' },
-      { icon: '💰', label: 'Financeiro', sub: 'Pagamentos e plano', screen: 'HistoricoFinanceiro' },
     ],
   },
   {
@@ -72,20 +69,6 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
 ];
 
 export default function MenuScreen({ navigation }: Props) {
-  const handlePress = (screen: string) => {
-    // Screens that live in other tab stacks need getParent
-    const directScreens = [
-      'ProfileMain', 'Settings', 'HistoricoFinanceiro', 'Frequencia',
-      'Anamnese', 'AvaliacaoFisica', 'Peso', 'Nutricao', 'AulasOnline',
-      'Suporte', 'TreinosProntos', 'HistoricoTreino', 'Grupos', 'Desafios',
-      'Recompensas', 'Personal', 'Aulas',
-    ];
-
-    if (directScreens.includes(screen)) {
-      navigation.navigate(screen);
-    }
-  };
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
@@ -105,7 +88,7 @@ export default function MenuScreen({ navigation }: Props) {
                   styles.menuItem,
                   i < section.items.length - 1 && styles.menuItemBorder,
                 ]}
-                onPress={() => handlePress(item.screen)}
+                onPress={() => navigation.navigate(item.screen)}
                 activeOpacity={0.7}
               >
                 <Text style={styles.menuIcon}>{item.icon}</Text>

@@ -32,6 +32,7 @@ import PesoScreen from '../screens/PesoScreen';
 import NutricaoScreen from '../screens/NutricaoScreen';
 import AulasOnlineScreen from '../screens/AulasOnlineScreen';
 import SuporteScreen from '../screens/SuporteScreen';
+import PerfilPessoalScreen from '../screens/PerfilPessoalScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createStackNavigator<any>();
@@ -46,6 +47,8 @@ function HomeNavigator() {
   return (
     <HomeStack.Navigator screenOptions={stackOptions}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
+      <HomeStack.Screen name="PerfilPessoal" component={PerfilPessoalScreen} />
+      <HomeStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} />
     </HomeStack.Navigator>
   );
 }
