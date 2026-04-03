@@ -40,9 +40,20 @@ export default function HomeScreen({ navigation }: Props) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
+        <TouchableOpacity
+          style={styles.avatarBtn}
+          onPress={() => navigation.navigate('Menu', { screen: 'ProfileMain' })}
+          activeOpacity={0.8}
+        >
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {MOCK_USER.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
           <Text style={styles.greeting}>{greeting},</Text>
-          <Text style={styles.name}>{MOCK_USER.name} 💪</Text>
+          <Text style={styles.name}>{MOCK_USER.name}</Text>
         </View>
         <View style={styles.levelBadge}>
           <Skull size={16} color={colors.orange} />
@@ -128,14 +139,31 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 40 },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
     paddingBottom: spacing.lg,
+    gap: spacing.md,
   },
-  greeting: { fontSize: 14, fontFamily: fonts.body, color: colors.textSecondary },
-  name: { fontSize: 22, fontFamily: fonts.bodyBold, color: colors.text },
+  avatarBtn: {},
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(242, 101, 34, 0.15)',
+    borderWidth: 2,
+    borderColor: colors.orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontSize: 15,
+    fontFamily: fonts.bodyBold,
+    color: colors.orange,
+  },
+  headerCenter: { flex: 1 },
+  greeting: { fontSize: 13, fontFamily: fonts.body, color: colors.textSecondary },
+  name: { fontSize: 18, fontFamily: fonts.bodyBold, color: colors.text },
   levelBadge: {
     flexDirection: 'row',
     alignItems: 'center',
