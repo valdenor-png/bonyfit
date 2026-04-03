@@ -20,6 +20,45 @@ import TopBar from '../components/TopBar';
 import Button from '../components/Button';
 import { Exercise, ExerciseProgress, ExerciseStatus, SetStatus } from '../types/workout';
 
+// --- SUBSTITUTION MOCK DATA ---
+interface SubstitutionOption {
+  id: string;
+  name: string;
+  equipment: string;
+  sets: number;
+  reps: number;
+}
+
+const SUBSTITUTIONS: Record<string, SubstitutionOption[]> = {
+  '1': [ // Supino Reto
+    { id: 'sub1a', name: 'Supino na Máquina', equipment: 'Máquina', sets: 4, reps: 12 },
+    { id: 'sub1b', name: 'Flexão de Braços', equipment: 'Peso corporal', sets: 4, reps: 15 },
+    { id: 'sub1c', name: 'Supino com Halter', equipment: 'Halter', sets: 4, reps: 12 },
+  ],
+  '2': [ // Supino Inclinado
+    { id: 'sub2a', name: 'Supino Inclinado Máquina', equipment: 'Máquina', sets: 3, reps: 12 },
+    { id: 'sub2b', name: 'Flexão Inclinada', equipment: 'Peso corporal', sets: 3, reps: 15 },
+  ],
+  '3': [ // Crucifixo
+    { id: 'sub3a', name: 'Peck Deck', equipment: 'Máquina', sets: 3, reps: 15 },
+    { id: 'sub3b', name: 'Crossover', equipment: 'Cabo', sets: 3, reps: 15 },
+  ],
+  '4': [ // Tríceps Pulley
+    { id: 'sub4a', name: 'Tríceps Corda', equipment: 'Cabo', sets: 3, reps: 15 },
+    { id: 'sub4b', name: 'Tríceps Testa', equipment: 'Barra', sets: 3, reps: 12 },
+    { id: 'sub4c', name: 'Mergulho no Banco', equipment: 'Peso corporal', sets: 3, reps: 15 },
+  ],
+  '5': [ // Tríceps Francês
+    { id: 'sub5a', name: 'Tríceps Coice', equipment: 'Halter', sets: 3, reps: 12 },
+    { id: 'sub5b', name: 'Tríceps na Máquina', equipment: 'Máquina', sets: 3, reps: 12 },
+  ],
+  '6': [ // Desenvolvimento
+    { id: 'sub6a', name: 'Desenvolvimento Máquina', equipment: 'Máquina', sets: 4, reps: 10 },
+    { id: 'sub6b', name: 'Elevação Lateral', equipment: 'Halter', sets: 4, reps: 12 },
+    { id: 'sub6c', name: 'Arnold Press', equipment: 'Halter', sets: 4, reps: 10 },
+  ],
+};
+
 // --- MOCK DATA ---
 const MOCK_EXERCISES: Exercise[] = [
   { id: '1', name: 'Supino Reto', muscle_group: 'Peito', equipment: 'Barra', video_url: null, tips: 'Mantenha os cotovelos a 45° do tronco. Desça a barra até tocar o peito.', min_time_seconds: 180, sets: 4, reps: 12, weight: 60, rest_seconds: 90 },
@@ -53,6 +92,7 @@ export default function TreinoScreen() {
   const [sessionPoints, setSessionPoints] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showEndModal, setShowEndModal] = useState(false);
+  const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
 
   // Timer
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -199,6 +239,25 @@ export default function TreinoScreen() {
     }
   };
 
+  const handleSubstitute = (sub: SubstitutionOption) => {
+    const updated = [...exercises];
+    const current = updated[currentExIdx];
+    const originalExercise = current.exercise;
+    current.exercise = {
+      ...originalExercise,
+      id: sub.id,
+      name: sub.name,
+      equipment: sub.equipment,
+      sets: sub.sets,
+      reps: sub.reps,
+    };
+    current.totalSets = sub.sets;
+    current.setsCompleted = 0;
+    setExercises(updated);
+    setCurrentSetIdx(0);
+    setShowSubstitutionModal(false);
+  };
+
   // --- BLOCKED VIEW ---
   if (view === 'blocked') {
     return (
@@ -336,9 +395,14 @@ export default function TreinoScreen() {
             <TouchableOpacity onPress={() => setView('exercises')}>
               <Text style={styles.detailBack}>← Voltar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.skipBtn} onPress={handleSkipExercise}>
-              <Text style={styles.skipText}>⏭ Pular</Text>
-            </TouchableOpacity>
+            <View style={styles.detailActions}>
+              <TouchableOpacity style={styles.substituteBtn} onPress={() => setShowSubstitutionModal(true)}>
+                <Text style={styles.substituteText}>↔ Substituir</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.skipBtn} onPress={handleSkipExercise}>
+                <Text style={styles.skipText}>⏭ Pular</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Video placeholder */}
@@ -362,6 +426,27 @@ export default function TreinoScreen() {
             </View>
           )}
 
+          {/* 3D Muscle Model Placeholder */}
+          <View style={styles.muscleCard}>
+            <Text style={styles.muscleCardTitle}>Músculos trabalhados</Text>
+            <View style={styles.musclePlaceholder}>
+              <LinearGradient
+                colors={[colors.elevated, 'rgba(242, 101, 34, 0.08)']}
+                style={styles.musclePlaceholderGradient}
+              >
+                <Text style={styles.muscleRotateIcon}>🔄</Text>
+                <Text style={styles.musclePlaceholderText}>Modelo 3D</Text>
+                <View style={styles.muscleLabels}>
+                  {currentExercise.muscle_group.split(', ').map((group, i) => (
+                    <View key={i} style={styles.muscleLabelChip}>
+                      <Text style={styles.muscleLabelText}>{group}</Text>
+                    </View>
+                  ))}
+                </View>
+              </LinearGradient>
+            </View>
+          </View>
+
           {/* Sets */}
           <View style={styles.setsList}>
             {sets.map((status, i) => (
@@ -380,6 +465,39 @@ export default function TreinoScreen() {
           {/* Confirm button */}
           <Button title={btnLabel} onPress={handleConfirmSet} />
         </ScrollView>
+
+        {/* Substitution Modal */}
+        <Modal visible={showSubstitutionModal} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.substitutionModalCard}>
+              <Text style={styles.substitutionTitle}>Substituir exercício</Text>
+              <Text style={styles.substitutionSub}>
+                Alternativas para {currentExercise.name}
+              </Text>
+              {(SUBSTITUTIONS[currentExercise.id] || []).map((sub) => (
+                <TouchableOpacity
+                  key={sub.id}
+                  style={styles.substitutionOption}
+                  onPress={() => handleSubstitute(sub)}
+                >
+                  <View style={styles.substitutionOptionInfo}>
+                    <Text style={styles.substitutionOptionName}>{sub.name}</Text>
+                    <Text style={styles.substitutionOptionDetail}>
+                      {sub.equipment} • {sub.sets}x{sub.reps}
+                    </Text>
+                  </View>
+                  <Text style={styles.substitutionArrow}>→</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                style={styles.substitutionCancel}
+                onPress={() => setShowSubstitutionModal(false)}
+              >
+                <Text style={styles.substitutionCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -538,6 +656,16 @@ const styles = StyleSheet.create({
   detailContent: { padding: spacing.lg, paddingBottom: spacing.xxl },
   detailNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
   detailBack: { fontSize: 14, fontFamily: fonts.bodyMedium, color: colors.orange },
+  detailActions: { flexDirection: 'row', gap: spacing.sm },
+  substituteBtn: {
+    backgroundColor: 'rgba(242, 101, 34, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 101, 34, 0.2)',
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  substituteText: { fontSize: 13, fontFamily: fonts.bodyMedium, color: colors.orange },
   skipBtn: {
     backgroundColor: 'rgba(242, 101, 34, 0.1)',
     borderWidth: 1,
@@ -648,4 +776,115 @@ const styles = StyleSheet.create({
   modalSub: { fontSize: 14, fontFamily: fonts.body, color: colors.textSecondary },
   modalPoints: { fontSize: 14, fontFamily: fonts.numbersBold, color: colors.orange },
   modalButtons: { gap: spacing.md, width: '100%', marginTop: spacing.md },
+  // Muscle 3D placeholder
+  muscleCard: {
+    backgroundColor: colors.elevated,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  muscleCardTitle: {
+    fontSize: 13,
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  musclePlaceholder: {
+    height: 120,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.orange,
+    overflow: 'hidden',
+  },
+  musclePlaceholderGradient: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  muscleRotateIcon: { fontSize: 20 },
+  musclePlaceholderText: {
+    fontSize: 14,
+    fontFamily: fonts.bodyBold,
+    color: colors.textSecondary,
+  },
+  muscleLabels: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  muscleLabelChip: {
+    backgroundColor: 'rgba(242, 101, 34, 0.15)',
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  muscleLabelText: {
+    fontSize: 11,
+    fontFamily: fonts.bodyMedium,
+    color: colors.orange,
+  },
+  // Substitution modal
+  substitutionModalCard: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    padding: spacing.xxl,
+    paddingBottom: spacing.xxl + 20,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  substitutionTitle: {
+    fontSize: 18,
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  substitutionSub: {
+    fontSize: 13,
+    fontFamily: fonts.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
+  substitutionOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.elevated,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  substitutionOptionInfo: { flex: 1 },
+  substitutionOptionName: {
+    fontSize: 14,
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
+    marginBottom: 2,
+  },
+  substitutionOptionDetail: {
+    fontSize: 12,
+    fontFamily: fonts.body,
+    color: colors.textSecondary,
+  },
+  substitutionArrow: {
+    fontSize: 16,
+    fontFamily: fonts.bodyBold,
+    color: colors.orange,
+    marginLeft: spacing.md,
+  },
+  substitutionCancel: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    marginTop: spacing.sm,
+  },
+  substitutionCancelText: {
+    fontSize: 14,
+    fontFamily: fonts.bodyMedium,
+    color: colors.textSecondary,
+  },
 });

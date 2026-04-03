@@ -26,6 +26,8 @@ const MOCK_USER = {
   points: 12500,
   totalWorkouts: 87,
   ranking: 14,
+  following: 42,
+  followers: 128,
   memberSince: 'Mar 2025',
   posts: [
     { id: '1', text: 'Treino de peito destruído hoje! 💪', likes: 24, time: '2h' },
@@ -35,6 +37,7 @@ const MOCK_USER = {
 
 export default function ProfileViewScreen({ navigation, route }: Props) {
   const [showMenu, setShowMenu] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   const user = MOCK_USER;
 
   const handleBlock = () => {
@@ -86,21 +89,45 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
           onPress={() => navigation.navigate('Chat', { userId: user.id, userName: user.name })}
         />
 
+        {/* Follow button */}
+        <TouchableOpacity
+          style={[styles.followBtn, isFollowing && styles.followBtnActive]}
+          onPress={() => setIsFollowing((prev) => !prev)}
+        >
+          <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
+            {isFollowing ? '✓ Seguindo' : 'Seguir'}
+          </Text>
+        </TouchableOpacity>
+
         {/* Stats */}
         <View style={styles.stats}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{user.totalWorkouts}</Text>
-            <Text style={styles.statLabel}>Treinos</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{user.totalWorkouts}</Text>
+              <Text style={styles.statLabel}>Treinos</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{user.points.toLocaleString()}</Text>
+              <Text style={styles.statLabel}>Pontos</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>#{user.ranking}</Text>
+              <Text style={styles.statLabel}>Ranking</Text>
+            </View>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{user.points.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>Pontos</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>#{user.ranking}</Text>
-            <Text style={styles.statLabel}>Ranking</Text>
+          <View style={styles.statsRowDivider} />
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{user.following}</Text>
+              <Text style={styles.statLabel}>Seguindo</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{user.followers + (isFollowing ? 1 : 0)}</Text>
+              <Text style={styles.statLabel}>Seguidores</Text>
+            </View>
           </View>
         </View>
 
@@ -180,15 +207,43 @@ const styles = StyleSheet.create({
   },
   levelText: { fontSize: 12, fontFamily: fonts.bodyBold, color: colors.orange },
   streakText: { fontSize: 13, fontFamily: fonts.bodyMedium, color: colors.textSecondary },
+  followBtn: {
+    backgroundColor: colors.orange,
+    paddingVertical: spacing.md,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    width: '100%',
+  },
+  followBtnActive: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.orange,
+  },
+  followBtnText: {
+    fontSize: 15,
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
+  },
+  followBtnTextActive: {
+    color: colors.orange,
+  },
   stats: {
-    flexDirection: 'row',
     backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: spacing.xl,
     marginTop: spacing.xl,
     marginBottom: spacing.xxl,
   },
-  statItem: { flex: 1, alignItems: 'center' },
+  statsRow: {
+    flexDirection: 'row' as const,
+  },
+  statsRowDivider: {
+    height: 1,
+    backgroundColor: colors.elevated,
+    marginVertical: spacing.md,
+  },
+  statItem: { flex: 1, alignItems: 'center' as const },
   statValue: { fontSize: 18, fontFamily: fonts.numbersBold, color: colors.text, marginBottom: 4 },
   statLabel: { fontSize: 11, fontFamily: fonts.body, color: colors.textMuted },
   statDivider: { width: 1, backgroundColor: colors.elevated },

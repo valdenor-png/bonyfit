@@ -65,6 +65,35 @@ export async function confirmSet(
   reps: number,
   weight: number,
 ): Promise<WorkoutLog> {
+  // Anti-fraud layer 3: validate minimum time between sets
+  const { data: exercise } = await supabase
+    .from('exercises')
+    .select('min_time_seconds')
+    .eq('id', exerciseId)
+    .single();
+
+  if (exercise && exercise.min_time_seconds > 0) {
+    const { data: lastLog } = await supabase
+      .from('workout_logs')
+      .select('confirmed_at')
+      .eq('session_id', sessionId)
+      .eq('exercise_id', exerciseId)
+      .not('confirmed_at', 'is', null)
+      .order('confirmed_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (lastLog && lastLog.confirmed_at) {
+      const elapsed =
+        (Date.now() - new Date(lastLog.confirmed_at).getTime()) / 1000;
+      if (elapsed < exercise.min_time_seconds) {
+        throw new Error(
+          `Tempo mínimo entre séries não atingido. Aguarde ${Math.ceil(exercise.min_time_seconds - elapsed)}s.`,
+        );
+      }
+    }
+  }
+
   const { data: log, error } = await supabase
     .from('workout_logs')
     .insert({
@@ -119,9 +148,39 @@ export async function skipExercise(
 export async function endSession(
   sessionId: string,
 ): Promise<WorkoutSession> {
+  const endedAt = new Date().toISOString();
+
+  // Anti-fraud layer 4: validate total session duration vs volume
+  const { data: sessionCheck } = await supabase
+    .from('workout_sessions')
+    .select('started_at')
+    .eq('id', sessionId)
+    .single();
+
+  const { count: completedSets } = await supabase
+    .from('workout_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('session_id', sessionId)
+    .not('confirmed_at', 'is', null);
+
+  const MIN_SECONDS_PER_SET = 120; // 2 minutes per set
+  let flagged = false;
+
+  if (sessionCheck && completedSets !== null && completedSets > 0) {
+    const durationSeconds =
+      (new Date(endedAt).getTime() -
+        new Date(sessionCheck.started_at).getTime()) /
+      1000;
+    const requiredSeconds = completedSets * MIN_SECONDS_PER_SET;
+
+    if (durationSeconds < requiredSeconds) {
+      flagged = true;
+    }
+  }
+
   const { data, error } = await supabase
     .from('workout_sessions')
-    .update({ ended_at: new Date().toISOString() })
+    .update({ ended_at: endedAt, flagged })
     .eq('id', sessionId)
     .select()
     .single();

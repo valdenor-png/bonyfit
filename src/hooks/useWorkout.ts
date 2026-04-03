@@ -23,6 +23,7 @@ interface WorkoutState {
   sessionPoints: number;
   elapsedTime: number;
   catracaValidated: boolean;
+  lastSetConfirmedAt: number | null; // timestamp ms for anti-fraud
 
   // Internal timer refs (not exposed to consumers)
   _elapsedInterval: ReturnType<typeof setInterval> | null;
@@ -47,6 +48,7 @@ export const useWorkout = create<WorkoutState>((set, get) => ({
   sessionPoints: 0,
   elapsedTime: 0,
   catracaValidated: false,
+  lastSetConfirmedAt: null,
   _elapsedInterval: null,
   _restInterval: null,
 
@@ -139,6 +141,19 @@ export const useWorkout = create<WorkoutState>((set, get) => ({
     const { exerciseProgress, currentExerciseIndex, currentSetIndex } = state;
     if (!exerciseProgress.length) return;
 
+    // Anti-fraud layer 3: check minimum time since last set confirmation
+    const currentExercise = exerciseProgress[currentExerciseIndex]?.exercise;
+    if (currentExercise && state.lastSetConfirmedAt) {
+      const elapsedMs = Date.now() - state.lastSetConfirmedAt;
+      const minTimeMs = (currentExercise.min_time_seconds ?? 0) * 1000;
+      if (minTimeMs > 0 && elapsedMs < minTimeMs) {
+        console.warn(
+          `Anti-fraud: tempo mínimo entre séries não atingido (${Math.ceil((minTimeMs - elapsedMs) / 1000)}s restantes).`,
+        );
+        return; // Block the confirmation
+      }
+    }
+
     const updated = [...exerciseProgress];
     const current = { ...updated[currentExerciseIndex] };
     let points = state.sessionPoints + POINTS_PER_SET;
@@ -174,11 +189,13 @@ export const useWorkout = create<WorkoutState>((set, get) => ({
           sessionPoints: points,
           currentExerciseIndex: nextIndex,
           currentSetIndex: 0,
+          lastSetConfirmedAt: Date.now(),
         });
       } else {
         set({
           exerciseProgress: updated,
           sessionPoints: points,
+          lastSetConfirmedAt: Date.now(),
         });
       }
     } else {
@@ -191,6 +208,7 @@ export const useWorkout = create<WorkoutState>((set, get) => ({
         exerciseProgress: updated,
         sessionPoints: points,
         currentSetIndex: currentSetIndex + 1,
+        lastSetConfirmedAt: Date.now(),
       });
 
       if (restSeconds > 0) {
@@ -263,6 +281,16 @@ export const useWorkout = create<WorkoutState>((set, get) => ({
     if (state._elapsedInterval) clearInterval(state._elapsedInterval);
     if (state._restInterval) clearInterval(state._restInterval);
 
+    // Anti-fraud layer 4: validate total elapsed time vs sets completed
+    const MIN_SECONDS_PER_SET = 120; // 2 minutes per completed set
+    const completedSets = state.exerciseProgress.reduce(
+      (sum, ep) => sum + ep.setsCompleted,
+      0,
+    );
+    const requiredSeconds = completedSets * MIN_SECONDS_PER_SET;
+    const flagged =
+      completedSets > 0 && state.elapsedTime < requiredSeconds;
+
     // Update session in the database
     if (state.session) {
       await supabase
@@ -270,6 +298,7 @@ export const useWorkout = create<WorkoutState>((set, get) => ({
         .update({
           ended_at: new Date().toISOString(),
           total_points: state.sessionPoints,
+          flagged,
         })
         .eq('id', state.session.id);
 
@@ -291,6 +320,7 @@ export const useWorkout = create<WorkoutState>((set, get) => ({
       sessionPoints: 0,
       elapsedTime: 0,
       catracaValidated: false,
+      lastSetConfirmedAt: null,
       _elapsedInterval: null,
       _restInterval: null,
     });
