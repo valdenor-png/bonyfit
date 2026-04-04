@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, fonts } from '../tokens';
 import Skull from '../components/Skull';
+import { useModeStore } from '../stores/modeStore';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -48,12 +49,26 @@ import LGPDScreen from '../screens/LGPDScreen';
 import RelatorioScreen from '../screens/RelatorioScreen';
 import ListaComprasScreen from '../screens/ListaComprasScreen';
 
-const Tab = createBottomTabNavigator();
+// New screens
+import LojaScreen from '../screens/loja/LojaScreen';
+import MinhasAulasScreen from '../screens/professor/MinhasAulasScreen';
+import AulaAtivaScreen from '../screens/professor/AulaAtivaScreen';
+import AulaFinalizadaScreen from '../screens/professor/AulaFinalizadaScreen';
+import ScanQRAulaScreen from '../screens/ScanQRAulaScreen';
+
+const AlunoTab = createBottomTabNavigator();
+const ProfessorTab = createBottomTabNavigator();
 const HomeStack = createStackNavigator<any>();
 const FeedStack = createStackNavigator<any>();
 const TreinoStack = createStackNavigator<any>();
-const AgendaStack = createStackNavigator<any>();
+const LojaStack = createStackNavigator<any>();
 const MenuStack = createStackNavigator<any>();
+
+// Professor stacks
+const MinhasAulasStack = createStackNavigator<any>();
+const PresencaStack = createStackNavigator<any>();
+const HistoricoStack = createStackNavigator<any>();
+const AgendaProfStack = createStackNavigator<any>();
 
 const stackOptions = { headerShown: false, cardStyle: { backgroundColor: colors.bg } } as const;
 
@@ -63,6 +78,7 @@ function HomeNavigator() {
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="PerfilPessoal" component={PerfilPessoalScreen} />
       <HomeStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} />
+      <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} />
     </HomeStack.Navigator>
   );
 }
@@ -92,13 +108,11 @@ function TreinoNavigator() {
   );
 }
 
-function AgendaNavigator() {
+function LojaNavigator() {
   return (
-    <AgendaStack.Navigator screenOptions={stackOptions}>
-      <AgendaStack.Screen name="AgendamentoMain" component={AgendamentoScreen} />
-      <AgendaStack.Screen name="AgendamentoPersonal" component={AgendamentoPersonalScreen} />
-      <AgendaStack.Screen name="Aulas" component={AulasScreen} />
-    </AgendaStack.Navigator>
+    <LojaStack.Navigator screenOptions={stackOptions}>
+      <LojaStack.Screen name="LojaMain" component={LojaScreen} />
+    </LojaStack.Navigator>
   );
 }
 
@@ -137,7 +151,44 @@ function MenuNavigator() {
       <MenuStack.Screen name="LGPD" component={LGPDScreen} />
       <MenuStack.Screen name="Relatorio" component={RelatorioScreen} />
       <MenuStack.Screen name="ListaCompras" component={ListaComprasScreen} />
+      <MenuStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} />
     </MenuStack.Navigator>
+  );
+}
+
+// Professor stack navigators
+function MinhasAulasNavigator() {
+  return (
+    <MinhasAulasStack.Navigator screenOptions={stackOptions}>
+      <MinhasAulasStack.Screen name="MinhasAulasMain" component={MinhasAulasScreen} />
+      <MinhasAulasStack.Screen name="AulaFinalizada" component={AulaFinalizadaScreen} />
+    </MinhasAulasStack.Navigator>
+  );
+}
+
+function PresencaNavigator() {
+  return (
+    <PresencaStack.Navigator screenOptions={stackOptions}>
+      <PresencaStack.Screen name="AulaAtivaMain" component={AulaAtivaScreen} />
+      <PresencaStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} />
+    </PresencaStack.Navigator>
+  );
+}
+
+function HistoricoNavigator() {
+  return (
+    <HistoricoStack.Navigator screenOptions={stackOptions}>
+      <HistoricoStack.Screen name="HistoricoTreinoMain" component={HistoricoTreinoScreen} />
+    </HistoricoStack.Navigator>
+  );
+}
+
+function AgendaProfNavigator() {
+  return (
+    <AgendaProfStack.Navigator screenOptions={stackOptions}>
+      <AgendaProfStack.Screen name="AgendamentoMain" component={AgendamentoScreen} />
+      <AgendaProfStack.Screen name="AgendamentoPersonal" component={AgendamentoPersonalScreen} />
+    </AgendaProfStack.Navigator>
   );
 }
 
@@ -155,6 +206,10 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
     Feed: '📱',
     Agenda: '📅',
     Menu: '☰',
+    Loja: '🛒',
+    'Minhas Aulas': '📋',
+    'Presença': '✅',
+    'Histórico': '📊',
   };
 
   return (
@@ -181,39 +236,61 @@ const tabStyles = StyleSheet.create({
   },
 });
 
-export default function AppNavigator() {
+const tabScreenOptions = ({ route }: { route: any }) => ({
+  headerShown: false,
+  tabBarStyle: {
+    backgroundColor: colors.bg,
+    borderTopColor: colors.elevated,
+    borderTopWidth: 0.5,
+    height: 80,
+    paddingBottom: 20,
+    paddingTop: 8,
+  },
+  tabBarActiveTintColor: colors.orange,
+  tabBarInactiveTintColor: colors.textMuted,
+  tabBarLabelStyle: {
+    fontSize: 10,
+    fontFamily: fonts.bodyMedium,
+  },
+  tabBarIcon: ({ focused }: { focused: boolean }) => (
+    <TabIcon name={route.name} focused={focused} />
+  ),
+});
+
+function AlunoTabs() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.bg,
-          borderTopColor: colors.elevated,
-          borderTopWidth: 0.5,
-          height: 80,
-          paddingBottom: 20,
-          paddingTop: 8,
-        },
-        tabBarActiveTintColor: colors.orange,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontFamily: fonts.bodyMedium,
-        },
-        tabBarIcon: ({ focused }) => (
-          <TabIcon name={route.name} focused={focused} />
-        ),
-      })}
-    >
-      <Tab.Screen name="Home" component={HomeNavigator} />
-      <Tab.Screen name="Feed" component={FeedNavigator} />
-      <Tab.Screen
+    <AlunoTab.Navigator screenOptions={tabScreenOptions}>
+      <AlunoTab.Screen name="Home" component={HomeNavigator} />
+      <AlunoTab.Screen name="Feed" component={FeedNavigator} />
+      <AlunoTab.Screen
         name="Treino"
         component={TreinoNavigator}
         options={{ tabBarLabel: '' }}
       />
-      <Tab.Screen name="Agenda" component={AgendaNavigator} />
-      <Tab.Screen name="Menu" component={MenuNavigator} />
-    </Tab.Navigator>
+      <AlunoTab.Screen name="Loja" component={LojaNavigator} />
+      <AlunoTab.Screen name="Menu" component={MenuNavigator} />
+    </AlunoTab.Navigator>
   );
+}
+
+function ProfessorTabs() {
+  return (
+    <ProfessorTab.Navigator screenOptions={tabScreenOptions}>
+      <ProfessorTab.Screen name="Minhas Aulas" component={MinhasAulasNavigator} />
+      <ProfessorTab.Screen name="Presença" component={PresencaNavigator} />
+      <ProfessorTab.Screen name="Histórico" component={HistoricoNavigator} />
+      <ProfessorTab.Screen name="Agenda" component={AgendaProfNavigator} />
+      <ProfessorTab.Screen name="Menu" component={MenuNavigator} />
+    </ProfessorTab.Navigator>
+  );
+}
+
+export default function AppNavigator() {
+  const { currentMode } = useModeStore();
+
+  if (currentMode === 'profissional') {
+    return <ProfessorTabs />;
+  }
+
+  return <AlunoTabs />;
 }

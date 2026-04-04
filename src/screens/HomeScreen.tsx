@@ -23,6 +23,12 @@ const MOCK_UNITS = [
   { id: '5', name: 'Icuí', capacity: 90, current_count: 20 },
 ];
 
+const MOCK_AULAS = [
+  { id: '1', time: '07:00', name: 'Dança', icon: '💃', instructor: 'Prof. Ana', vagas: 8 },
+  { id: '2', time: '09:00', name: 'Funcional', icon: '🏋️', instructor: 'Prof. Carlos', vagas: 5 },
+  { id: '3', time: '18:00', name: 'HIIT', icon: '🔥', instructor: 'Prof. Bruna', vagas: 3 },
+];
+
 const MOCK_USER = {
   name: 'João',
   level: 'Ouro',
@@ -93,6 +99,30 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.workoutBtnText}>Iniciar</Text>
         </View>
       </TouchableOpacity>
+
+      {/* Aulas de hoje */}
+      <Text style={styles.sectionTitle}>Aulas de hoje</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.aulasRow}
+      >
+        {MOCK_AULAS.map((aula) => (
+          <View key={aula.id} style={styles.aulaCard}>
+            <Text style={styles.aulaTime}>{aula.time}</Text>
+            <Text style={styles.aulaName}>{aula.icon} {aula.name}</Text>
+            <Text style={styles.aulaInstructor}>{aula.instructor}</Text>
+            <Text style={styles.aulaVagas}>{aula.vagas} vagas</Text>
+            <TouchableOpacity
+              style={styles.aulaScanBtn}
+              onPress={() => navigation.navigate('ScanQRAula')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.aulaScanText}>Escanear QR</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </ScrollView>
 
       {/* Unit capacity */}
       <Text style={styles.sectionTitle}>Lotação das unidades</Text>
@@ -219,6 +249,48 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.md,
+  },
+  aulasRow: { paddingHorizontal: spacing.xl, gap: spacing.sm, marginBottom: spacing.xxl },
+  aulaCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    width: 160,
+    gap: 4,
+  },
+  aulaTime: {
+    fontSize: 18,
+    fontFamily: fonts.numbersBold,
+    color: colors.orange,
+  },
+  aulaName: {
+    fontSize: 14,
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
+  },
+  aulaInstructor: {
+    fontSize: 11,
+    fontFamily: fonts.body,
+    color: colors.textSecondary,
+  },
+  aulaVagas: {
+    fontSize: 11,
+    fontFamily: fonts.bodyMedium,
+    color: colors.textMuted,
+    marginBottom: spacing.sm,
+  },
+  aulaScanBtn: {
+    borderWidth: 1,
+    borderColor: colors.orange,
+    borderRadius: radius.md,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    alignItems: 'center',
+  },
+  aulaScanText: {
+    fontSize: 11,
+    fontFamily: fonts.bodyBold,
+    color: colors.orange,
   },
   bubbles: { paddingHorizontal: spacing.xl, gap: spacing.lg, marginBottom: spacing.xxl },
   quickGrid: {

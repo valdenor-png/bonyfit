@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
+import { useModeStore } from '../stores/modeStore';
 
 interface Props {
   navigation: any;
@@ -75,6 +76,7 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
       { icon: '👨‍🏫', label: 'Personal trainers', sub: 'Quem está no salão agora', screen: 'Personal' },
       { icon: '🏋', label: 'Aulas coletivas', sub: 'Spinning, yoga, HIIT...', screen: 'Aulas' },
       { icon: '🎥', label: 'Aulas online', sub: 'Treinos em vídeo', screen: 'AulasOnline' },
+      { icon: '📷', label: 'Escanear QR Aula', sub: 'Check-in em aula coletiva', screen: 'ScanQRAula' },
     ],
   },
   {
@@ -87,12 +89,41 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
 ];
 
 export default function MenuScreen({ navigation }: Props) {
+  const { currentMode, toggleMode } = useModeStore();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
         <Skull size={28} color={colors.orange} />
         <Text style={styles.headerTitle}>Menu</Text>
+      </View>
+
+      {/* Mode badge */}
+      <View style={styles.modeBadgeRow}>
+        <View style={styles.modeBadge}>
+          <Text style={styles.modeBadgeText}>
+            {currentMode === 'aluno' ? '👤 Modo Aluno' : '🏋️ Modo Profissional'}
+          </Text>
+        </View>
+      </View>
+
+      {/* Switch mode */}
+      <View style={[styles.section, { marginTop: spacing.md }]}>
+        <View style={styles.sectionCard}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={toggleMode}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.menuIcon}>🔄</Text>
+            <View style={styles.menuInfo}>
+              <Text style={styles.menuLabel}>Trocar modo</Text>
+              <Text style={styles.menuSub}>Alternar entre modo aluno e profissional</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {SECTIONS.map((section) => (
@@ -138,6 +169,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   headerTitle: { fontSize: 22, fontFamily: fonts.bodyBold, color: colors.text },
+  modeBadgeRow: {
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.xs,
+  },
+  modeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(242, 101, 34, 0.15)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+  },
+  modeBadgeText: {
+    fontSize: 12,
+    fontFamily: fonts.bodyBold,
+    color: colors.orange,
+  },
   section: { marginTop: spacing.lg, paddingHorizontal: spacing.xl },
   sectionTitle: {
     fontSize: 11,
