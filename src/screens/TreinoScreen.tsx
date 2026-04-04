@@ -19,6 +19,8 @@ import RestTimer from '../components/RestTimer';
 import TopBar from '../components/TopBar';
 import Button from '../components/Button';
 import { Exercise, ExerciseProgress, ExerciseStatus, SetStatus } from '../types/workout';
+import { supabase } from '../services/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 // --- SUBSTITUTION MOCK DATA ---
 interface SubstitutionOption {
@@ -178,6 +180,7 @@ export default function TreinoScreen() {
         }
         setExercises(updated);
         setView('complete');
+        setTimeout(() => saveWorkoutToSupabase(), 500);
       } else {
         setExercises(updated);
         setView('exercises');
@@ -225,6 +228,78 @@ export default function TreinoScreen() {
   const handleEndWorkout = () => {
     setShowEndModal(false);
     setView('complete');
+    saveWorkoutToSupabase();
+  };
+
+  const saveWorkoutToSupabase = async () => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      const setsPoints = completedSets * 15;
+      const exPoints = completedExercises * 50;
+      const bonus = allCompleted ? 200 : 0;
+      const checkinPoints = 100;
+      const totalPoints = checkinPoints + setsPoints + exPoints + bonus;
+
+      // Get current user data for streak calculation
+      const { data: userData } = await supabase
+        .from('users')
+        .select('total_points, current_streak, last_workout_date, total_workouts')
+        .eq('id', authUser.id)
+        .single();
+
+      if (!userData) return;
+
+      // Calculate streak
+      const today = new Date().toISOString().split('T')[0];
+      const lastDate = userData.last_workout_date;
+      let newStreak = 1;
+
+      if (lastDate) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        if (lastDate === today) {
+          newStreak = userData.current_streak; // Already trained today
+        } else if (lastDate === yesterdayStr) {
+          newStreak = userData.current_streak + 1; // Consecutive
+        }
+      }
+
+      // Calculate streak multiplier
+      let multiplier = 1.0;
+      if (newStreak >= 30) multiplier = 2.0;
+      else if (newStreak >= 14) multiplier = 1.5;
+      else if (newStreak >= 7) multiplier = 1.2;
+
+      const finalPoints = Math.round(totalPoints * multiplier);
+
+      // Update user points + streak
+      await supabase
+        .from('users')
+        .update({
+          total_points: (userData.total_points || 0) + finalPoints,
+          current_streak: newStreak,
+          last_workout_date: today,
+          total_workouts: (userData.total_workouts || 0) + 1,
+        })
+        .eq('id', authUser.id);
+
+      // Save workout session
+      await supabase.from('workout_sessions').insert({
+        user_id: authUser.id,
+        started_at: new Date(Date.now() - elapsedSeconds * 1000).toISOString(),
+        ended_at: new Date().toISOString(),
+        total_points: finalPoints,
+        catraca_validated: catracaValidated,
+        status: allCompleted ? 'completed' : 'ended_early',
+      });
+
+    } catch (err) {
+      console.warn('Erro ao salvar treino:', err);
+    }
   };
 
   const handleGoToSkipped = () => {
@@ -343,7 +418,7 @@ export default function TreinoScreen() {
 
         {/* Streak */}
         <View style={styles.streakCard}>
-          <Text style={styles.streakText}>🔥 Streak: 15 dias seguidos! (1.5x)</Text>
+          <Text style={styles.streakText}>🔥 Pontos salvos no seu perfil!</Text>
         </View>
 
         <Button title="Compartilhar no feed" onPress={() => {}} />
