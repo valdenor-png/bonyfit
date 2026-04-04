@@ -2,58 +2,76 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
+  SafeAreaView,
+  Alert,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
-  ActivityIndicator,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { AuthStackParamList } from '../../navigation/types';
 import { colors, fonts, spacing, radius } from '../../tokens';
-import Input from '../../components/Input';
-import Button from '../../components/Button';
 import Skull from '../../components/Skull';
+import Button from '../../components/Button';
 import { supabase } from '../../services/supabase';
 
+type Nav = StackNavigationProp<AuthStackParamList, 'Login'>;
+
 interface Props {
-  navigation: any;
   onLoginSuccess: () => void;
 }
 
-export default function LoginScreen({ navigation, onLoginSuccess }: Props) {
+function maskCPF(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9)
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+export default function LoginScreen({ onLoginSuccess }: Props) {
+  const navigation = useNavigation<Nav>();
   const [cpf, setCpf] = useState('');
-  const [password, setPassword] = useState('');
+  const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const cpfClean = cpf.replace(/\D/g, '');
-  const isValid = cpfClean.length === 11 && password.length >= 6;
-
   const handleLogin = async () => {
-    if (!isValid) return;
-    setLoading(true);
+    const cpfClean = cpf.replace(/\D/g, '');
+    if (cpfClean.length !== 11) {
+      Alert.alert('Erro', 'CPF inv\u00e1lido.');
+      return;
+    }
+    if (!senha) {
+      Alert.alert('Erro', 'Digite sua senha.');
+      return;
+    }
 
+    setLoading(true);
     try {
-      // Buscar email pelo CPF na tabela users
-      const { data: userData, error: userError } = await supabase
+      const { data: userData, error: lookupError } = await supabase
         .from('users')
         .select('email')
         .eq('cpf', cpfClean)
         .single();
 
-      if (userError || !userData) {
-        Alert.alert('Erro', 'CPF não encontrado. Verifique ou crie uma conta.');
+      if (lookupError || !userData) {
+        Alert.alert('Erro', 'CPF n\u00e3o encontrado.');
         setLoading(false);
         return;
       }
 
-      // Login com email + senha
       const { error: authError } = await supabase.auth.signInWithPassword({
         email: userData.email,
-        password,
+        password: senha,
       });
 
       if (authError) {
-        Alert.alert('Erro', 'Senha incorreta. Tente novamente.');
+        Alert.alert('Erro', 'Senha incorreta.');
         setLoading(false);
         return;
       }
@@ -67,96 +85,118 @@ export default function LoginScreen({ navigation, onLoginSuccess }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Logo */}
           <View style={styles.logoArea}>
-            <Skull size={50} color={colors.orange} />
+            <Skull size={60} />
             <Text style={styles.title}>Entrar</Text>
-            <Text style={styles.subtitle}>
-              Acesse sua conta Bony Fit
-            </Text>
+            <Text style={styles.subtitle}>Acesse sua conta Bony Fit</Text>
           </View>
 
-          {/* Fields */}
-          <View style={styles.fields}>
-            <Input
-              label="CPF"
-              value={cpf}
-              onChangeText={setCpf}
-              placeholder="000.000.000-00"
-              mask="cpf"
-              keyboardType="numeric"
-            />
-            <Input
-              label="Senha"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Sua senha"
-              secureTextEntry
-            />
-          </View>
+          <View style={styles.form}>
+            <View style={styles.field}>
+              <Text style={styles.label}>CPF</Text>
+              <TextInput
+                style={styles.input}
+                value={cpf}
+                onChangeText={(t) => setCpf(maskCPF(t))}
+                placeholder="000.000.000-00"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+                maxLength={14}
+              />
+            </View>
 
-          {/* Login button */}
-          <Button
-            title={loading ? 'Entrando...' : 'Entrar'}
-            onPress={handleLogin}
-            disabled={!isValid || loading}
-            loading={loading}
-          />
+            <View style={styles.field}>
+              <Text style={styles.label}>Senha</Text>
+              <TextInput
+                style={styles.input}
+                value={senha}
+                onChangeText={setSenha}
+                placeholder="Sua senha"
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry
+              />
+            </View>
 
-          {/* Back */}
-          <View style={styles.backRow}>
             <Button
-              title="Não tenho conta — Criar agora"
-              variant="ghost"
-              onPress={() => navigation.navigate('Dados')}
+              title="Entrar"
+              onPress={handleLogin}
+              loading={loading}
+              disabled={!cpf || !senha}
             />
           </View>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Welcome')}>
+            <Text style={styles.link}>N\u00e3o tenho conta</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  flex: { flex: 1 },
-  content: {
+  safe: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+  container: {
+    flexGrow: 1,
     paddingHorizontal: spacing.xl,
     paddingTop: 60,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 32,
+    justifyContent: 'center',
+    gap: 40,
   },
   logoArea: {
     alignItems: 'center',
-    marginBottom: 40,
-    gap: spacing.sm,
+    gap: 8,
   },
   title: {
-    fontSize: 24,
-    fontFamily: fonts.bodyBold,
+    fontFamily: fonts.numbersExtraBold,
+    fontSize: 28,
     color: colors.text,
-    marginTop: spacing.md,
+    marginTop: 12,
   },
   subtitle: {
-    fontSize: 14,
     fontFamily: fonts.body,
+    fontSize: 14,
     color: colors.textSecondary,
   },
-  fields: {
-    gap: spacing.lg,
-    marginBottom: spacing.xxl,
+  form: {
+    gap: 16,
   },
-  backRow: {
-    marginTop: spacing.xl,
-    alignItems: 'center',
+  field: {
+    gap: 6,
+  },
+  label: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  input: {
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.lg,
+    fontFamily: fonts.body,
+    fontSize: 16,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.elevated,
+  },
+  link: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.orange,
+    textAlign: 'center',
   },
 });

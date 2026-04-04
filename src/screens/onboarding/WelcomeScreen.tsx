@@ -1,117 +1,108 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { AuthStackParamList } from '../../navigation/types';
 import { colors, fonts, spacing, radius } from '../../tokens';
-import Button from '../../components/Button';
 import Skull from '../../components/Skull';
+import Button from '../../components/Button';
 
-interface Props {
-  navigation: any;
-}
+type Nav = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
-export default function WelcomeScreen({ navigation }: Props) {
+const features = [
+  { emoji: '\uD83C\uDFAE', text: 'Gamifica\u00e7\u00e3o: ganhe pontos a cada treino' },
+  { emoji: '\uD83C\uDFC6', text: 'Ranking: dispute com outros alunos' },
+  { emoji: '\uD83D\uDCF1', text: 'Matr\u00edcula digital 100% pelo app' },
+  { emoji: '\uD83E\uDD1D', text: 'Comunidade: conecte-se com o squad' },
+];
+
+export default function WelcomeScreen() {
+  const navigation = useNavigation<Nav>();
+
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        {/* Logo */}
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
         <View style={styles.logoArea}>
-          <View style={styles.triangleWrapper}>
-            <Skull size={80} color={colors.orange} />
-          </View>
+          <Skull size={80} />
           <Text style={styles.title}>BONY FIT</Text>
           <Text style={styles.subtitle}>Treino pesado. Pontos reais.</Text>
         </View>
 
-        {/* Features */}
         <View style={styles.features}>
-          <FeatureRow icon="💪" text="Gamificação anti-fraude vinculada à catraca" />
-          <FeatureRow icon="🏆" text="Ranking, streak e níveis entre alunos" />
-          <FeatureRow icon="📱" text="Matrícula 100% digital sem recepcionista" />
-          <FeatureRow icon="👥" text="Comunidade social entre 5 unidades" />
+          {features.map((f, i) => (
+            <View key={i} style={styles.featureRow}>
+              <Text style={styles.emoji}>{f.emoji}</Text>
+              <Text style={styles.featureText}>{f.text}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.bottom}>
+          <Button
+            title="Criar conta"
+            onPress={() => navigation.navigate('DadosPessoais')}
+          />
+          <Button
+            title="J\u00e1 tenho conta"
+            variant="ghost"
+            onPress={() => navigation.navigate('Login')}
+          />
         </View>
       </View>
-
-      {/* Buttons */}
-      <View style={styles.buttons}>
-        <Button
-          title="Criar conta"
-          onPress={() => navigation.navigate('Dados')}
-        />
-        <Button
-          title="Já tenho conta"
-          variant="outline"
-          onPress={() => navigation.navigate('Login')}
-        />
-      </View>
-    </View>
-  );
-}
-
-function FeatureRow({ icon, text }: { icon: string; text: string }) {
-  return (
-    <View style={styles.featureRow}>
-      <Text style={styles.featureIcon}>{icon}</Text>
-      <Text style={styles.featureText}>{text}</Text>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  container: {
+    flex: 1,
     paddingHorizontal: spacing.xl,
     justifyContent: 'space-between',
-    paddingBottom: 40,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
+    paddingTop: 60,
+    paddingBottom: 32,
   },
   logoArea: {
     alignItems: 'center',
-    marginBottom: 48,
-  },
-  triangleWrapper: {
-    width: 120,
-    height: 120,
-    borderRadius: 30,
-    backgroundColor: 'rgba(242, 101, 34, 0.1)',
-    borderWidth: 2,
-    borderColor: 'rgba(242, 101, 34, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xl,
+    gap: 12,
   },
   title: {
-    fontSize: 36,
     fontFamily: fonts.numbersExtraBold,
+    fontSize: 36,
     color: colors.text,
-    letterSpacing: 4,
+    marginTop: 12,
   },
   subtitle: {
-    fontSize: 14,
     fontFamily: fonts.body,
+    fontSize: 16,
     color: colors.textSecondary,
-    marginTop: spacing.sm,
   },
   features: {
-    gap: spacing.lg,
+    gap: 16,
   },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    backgroundColor: colors.card,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
+    gap: 12,
   },
-  featureIcon: {
+  emoji: {
     fontSize: 22,
   },
   featureText: {
-    fontSize: 14,
-    fontFamily: fonts.body,
-    color: colors.textSecondary,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.text,
     flex: 1,
   },
-  buttons: {
-    gap: spacing.md,
+  bottom: {
+    gap: 12,
+    alignItems: 'center',
   },
 });

@@ -1,12 +1,12 @@
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
-  Dados: undefined;
-  Unidade: undefined;
-  Plano: undefined;
-  Pagamento: undefined;
-  Facial: undefined;
-  Contrato: undefined;
+  DadosPessoais: undefined;
+  QuestionarioSaude: undefined;
+  ContratoDigital: undefined;
+  AssinaturaDigital: undefined;
+  EscolhaPlano: undefined;
+  Confirmacao: undefined;
 };
 
 export type FeedStackParamList = {
