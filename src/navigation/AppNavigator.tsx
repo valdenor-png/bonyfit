@@ -51,6 +51,8 @@ import ListaComprasScreen from '../screens/ListaComprasScreen';
 
 // New screens
 import LojaScreen from '../screens/loja/LojaScreen';
+import LojaCategoriaScreen from '../screens/loja/LojaCategoriaScreen';
+import LojaProdutoDetalheScreen from '../screens/loja/LojaProdutoDetalheScreen';
 import MinhasAulasScreen from '../screens/professor/MinhasAulasScreen';
 import AulaAtivaScreen from '../screens/professor/AulaAtivaScreen';
 import AulaFinalizadaScreen from '../screens/professor/AulaFinalizadaScreen';
@@ -112,6 +114,8 @@ function LojaNavigator() {
   return (
     <LojaStack.Navigator screenOptions={stackOptions}>
       <LojaStack.Screen name="LojaMain" component={LojaScreen} />
+      <LojaStack.Screen name="LojaCategoria" component={LojaCategoriaScreen} />
+      <LojaStack.Screen name="LojaProdutoDetalhe" component={LojaProdutoDetalheScreen} />
     </LojaStack.Navigator>
   );
 }
