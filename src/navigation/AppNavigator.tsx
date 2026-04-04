@@ -33,6 +33,20 @@ import NutricaoScreen from '../screens/NutricaoScreen';
 import AulasOnlineScreen from '../screens/AulasOnlineScreen';
 import SuporteScreen from '../screens/SuporteScreen';
 import PerfilPessoalScreen from '../screens/PerfilPessoalScreen';
+import AguaScreen from '../screens/AguaScreen';
+import JejumScreen from '../screens/JejumScreen';
+import ReceitasScreen from '../screens/ReceitasScreen';
+import DiarioAlimentarScreen from '../screens/DiarioAlimentarScreen';
+import StoriesScreen from '../screens/StoriesScreen';
+import QRCodeScreen from '../screens/QRCodeScreen';
+import CompararScreen from '../screens/CompararScreen';
+import MissoesScreen from '../screens/MissoesScreen';
+import LigasScreen from '../screens/LigasScreen';
+import PeriodizacaoScreen from '../screens/PeriodizacaoScreen';
+import ScannerScreen from '../screens/ScannerScreen';
+import LGPDScreen from '../screens/LGPDScreen';
+import RelatorioScreen from '../screens/RelatorioScreen';
+import ListaComprasScreen from '../screens/ListaComprasScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createStackNavigator<any>();
@@ -62,6 +76,9 @@ function FeedNavigator() {
       </FeedStack.Screen>
       <FeedStack.Screen name="Chat">
         {(props: any) => <ChatScreen {...props} />}
+      </FeedStack.Screen>
+      <FeedStack.Screen name="Stories">
+        {(props: any) => <StoriesScreen {...props} />}
       </FeedStack.Screen>
     </FeedStack.Navigator>
   );
@@ -107,6 +124,19 @@ function MenuNavigator() {
       <MenuStack.Screen name="AulasOnline" component={AulasOnlineScreen} />
       <MenuStack.Screen name="Suporte" component={SuporteScreen} />
       <MenuStack.Screen name="Aulas" component={AulasScreen} />
+      <MenuStack.Screen name="Agua" component={AguaScreen} />
+      <MenuStack.Screen name="Jejum" component={JejumScreen} />
+      <MenuStack.Screen name="Receitas" component={ReceitasScreen} />
+      <MenuStack.Screen name="DiarioAlimentar" component={DiarioAlimentarScreen} />
+      <MenuStack.Screen name="QRCode" component={QRCodeScreen} />
+      <MenuStack.Screen name="Comparar" component={CompararScreen} />
+      <MenuStack.Screen name="Missoes" component={MissoesScreen} />
+      <MenuStack.Screen name="Ligas" component={LigasScreen} />
+      <MenuStack.Screen name="Periodizacao" component={PeriodizacaoScreen} />
+      <MenuStack.Screen name="Scanner2" component={ScannerScreen} />
+      <MenuStack.Screen name="LGPD" component={LGPDScreen} />
+      <MenuStack.Screen name="Relatorio" component={RelatorioScreen} />
+      <MenuStack.Screen name="ListaCompras" component={ListaComprasScreen} />
     </MenuStack.Navigator>
   );
 }

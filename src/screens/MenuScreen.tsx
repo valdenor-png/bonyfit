@@ -27,29 +27,46 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
       { icon: '📋', label: 'Treinos prontos', sub: 'Hipertrofia, emagrecimento, funcional', screen: 'TreinosProntos' },
       { icon: '📊', label: 'Histórico de treinos', sub: 'Seus treinos anteriores', screen: 'HistoricoTreino' },
       { icon: '📅', label: 'Frequência', sub: 'Calendário de presença', screen: 'Frequencia' },
+      { icon: '📆', label: 'Periodização', sub: 'Mesociclo e fases do treino', screen: 'Periodizacao' },
     ],
   },
   {
-    title: 'Ranking e recompensas',
+    title: 'Ranking e gamificação',
     items: [
       { icon: '🏆', label: 'Ranking', sub: 'Sua posição entre os alunos', screen: 'Ranking' },
-      { icon: '🎁', label: 'Recompensas', sub: 'Troque pontos por prêmios', screen: 'Recompensas' },
+      { icon: '⚔', label: 'Ligas', sub: 'Competição semanal entre alunos', screen: 'Ligas' },
       { icon: '🎯', label: 'Desafios', sub: 'Desafios entre alunos e unidades', screen: 'Desafios' },
+      { icon: '📌', label: 'Missões da semana', sub: 'Complete missões e ganhe XP', screen: 'Missoes' },
+      { icon: '🎁', label: 'Recompensas', sub: 'Troque pontos por prêmios', screen: 'Recompensas' },
     ],
   },
   {
     title: 'Social',
     items: [
       { icon: '👥', label: 'Grupos', sub: 'Comunidades por afinidade', screen: 'Grupos' },
+      { icon: '📊', label: 'Comparar progresso', sub: 'Compare com um amigo', screen: 'Comparar' },
+      { icon: '📱', label: 'QR Code amigos', sub: 'Adicionar amigos por QR', screen: 'QRCode' },
     ],
   },
   {
-    title: 'Saúde e nutrição',
+    title: 'Nutrição',
+    items: [
+      { icon: '🥗', label: 'Nutrição', sub: 'Plano alimentar e calorias', screen: 'Nutricao' },
+      { icon: '📖', label: 'Diário alimentar', sub: 'Timeline de refeições', screen: 'DiarioAlimentar' },
+      { icon: '💧', label: 'Hidratação', sub: 'Rastreamento de água', screen: 'Agua' },
+      { icon: '⏰', label: 'Jejum intermitente', sub: 'Timer e protocolos', screen: 'Jejum' },
+      { icon: '🍳', label: 'Receitas fitness', sub: '10+ receitas saudáveis', screen: 'Receitas' },
+      { icon: '🔍', label: 'Scanner de alimentos', sub: 'Escaneie códigos de barras', screen: 'Scanner2' },
+      { icon: '🛒', label: 'Lista de compras', sub: 'Gerada do plano alimentar', screen: 'ListaCompras' },
+    ],
+  },
+  {
+    title: 'Saúde',
     items: [
       { icon: '📝', label: 'Anamnese', sub: 'Questionário de saúde', screen: 'Anamnese' },
       { icon: '📐', label: 'Avaliação física', sub: 'Medidas, composição, fotos', screen: 'AvaliacaoFisica' },
       { icon: '⚖', label: 'Peso', sub: 'Acompanhamento de peso', screen: 'Peso' },
-      { icon: '🥗', label: 'Nutrição', sub: 'Plano alimentar e calorias', screen: 'Nutricao' },
+      { icon: '📄', label: 'Relatório mensal', sub: 'Resumo em PDF', screen: 'Relatorio' },
     ],
   },
   {
@@ -61,9 +78,10 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
     ],
   },
   {
-    title: 'Ajuda',
+    title: 'Ajuda e dados',
     items: [
       { icon: '❓', label: 'Suporte', sub: 'FAQ e atendimento', screen: 'Suporte' },
+      { icon: '🔒', label: 'LGPD e privacidade', sub: 'Exportar dados, excluir conta', screen: 'LGPD' },
     ],
   },
 ];
