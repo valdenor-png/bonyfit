@@ -18,16 +18,16 @@ interface Props {
 }
 
 const PLAN_NAMES: Record<string, string> = {
-  mensal: 'Mensal \u2014 R$ 89,90/m\u00eas',
-  trimestral: 'Trimestral \u2014 R$ 69,90/m\u00eas',
-  semestral: 'Semestral \u2014 R$ 59,90/m\u00eas',
-  anual: 'Anual \u2014 R$ 49,90/m\u00eas',
+  mensal: 'Mensal — R$ 89,90/mês',
+  trimestral: 'Trimestral — R$ 69,90/mês',
+  semestral: 'Semestral — R$ 59,90/mês',
+  anual: 'Anual — R$ 49,90/mês',
 };
 
 const PAYMENT_NAMES: Record<string, string> = {
   pix: 'PIX',
-  cartao: 'Cart\u00e3o de cr\u00e9dito',
-  boleto: 'Boleto banc\u00e1rio',
+  cartao: 'Cartão de crédito',
+  boleto: 'Boleto bancário',
 };
 
 export default function ConfirmacaoScreen({ onComplete }: Props) {
@@ -45,9 +45,16 @@ export default function ConfirmacaoScreen({ onComplete }: Props) {
 
   const handleFinish = async () => {
     try {
+      // 1. Criar conta no Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: store.email,
         password: store.senha,
+        options: {
+          data: {
+            name: store.nome,
+            cpf: store.cpf.replace(/\D/g, ''),
+          },
+        },
       });
 
       if (authError) {
@@ -56,32 +63,124 @@ export default function ConfirmacaoScreen({ onComplete }: Props) {
       }
 
       if (!authData.user) {
-        Alert.alert('Erro', 'N\u00e3o foi poss\u00edvel criar a conta.');
+        Alert.alert('Erro', 'Não foi possível criar a conta.');
         return;
       }
 
+      const userId = authData.user.id;
       const cpfClean = store.cpf.replace(/\D/g, '');
       const phoneClean = store.telefone.replace(/\D/g, '');
 
-      const { error: insertError } = await supabase.from('users').insert({
-        id: authData.user.id,
-        name: store.nome,
-        cpf: cpfClean,
-        email: store.email,
-        phone: phoneClean,
-        plan_id: store.planoSelecionadoId,
-        contract_accepted: true,
-        contract_accepted_at: new Date().toISOString(),
-        signature_base64: store.assinaturaBase64,
-        parq_responses: store.respostasParQ,
-        parq_requires_medical: store.requerAtestado,
-        payment_method: store.metodoPagamento,
-        birth_date: store.nascimento,
-      });
+      // 2. Atualizar perfil na tabela users (trigger já criou o básico)
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          name: store.nome,
+          cpf: cpfClean,
+          phone: phoneClean,
+          data_nascimento: store.nascimento || null,
+          onboarding_completo: true,
+          requer_atestado_medico: store.requerAtestado,
+          contract_accepted: true,
+          contract_accepted_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
 
-      if (insertError) {
-        Alert.alert('Erro ao salvar dados', insertError.message);
-        return;
+      if (updateError) {
+        // Se trigger não criou, tentar insert
+        const { error: insertError } = await supabase.from('users').upsert({
+          id: userId,
+          name: store.nome,
+          cpf: cpfClean,
+          email: store.email,
+          phone: phoneClean,
+          data_nascimento: store.nascimento || null,
+          onboarding_completo: true,
+          requer_atestado_medico: store.requerAtestado,
+          contract_accepted: true,
+          contract_accepted_at: new Date().toISOString(),
+          cargo_slug: 'aluno',
+        });
+        if (insertError) {
+          console.warn('Erro ao salvar perfil:', insertError.message);
+        }
+      }
+
+      // 3. Salvar questionário de saúde (PAR-Q)
+      if (Object.keys(store.respostasParQ).length > 0) {
+        await supabase.from('questionario_saude').insert({
+          usuario_id: userId,
+          respostas: store.respostasParQ,
+          requer_atestado: store.requerAtestado,
+          preenchido_por: 'app',
+        }).then(({ error }) => {
+          if (error) console.warn('Erro ao salvar PAR-Q:', error.message);
+        });
+      }
+
+      // 4. Salvar contrato assinado
+      if (store.assinaturaBase64) {
+        // Upload assinatura no Storage
+        let assinaturaUrl = '';
+        try {
+          const fileName = `assinaturas/${userId}/${Date.now()}.png`;
+          const base64Data = store.assinaturaBase64.replace(/^data:image\/\w+;base64,/, '');
+          const { error: uploadError } = await supabase.storage
+            .from('contratos')
+            .upload(fileName, decode(base64Data), {
+              contentType: 'image/png',
+              upsert: true,
+            });
+
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage
+              .from('contratos')
+              .getPublicUrl(fileName);
+            assinaturaUrl = urlData.publicUrl;
+          }
+        } catch {
+          assinaturaUrl = 'assinatura_pendente';
+        }
+
+        await supabase.from('contratos').insert({
+          usuario_id: userId,
+          versao_contrato: store.versaoContrato || 'v1.0',
+          texto_contrato: 'Contrato aceito via app',
+          assinatura_url: assinaturaUrl || 'assinatura_local',
+          metodo: 'app',
+          assinado_em: new Date().toISOString(),
+        }).then(({ error }) => {
+          if (error) console.warn('Erro ao salvar contrato:', error.message);
+        });
+      }
+
+      // 5. Criar assinatura de plano (buscar UUID pelo nome/slug)
+      if (store.planoSelecionadoId) {
+        const planoNomeMap: Record<string, string> = {
+          mensal: 'Mensal',
+          trimestral: 'Trimestral',
+          semestral: 'Semestral',
+          anual: 'Anual',
+        };
+        const planoNome = planoNomeMap[store.planoSelecionadoId] || store.planoSelecionadoId;
+
+        const { data: planoData } = await supabase
+          .from('planos')
+          .select('id')
+          .eq('nome', planoNome)
+          .single();
+
+        if (planoData) {
+          await supabase.from('assinaturas').insert({
+            usuario_id: userId,
+            plano_id: planoData.id,
+            status: 'pendente_pagamento',
+            metodo_pagamento: store.metodoPagamento,
+            data_inicio: new Date().toISOString().split('T')[0],
+          }).then(({ error }) => {
+            if (error) console.warn('Erro ao criar assinatura:', error.message);
+          });
+        }
       }
 
       store.reset();
@@ -102,32 +201,29 @@ export default function ConfirmacaoScreen({ onComplete }: Props) {
               { transform: [{ scale: scaleAnim }] },
             ]}
           >
-            <Text style={styles.checkIcon}>{'\u2713'}</Text>
+            <Text style={styles.checkIcon}>✓</Text>
           </Animated.View>
 
-          <Text style={styles.title}>Bem-vindo \u00e0 Bony Fit!</Text>
+          <Text style={styles.title}>Bem-vindo à Bony Fit!</Text>
 
           <View style={styles.summaryCard}>
             <SummaryRow label="Nome" value={store.nome} />
             <SummaryRow
               label="Plano"
-              value={
-                PLAN_NAMES[store.planoSelecionadoId || ''] || 'N\u00e3o selecionado'
-              }
+              value={PLAN_NAMES[store.planoSelecionadoId || ''] || 'Não selecionado'}
             />
             <SummaryRow
               label="Pagamento"
-              value={
-                PAYMENT_NAMES[store.metodoPagamento || ''] || 'N\u00e3o selecionado'
-              }
+              value={PAYMENT_NAMES[store.metodoPagamento || ''] || 'Não selecionado'}
             />
             <SummaryRow label="Contrato" value="Aceito e assinado" />
+            <SummaryRow label="PAR-Q" value={store.requerAtestado ? 'Requer atestado' : 'OK'} />
           </View>
 
           <View style={styles.nextStepsCard}>
-            <Text style={styles.nextStepsTitle}>Pr\u00f3ximos passos</Text>
+            <Text style={styles.nextStepsTitle}>Próximos passos</Text>
             <Text style={styles.nextStepsText}>
-              V\u00e1 at\u00e9 a recep\u00e7\u00e3o para liberar seu acesso na catraca
+              Vá até a recepção para liberar seu acesso na catraca
             </Text>
           </View>
         </View>
@@ -136,6 +232,16 @@ export default function ConfirmacaoScreen({ onComplete }: Props) {
       </View>
     </SafeAreaView>
   );
+}
+
+// Helper to decode base64 to Uint8Array for Storage upload
+function decode(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
@@ -148,10 +254,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
+  safe: { flex: 1, backgroundColor: colors.bg },
   container: {
     flex: 1,
     paddingHorizontal: spacing.xl,
@@ -172,11 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkIcon: {
-    fontSize: 40,
-    color: colors.text,
-    fontWeight: 'bold',
-  },
+  checkIcon: { fontSize: 40, color: colors.text, fontWeight: 'bold' },
   title: {
     fontFamily: fonts.numbersExtraBold,
     fontSize: 24,
@@ -190,15 +289,8 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 12,
   },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  summaryLabel: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  summaryLabel: { fontFamily: fonts.body, fontSize: 14, color: colors.textSecondary },
   summaryValue: {
     fontFamily: fonts.bodyMedium,
     fontSize: 14,
@@ -215,11 +307,7 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 8,
   },
-  nextStepsTitle: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 16,
-    color: colors.success,
-  },
+  nextStepsTitle: { fontFamily: fonts.bodyBold, fontSize: 16, color: colors.success },
   nextStepsText: {
     fontFamily: fonts.body,
     fontSize: 14,
