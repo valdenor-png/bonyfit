@@ -15,6 +15,11 @@ export interface User {
   created_at: string;
   avatar_url: string | null;
   is_private: boolean;
+  cargo_id: string | null;
+  cargo_slug: string;
+  onboarding_completo: boolean;
+  objetivo: string;
+  codigo_indicacao: string | null;
 }
 
 export interface Unit {

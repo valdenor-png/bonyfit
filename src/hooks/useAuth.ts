@@ -2,9 +2,13 @@ import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import * as authService from '../services/auth';
 import type { User } from '../types/user';
+import type { Cargo } from '../types/cargo';
 
 interface AuthState {
   user: User | null;
+  cargo: Cargo | null;
+  cargoSlug: string;
+  podeTrocarModo: boolean;
   loading: boolean;
   isAuthenticated: boolean;
 
@@ -19,10 +23,14 @@ interface AuthState {
   updateProfile: (
     data: Partial<Pick<User, 'name' | 'phone' | 'avatar_url' | 'is_private'>>,
   ) => Promise<void>;
+  hasPermission: (permission: string) => boolean;
 }
 
 export const useAuth = create<AuthState>((set, get) => ({
   user: null,
+  cargo: null,
+  cargoSlug: 'aluno',
+  podeTrocarModo: false,
   loading: true,
   isAuthenticated: false,
 
@@ -30,8 +38,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     set({ loading: true });
     try {
       await authService.signIn(email, password);
-      const user = await authService.getCurrentUser();
-      set({ user, isAuthenticated: !!user, loading: false });
+      await get().loadUser();
     } catch (error) {
       set({ loading: false });
       throw error;
@@ -48,15 +55,18 @@ export const useAuth = create<AuthState>((set, get) => ({
       const { user: authUser } = await authService.signUp(email, password);
 
       if (authUser) {
-        const { error } = await supabase.from('users').insert({
-          id: authUser.id,
-          email,
-          ...userData,
-        });
+        // Trigger auto-profile handles basic insert
+        // Update with additional data
+        const { error } = await supabase
+          .from('users')
+          .upsert({
+            id: authUser.id,
+            email,
+            ...userData,
+          });
         if (error) throw error;
 
-        const user = await authService.getCurrentUser();
-        set({ user, isAuthenticated: !!user, loading: false });
+        await get().loadUser();
       } else {
         set({ loading: false });
       }
@@ -70,7 +80,14 @@ export const useAuth = create<AuthState>((set, get) => ({
     set({ loading: true });
     try {
       await authService.signOut();
-      set({ user: null, isAuthenticated: false, loading: false });
+      set({
+        user: null,
+        cargo: null,
+        cargoSlug: 'aluno',
+        podeTrocarModo: false,
+        isAuthenticated: false,
+        loading: false,
+      });
     } catch (error) {
       set({ loading: false });
       throw error;
@@ -81,9 +98,41 @@ export const useAuth = create<AuthState>((set, get) => ({
     set({ loading: true });
     try {
       const user = await authService.getCurrentUser();
-      set({ user, isAuthenticated: !!user, loading: false });
+      if (!user) {
+        set({ user: null, cargo: null, cargoSlug: 'aluno', podeTrocarModo: false, isAuthenticated: false, loading: false });
+        return;
+      }
+
+      // Fetch cargo data
+      let cargo: Cargo | null = null;
+      let cargoSlug = 'aluno';
+      let podeTrocarModo = false;
+
+      if (user.cargo_slug) {
+        cargoSlug = user.cargo_slug;
+      }
+
+      const { data: cargoData } = await supabase
+        .from('cargos')
+        .select('*')
+        .eq('slug', cargoSlug)
+        .single();
+
+      if (cargoData) {
+        cargo = cargoData as Cargo;
+        podeTrocarModo = cargo.pode_trocar_modo;
+      }
+
+      set({
+        user,
+        cargo,
+        cargoSlug,
+        podeTrocarModo,
+        isAuthenticated: true,
+        loading: false,
+      });
     } catch {
-      set({ user: null, isAuthenticated: false, loading: false });
+      set({ user: null, cargo: null, cargoSlug: 'aluno', podeTrocarModo: false, isAuthenticated: false, loading: false });
     }
   },
 
@@ -100,6 +149,12 @@ export const useAuth = create<AuthState>((set, get) => ({
       throw error;
     }
   },
+
+  hasPermission: (permission: string) => {
+    const cargo = get().cargo;
+    if (!cargo) return false;
+    return cargo.permissoes[permission] === true;
+  },
 }));
 
 // Listen for auth state changes on module load
@@ -107,6 +162,13 @@ supabase.auth.onAuthStateChange((_event, session) => {
   if (session?.user) {
     useAuth.getState().loadUser();
   } else {
-    useAuth.setState({ user: null, isAuthenticated: false, loading: false });
+    useAuth.setState({
+      user: null,
+      cargo: null,
+      cargoSlug: 'aluno',
+      podeTrocarModo: false,
+      isAuthenticated: false,
+      loading: false,
+    });
   }
 });
