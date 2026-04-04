@@ -57,6 +57,8 @@ import MinhasAulasScreen from '../screens/professor/MinhasAulasScreen';
 import AulaAtivaScreen from '../screens/professor/AulaAtivaScreen';
 import AulaFinalizadaScreen from '../screens/professor/AulaFinalizadaScreen';
 import ScanQRAulaScreen from '../screens/ScanQRAulaScreen';
+import IndicarAmigosScreen from '../screens/indicacao/IndicarAmigosScreen';
+import HistoricoAvaliacoesScreen from '../screens/HistoricoAvaliacoesScreen';
 
 const AlunoTab = createBottomTabNavigator();
 const ProfessorTab = createBottomTabNavigator();
@@ -156,6 +158,8 @@ function MenuNavigator() {
       <MenuStack.Screen name="Relatorio" component={RelatorioScreen} />
       <MenuStack.Screen name="ListaCompras" component={ListaComprasScreen} />
       <MenuStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} />
+      <MenuStack.Screen name="IndicarAmigos" component={IndicarAmigosScreen} />
+      <MenuStack.Screen name="HistoricoAvaliacoes" component={HistoricoAvaliacoesScreen} />
     </MenuStack.Navigator>
   );
 }

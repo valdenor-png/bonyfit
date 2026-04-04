@@ -17,6 +17,7 @@ import { colors, fonts, spacing, radius } from '../../tokens';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import Button from '../../components/Button';
 import ProgressBar from './ProgressBar';
+import CampoIndicacao from '../../components/onboarding/CampoIndicacao';
 
 type Nav = StackNavigationProp<AuthStackParamList, 'DadosPessoais'>;
 
@@ -80,6 +81,7 @@ export default function DadosPessoaisScreen() {
   const [email, setEmail] = useState(store.email);
   const [senha, setSenha] = useState(store.senha);
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [indicadorId, setIndicadorId] = useState<string | null>(null);
 
   const strength = getPasswordStrength(senha);
   const cpfDigits = cpf.replace(/\D/g, '');
@@ -190,6 +192,8 @@ export default function DadosPessoaisScreen() {
             {confirmarSenha.length > 0 && senha !== confirmarSenha && (
               <Text style={styles.errorText}>As senhas n\u00e3o coincidem</Text>
             )}
+
+            <CampoIndicacao onIndicadorSelecionado={setIndicadorId} />
           </View>
 
           <View style={styles.buttons}>

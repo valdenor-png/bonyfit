@@ -47,6 +47,7 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
       { icon: '👥', label: 'Grupos', sub: 'Comunidades por afinidade', screen: 'Grupos' },
       { icon: '📊', label: 'Comparar progresso', sub: 'Compare com um amigo', screen: 'Comparar' },
       { icon: '📱', label: 'QR Code amigos', sub: 'Adicionar amigos por QR', screen: 'QRCode' },
+      { icon: '🎁', label: 'Indicar amigos', sub: 'Ganhe pontos por indicação', screen: 'IndicarAmigos' },
     ],
   },
   {
@@ -68,6 +69,7 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
       { icon: '📐', label: 'Avaliação física', sub: 'Medidas, composição, fotos', screen: 'AvaliacaoFisica' },
       { icon: '⚖', label: 'Peso', sub: 'Acompanhamento de peso', screen: 'Peso' },
       { icon: '📄', label: 'Relatório mensal', sub: 'Resumo em PDF', screen: 'Relatorio' },
+      { icon: '📋', label: 'Minhas avaliações', sub: 'Histórico de reavaliações', screen: 'HistoricoAvaliacoes' },
     ],
   },
   {
