@@ -1,27 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../../tokens';
+import { supabase } from '../../services/supabase';
 
 interface Props {
   onIndicadorSelecionado: (id: string | null) => void;
 }
 
-interface MockPerson {
+interface SearchPerson {
   id: string;
-  nome: string;
+  name: string;
+  avatar_url: string | null;
+  level: string;
 }
 
-const MOCK_RESULTS: MockPerson[] = [
-  { id: 'u1', nome: 'Carlos Eduardo Silva' },
-  { id: 'u2', nome: 'Fernanda Oliveira' },
-  { id: 'u3', nome: 'Rafael Mendes Costa' },
-];
+const LEVEL_COLORS: Record<string, string> = {
+  Bronze: '#CD7F32',
+  Prata: '#A0A0A0',
+  Ouro: '#DAA520',
+  Platina: '#6BB5C9',
+  Diamante: '#5B9BD5',
+  Master: '#9B59B6',
+};
 
 function getInitials(name: string): string {
   const parts = name.split(' ');
@@ -31,19 +38,62 @@ function getInitials(name: string): string {
 export default function CampoIndicacao({ onIndicadorSelecionado }: Props) {
   const [foiIndicado, setFoiIndicado] = useState<boolean | null>(null);
   const [busca, setBusca] = useState('');
-  const [selecionado, setSelecionado] = useState<MockPerson | null>(null);
+  const [selecionado, setSelecionado] = useState<SearchPerson | null>(null);
+  const [results, setResults] = useState<SearchPerson[]>([]);
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (busca.length < 3) {
+      setResults([]);
+      return;
+    }
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, name, avatar_url, level')
+          .ilike('name', `%${busca}%`)
+          .limit(5);
+
+        if (!error && data) {
+          setResults(data as SearchPerson[]);
+        } else {
+          setResults([]);
+        }
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [busca]);
 
   const showResults = foiIndicado === true && !selecionado && busca.length >= 3;
 
-  const handleSelect = (person: MockPerson) => {
+  const handleSelect = (person: SearchPerson) => {
     setSelecionado(person);
     setBusca('');
+    setResults([]);
     onIndicadorSelecionado(person.id);
   };
 
   const handleReset = () => {
     setSelecionado(null);
     setBusca('');
+    setResults([]);
     onIndicadorSelecionado(null);
   };
 
@@ -52,6 +102,7 @@ export default function CampoIndicacao({ onIndicadorSelecionado }: Props) {
     if (!value) {
       setSelecionado(null);
       setBusca('');
+      setResults([]);
       onIndicadorSelecionado(null);
     }
   };
@@ -95,22 +146,44 @@ export default function CampoIndicacao({ onIndicadorSelecionado }: Props) {
             placeholderTextColor={colors.textMuted}
           />
 
-          {showResults && (
+          {loading && (
+            <ActivityIndicator
+              size="small"
+              color={colors.orange}
+              style={{ marginTop: spacing.sm }}
+            />
+          )}
+
+          {showResults && !loading && results.length > 0 && (
             <View style={styles.resultsContainer}>
-              {MOCK_RESULTS.map((person) => (
-                <TouchableOpacity
-                  key={person.id}
-                  style={styles.resultItem}
-                  onPress={() => handleSelect(person)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarText}>{getInitials(person.nome)}</Text>
-                  </View>
-                  <Text style={styles.resultName}>{person.nome}</Text>
-                </TouchableOpacity>
-              ))}
+              {results.map((person) => {
+                const levelColor = LEVEL_COLORS[person.level] || colors.orange;
+                return (
+                  <TouchableOpacity
+                    key={person.id}
+                    style={styles.resultItem}
+                    onPress={() => handleSelect(person)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.avatarCircle, { backgroundColor: levelColor + '26' }]}>
+                      <Text style={[styles.avatarText, { color: levelColor }]}>
+                        {getInitials(person.name)}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.resultName}>{person.name}</Text>
+                      <Text style={[styles.resultLevel, { color: levelColor }]}>
+                        {person.level}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
+          )}
+
+          {showResults && !loading && results.length === 0 && (
+            <Text style={styles.noResults}>Nenhum usuário encontrado</Text>
           )}
         </>
       )}
@@ -118,7 +191,7 @@ export default function CampoIndicacao({ onIndicadorSelecionado }: Props) {
       {foiIndicado === true && selecionado && (
         <View style={styles.confirmationRow}>
           <Text style={styles.confirmationText}>
-            Indicado por: {selecionado.nome} ✓
+            Indicado por: {selecionado.name} ✓
           </Text>
           <TouchableOpacity onPress={handleReset}>
             <Text style={styles.alterarText}>Alterar</Text>
@@ -207,6 +280,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.bodyMedium,
     color: colors.text,
+  },
+  resultLevel: {
+    fontSize: 11,
+    fontFamily: fonts.body,
+    marginTop: 1,
+  },
+  noResults: {
+    fontSize: 13,
+    fontFamily: fonts.body,
+    color: colors.textMuted,
+    textAlign: 'center',
+    paddingVertical: spacing.md,
   },
   confirmationRow: {
     backgroundColor: `${colors.success}15`,

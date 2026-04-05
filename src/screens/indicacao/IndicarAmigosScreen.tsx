@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,12 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
+  Share,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../../tokens';
+import { supabase } from '../../services/supabase';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Props {
   navigation: any;
@@ -31,9 +35,6 @@ const MOCK_INDICACOES: Indicacao[] = [
   { id: '5', nome: 'Julia Costa', status: 'estornada' },
 ];
 
-const CODIGO = 'BONY-A3F8K2';
-const SHARE_MESSAGE = `Tô treinando na Bony Fit e tá valendo muito a pena! 💪🔥 Vem treinar comigo: https://app.bonyfit.com/indicacao/${CODIGO}`;
-
 function getInitials(name: string): string {
   const parts = name.split(' ');
   return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
@@ -54,16 +55,91 @@ function StatusBadge({ status }: { status: IndicacaoStatus }) {
 }
 
 export default function IndicarAmigosScreen({ navigation }: Props) {
-  const handleShare = () => {
-    Alert.alert('Compartilhar via WhatsApp', SHARE_MESSAGE);
+  const user = useAuth((s) => s.user);
+  const [indicacoes, setIndicacoes] = useState<Indicacao[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totalPontos, setTotalPontos] = useState(0);
+  const [totalIndicacoes, setTotalIndicacoes] = useState(0);
+
+  const codigo = user?.codigo_indicacao || 'BONY-XXXX';
+
+  useEffect(() => {
+    async function fetchIndicacoes() {
+      if (!user?.id) {
+        setIndicacoes(MOCK_INDICACOES);
+        setTotalIndicacoes(MOCK_INDICACOES.length);
+        setTotalPontos(
+          MOCK_INDICACOES.filter((i) => i.status === 'confirmada')
+            .reduce((sum, i) => sum + (i.pontos || 0), 0),
+        );
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('indicacoes')
+          .select('*')
+          .eq('indicador_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          const mapped: Indicacao[] = data.map((row: any) => ({
+            id: row.id,
+            nome: row.nome || row.indicado_nome || 'Sem nome',
+            status: (row.status || 'pendente') as IndicacaoStatus,
+            pontos: row.pontos,
+          }));
+          setIndicacoes(mapped);
+          setTotalIndicacoes(mapped.length);
+          setTotalPontos(
+            mapped
+              .filter((i) => i.status === 'confirmada')
+              .reduce((sum, i) => sum + (i.pontos || 0), 0),
+          );
+        } else {
+          setIndicacoes(MOCK_INDICACOES);
+          setTotalIndicacoes(MOCK_INDICACOES.length);
+          setTotalPontos(
+            MOCK_INDICACOES.filter((i) => i.status === 'confirmada')
+              .reduce((sum, i) => sum + (i.pontos || 0), 0),
+          );
+        }
+      } catch {
+        setIndicacoes(MOCK_INDICACOES);
+        setTotalIndicacoes(MOCK_INDICACOES.length);
+        setTotalPontos(
+          MOCK_INDICACOES.filter((i) => i.status === 'confirmada')
+            .reduce((sum, i) => sum + (i.pontos || 0), 0),
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchIndicacoes();
+  }, [user?.id]);
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Tô treinando na Bony Fit e tá valendo muito a pena! 💪🔥\n\nVem treinar comigo! Usa meu código ${codigo} na hora de se cadastrar e a gente ganha pontos!\n\nhttps://app.bonyfit.com/indicacao/${codigo}`,
+      });
+    } catch {
+      // User cancelled or error
+    }
   };
 
   const handleCopyLink = () => {
-    Alert.alert('Link copiado!', `https://app.bonyfit.com/indicacao/${CODIGO}`);
+    Alert.alert('Link de indicação', `https://app.bonyfit.com/indicacao/${codigo}`);
   };
 
   const handleCopyCode = () => {
-    Alert.alert('Código copiado!', CODIGO);
+    Alert.alert('Código copiado!', codigo);
+  };
+
+  const formatPontos = (value: number) => {
+    return value.toLocaleString('pt-BR');
   };
 
   const renderItem = ({ item }: { item: Indicacao }) => (
@@ -88,10 +164,27 @@ export default function IndicarAmigosScreen({ navigation }: Props) {
     </View>
   );
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backBtn}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Indicar Amigos</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.orange} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
-        data={MOCK_INDICACOES}
+        data={indicacoes}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
@@ -110,11 +203,11 @@ export default function IndicarAmigosScreen({ navigation }: Props) {
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
                 <Text style={styles.statLabel}>Indicações</Text>
-                <Text style={styles.statValue}>5</Text>
+                <Text style={styles.statValue}>{totalIndicacoes}</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statLabel}>Pontos ganhos</Text>
-                <Text style={styles.statValue}>2.500</Text>
+                <Text style={styles.statValue}>{formatPontos(totalPontos)}</Text>
               </View>
             </View>
 
@@ -122,7 +215,7 @@ export default function IndicarAmigosScreen({ navigation }: Props) {
             <View style={styles.codigoCard}>
               <Text style={styles.codigoLabel}>Seu código</Text>
               <View style={styles.codigoRow}>
-                <Text style={styles.codigoText}>{CODIGO}</Text>
+                <Text style={styles.codigoText}>{codigo}</Text>
                 <TouchableOpacity onPress={handleCopyCode} style={styles.copyBtn}>
                   <Text style={styles.copyBtnText}>Copiar</Text>
                 </TouchableOpacity>

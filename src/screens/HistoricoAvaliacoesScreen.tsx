@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,11 @@ import {
   FlatList,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { supabase } from '../services/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 interface Props {
   navigation: any;
@@ -91,6 +94,35 @@ const MOCK_AVALIACOES: Avaliacao[] = [
   },
 ];
 
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+function mapSupabaseToAvaliacao(row: any): Avaliacao {
+  return {
+    id: row.id,
+    data: formatDate(row.created_at),
+    avaliador: row.avaliador || 'Avaliador',
+    pontos: row.pontos || 600,
+    medidas: {
+      pesoKg: row.peso_kg ?? 0,
+      gorduraPct: row.gordura_pct ?? 0,
+      imc: row.imc ?? 0,
+      massMuscularKg: row.massa_muscular_kg ?? 0,
+      cinturaCm: row.cintura_cm ?? 0,
+      quadrilCm: row.quadril_cm ?? 0,
+      bracoDirCm: row.braco_dir_cm ?? 0,
+      bracoEsqCm: row.braco_esq_cm ?? 0,
+      coxaDirCm: row.coxa_dir_cm ?? 0,
+      coxaEsqCm: row.coxa_esq_cm ?? 0,
+    },
+  };
+}
+
 function getArrow(current: number, previous: number, lowerIsBetter: boolean) {
   if (current === previous) return { arrow: '—', color: colors.textMuted };
   const improved = lowerIsBetter ? current < previous : current > previous;
@@ -100,8 +132,8 @@ function getArrow(current: number, previous: number, lowerIsBetter: boolean) {
   };
 }
 
-function WeightChart() {
-  const weights = MOCK_AVALIACOES.map((a) => a.medidas.pesoKg).reverse();
+function WeightChart({ avaliacoes }: { avaliacoes: Avaliacao[] }) {
+  const weights = avaliacoes.map((a) => a.medidas.pesoKg).reverse();
   const maxW = Math.max(...weights);
 
   return (
@@ -135,16 +167,66 @@ function WeightChart() {
 
 export default function HistoricoAvaliacoesScreen({ navigation }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
+  const [loading, setLoading] = useState(true);
+  const user = useAuth((s) => s.user);
 
-  const totalAvaliacoes = MOCK_AVALIACOES.length;
-  const ultimaData = MOCK_AVALIACOES[0].data;
-  const pesoInicial = MOCK_AVALIACOES[MOCK_AVALIACOES.length - 1].medidas.pesoKg;
-  const pesoAtual = MOCK_AVALIACOES[0].medidas.pesoKg;
+  useEffect(() => {
+    async function fetchAvaliacoes() {
+      if (!user?.id) {
+        setAvaliacoes(MOCK_AVALIACOES);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('avaliacoes')
+          .select('*')
+          .eq('aluno_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          setAvaliacoes(data.map(mapSupabaseToAvaliacao));
+        } else {
+          setAvaliacoes(MOCK_AVALIACOES);
+        }
+      } catch {
+        setAvaliacoes(MOCK_AVALIACOES);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAvaliacoes();
+  }, [user?.id]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backBtn}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Minhas Avaliações</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.orange} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const totalAvaliacoes = avaliacoes.length;
+  const ultimaData = avaliacoes.length > 0 ? avaliacoes[0].data : '—';
+  const pesoInicial = avaliacoes.length > 0 ? avaliacoes[avaliacoes.length - 1].medidas.pesoKg : 0;
+  const pesoAtual = avaliacoes.length > 0 ? avaliacoes[0].medidas.pesoKg : 0;
   const trendDown = pesoAtual < pesoInicial;
 
   const renderItem = ({ item, index }: { item: Avaliacao; index: number }) => {
     const isExpanded = expandedId === item.id;
-    const prev = index < MOCK_AVALIACOES.length - 1 ? MOCK_AVALIACOES[index + 1] : null;
+    const prev = index < avaliacoes.length - 1 ? avaliacoes[index + 1] : null;
 
     return (
       <TouchableOpacity
@@ -219,7 +301,7 @@ export default function HistoricoAvaliacoesScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
-        data={MOCK_AVALIACOES}
+        data={avaliacoes}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
@@ -257,7 +339,7 @@ export default function HistoricoAvaliacoesScreen({ navigation }: Props) {
             </View>
 
             {/* Chart */}
-            <WeightChart />
+            <WeightChart avaliacoes={avaliacoes} />
 
             {/* Section label */}
             <Text style={styles.sectionTitle}>Histórico</Text>
