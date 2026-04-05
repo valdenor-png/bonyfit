@@ -63,6 +63,7 @@ import ComentariosScreen from '../screens/ComentariosScreen';
 import CarrinhoScreen from '../screens/loja/CarrinhoScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
 import TrainingScreen from '../screens/TrainingScreen';
+import CalendarScreen from '../screens/CalendarScreen';
 import ExerciseSearchScreen from '../screens/ExerciseSearchScreen';
 import WorkoutHistoryScreen from '../screens/WorkoutHistoryScreen';
 import WorkoutProgressScreen from '../screens/WorkoutProgressScreen';
@@ -131,6 +132,7 @@ function TreinoNavigator() {
       <TreinoStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} options={{ headerShown: false }} />
       <TreinoStack.Screen name="ExerciseSearch" component={ExerciseSearchScreen} options={{ title: 'Exercícios' }} />
       <TreinoStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
+      <TreinoStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Agenda' }} />
     </TreinoStack.Navigator>
   );
 }
