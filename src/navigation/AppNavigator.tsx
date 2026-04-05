@@ -103,6 +103,12 @@ function HomeNavigator() {
       <HomeStack.Screen name="PerfilPessoal" component={PerfilPessoalScreen} options={{ title: 'Meu Perfil' }} />
       <HomeStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} options={{ title: 'Financeiro' }} />
       <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
+      <HomeStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
+      <HomeStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} options={{ title: 'Histórico' }} />
+      <HomeStack.Screen name="Nutricao" component={NutricaoScreen} options={{ title: 'Nutrição' }} />
+      <HomeStack.Screen name="Personal" component={PersonalScreen} options={{ title: 'Personal Trainers' }} />
+      <HomeStack.Screen name="Desafios" component={DesafiosScreen} options={{ title: 'Desafios' }} />
+      <HomeStack.Screen name="Recompensas" component={RecompensasScreen} options={{ title: 'Recompensas' }} />
     </HomeStack.Navigator>
   );
 }

@@ -194,12 +194,12 @@ export default function HomeScreen({ navigation }: Props) {
       {/* Quick actions */}
       <Text style={styles.sectionTitle}>Acesso rápido</Text>
       <View style={styles.quickGrid}>
-        <QuickAction icon="🏆" label="Ranking" onPress={() => navigation.navigate('Menu', { screen: 'Ranking' })} />
-        <QuickAction icon="📊" label="Histórico" onPress={() => navigation.navigate('Menu', { screen: 'HistoricoTreino' })} />
-        <QuickAction icon="🥗" label="Nutrição" onPress={() => navigation.navigate('Menu', { screen: 'Nutricao' })} />
-        <QuickAction icon="👨‍🏫" label="Personais" onPress={() => navigation.navigate('Menu', { screen: 'Personal' })} />
-        <QuickAction icon="🎯" label="Desafios" onPress={() => navigation.navigate('Menu', { screen: 'Desafios' })} />
-        <QuickAction icon="🎁" label="Prêmios" onPress={() => navigation.navigate('Menu', { screen: 'Recompensas' })} />
+        <QuickAction icon="🏆" label="Ranking" onPress={() => navigation.navigate('Ranking')} />
+        <QuickAction icon="📊" label="Histórico" onPress={() => navigation.navigate('WorkoutHistory')} />
+        <QuickAction icon="🥗" label="Nutrição" onPress={() => navigation.navigate('Nutricao')} />
+        <QuickAction icon="👨‍🏫" label="Personais" onPress={() => navigation.navigate('Personal')} />
+        <QuickAction icon="🎯" label="Desafios" onPress={() => navigation.navigate('Desafios')} />
+        <QuickAction icon="🎁" label="Prêmios" onPress={() => navigation.navigate('Recompensas')} />
       </View>
     </ScrollView>
   );
