@@ -59,6 +59,8 @@ import AulaFinalizadaScreen from '../screens/professor/AulaFinalizadaScreen';
 import ScanQRAulaScreen from '../screens/ScanQRAulaScreen';
 import IndicarAmigosScreen from '../screens/indicacao/IndicarAmigosScreen';
 import HistoricoAvaliacoesScreen from '../screens/HistoricoAvaliacoesScreen';
+import ComentariosScreen from '../screens/ComentariosScreen';
+import CarrinhoScreen from '../screens/loja/CarrinhoScreen';
 
 const AlunoTab = createBottomTabNavigator();
 const ProfessorTab = createBottomTabNavigator();
@@ -100,6 +102,7 @@ function FeedNavigator() {
       <FeedStack.Screen name="Stories">
         {(props: any) => <StoriesScreen {...props} />}
       </FeedStack.Screen>
+      <FeedStack.Screen name="Comentarios" component={ComentariosScreen} />
     </FeedStack.Navigator>
   );
 }
@@ -118,6 +121,7 @@ function LojaNavigator() {
       <LojaStack.Screen name="LojaMain" component={LojaScreen} />
       <LojaStack.Screen name="LojaCategoria" component={LojaCategoriaScreen} />
       <LojaStack.Screen name="LojaProdutoDetalhe" component={LojaProdutoDetalheScreen} />
+      <LojaStack.Screen name="Carrinho" component={CarrinhoScreen} />
     </LojaStack.Navigator>
   );
 }

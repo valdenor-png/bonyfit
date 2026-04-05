@@ -152,7 +152,7 @@ export default function LojaScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Loja Bony</Text>
-        <TouchableOpacity style={styles.cartBtn} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.cartBtn} activeOpacity={0.7} onPress={() => navigation?.navigate('Carrinho')}>
           <Text style={styles.cartIcon}>🛒</Text>
           {itemCount > 0 && (
             <View style={styles.cartBadge}>

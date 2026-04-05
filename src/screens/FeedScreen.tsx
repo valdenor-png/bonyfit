@@ -650,7 +650,7 @@ export default function FeedScreen({ navigation }: Props) {
               onLike={() => handleLike(item.id)}
               onSave={() => handleSave(item.id)}
               onOptions={() => handleOptions(item.id)}
-              onComment={() => Alert.alert('Comentários', 'Em breve!')}
+              onComment={() => navigation.navigate('Comentarios', { postId: item.id, postUserName: item.user.nome })}
             />
           )}
           contentContainerStyle={styles.feedList}

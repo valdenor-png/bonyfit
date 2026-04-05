@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { colors, fonts, spacing } from '../../tokens';
+import { supabase } from '../../services/supabase';
+import { useAuth } from '../../hooks/useAuth';
 import { useLojaStore } from '../../stores/lojaStore';
 import { ALL_PRODUCTS, CATEGORIAS } from './LojaScreen';
 import type { ProdutoVariacao } from './LojaScreen';
@@ -26,11 +28,58 @@ export default function LojaProdutoDetalheScreen({ navigation, route }: Props) {
     ? CATEGORIAS.find((c) => c.id === produto.categoriaId)
     : null;
 
+  const { user } = useAuth();
   const addToCart = useLojaStore((s) => s.addToCart);
 
   const [selectedVariation, setSelectedVariation] = useState(0);
   const [favorited, setFavorited] = useState(false);
   const [addedFeedback, setAddedFeedback] = useState(false);
+
+  // Load favorite status from Supabase
+  useEffect(() => {
+    if (!user || !produtoId) return;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('loja_favoritos')
+          .select('produto_id')
+          .eq('usuario_id', user.id)
+          .eq('produto_id', produtoId)
+          .maybeSingle();
+        setFavorited(!!data);
+      } catch (error) {
+        console.error('Error loading favorite:', error);
+      }
+    })();
+  }, [user, produtoId]);
+
+  const toggleFavorite = useCallback(async () => {
+    if (!user) {
+      setFavorited(!favorited);
+      return;
+    }
+
+    const newFav = !favorited;
+    setFavorited(newFav);
+
+    try {
+      if (newFav) {
+        await supabase.from('loja_favoritos').insert({
+          usuario_id: user.id,
+          produto_id: produtoId,
+        });
+      } else {
+        await supabase
+          .from('loja_favoritos')
+          .delete()
+          .eq('usuario_id', user.id)
+          .eq('produto_id', produtoId);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      setFavorited(!newFav); // revert
+    }
+  }, [user, produtoId, favorited]);
 
   if (!produto) {
     return (
@@ -144,7 +193,7 @@ export default function LojaProdutoDetalheScreen({ navigation, route }: Props) {
       <View style={styles.bottomRow}>
         <TouchableOpacity
           style={styles.heartBtn}
-          onPress={() => setFavorited(!favorited)}
+          onPress={toggleFavorite}
           activeOpacity={0.7}
         >
           <Text style={styles.heartEmoji}>
