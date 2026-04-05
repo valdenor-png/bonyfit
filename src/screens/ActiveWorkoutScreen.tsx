@@ -13,6 +13,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigation } from '@react-navigation/native';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -140,8 +141,9 @@ interface ActiveWorkoutScreenProps {
 }
 
 export default function ActiveWorkoutScreen({
-  navigation,
+  navigation: navProp,
 }: ActiveWorkoutScreenProps) {
+  const nav = navProp || useNavigation();
   const { user } = useAuth();
 
   // ---- state ----
@@ -275,9 +277,9 @@ export default function ActiveWorkoutScreen({
   };
 
   const addExercise = () => {
-    if (navigation) {
+    if (nav) {
       try {
-        navigation.navigate('ExerciseSearch');
+        nav.navigate('ExerciseSearch');
       } catch {
         Alert.alert(
           'Adicionar Exercicio',
@@ -390,7 +392,7 @@ export default function ActiveWorkoutScreen({
     Alert.alert(
       'Treino Finalizado! 🏆',
       `Duração: ${formatTimer(elapsedSeconds)}\nSéries completas: ${totalCompletedSets}\nVolume total: ${formatVolume(totalVolume)}\nPontos: +${points} pts`,
-      [{ text: 'OK', onPress: () => { if (navigation) navigation.goBack(); } }],
+      [{ text: 'OK', onPress: () => { nav.goBack(); } }],
     );
   };
 
@@ -402,7 +404,7 @@ export default function ActiveWorkoutScreen({
         style: 'destructive',
         onPress: () => {
           if (restRef.current) clearInterval(restRef.current);
-          if (navigation) navigation.goBack();
+          nav.goBack();
         },
       },
     ]);
@@ -419,7 +421,7 @@ export default function ActiveWorkoutScreen({
           style: 'destructive',
           onPress: () => {
             if (restRef.current) clearInterval(restRef.current);
-            if (navigation) navigation.goBack();
+            nav.goBack();
           },
         },
       ],
