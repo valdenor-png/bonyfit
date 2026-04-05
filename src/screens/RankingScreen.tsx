@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../services/supabase';
 
 type TabKey = 'geral' | 'unidade' | 'mensal';
 
@@ -32,7 +35,7 @@ const MOCK_MY_STATS = {
 const MOCK_RANKING: RankingEntry[] = Array.from({ length: 20 }, (_, i) => ({
   id: String(i + 1),
   position: i + 1,
-  name: i === 13 ? 'Você' : `${String.fromCharCode(65 + (i % 26))}***${String.fromCharCode(97 + ((i * 3) % 26))} ${String.fromCharCode(65 + ((i * 7) % 26))}.`,
+  name: i === 13 ? 'Voce' : `${String.fromCharCode(65 + (i % 26))}***${String.fromCharCode(97 + ((i * 3) % 26))} ${String.fromCharCode(65 + ((i * 7) % 26))}.`,
   level: i < 3 ? 'Diamante' : i < 8 ? 'Platina' : i < 15 ? 'Ouro' : 'Prata',
   streak: Math.max(1, 30 - i * 2),
   points: Math.max(1000, 50000 - i * 2200),
@@ -45,7 +48,60 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function RankingScreen() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKey>('geral');
+  const [ranking, setRanking] = useState<RankingEntry[]>(MOCK_RANKING);
+  const [loading, setLoading] = useState(true);
+  const [myPosition, setMyPosition] = useState(MOCK_MY_STATS.position);
+  const [totalUsers, setTotalUsers] = useState(MOCK_MY_STATS.totalUsers);
+
+  useEffect(() => {
+    loadRanking();
+  }, []);
+
+  async function loadRanking() {
+    setLoading(true);
+    try {
+      const { data, count } = await supabase
+        .from('users')
+        .select('id, name, level, total_points, current_streak, avatar_url', { count: 'exact' })
+        .order('total_points', { ascending: false })
+        .limit(50);
+
+      if (data && data.length > 0) {
+        const mapped: RankingEntry[] = data.map((u: any, index: number) => ({
+          id: u.id,
+          position: index + 1,
+          name: u.name ?? 'Usuario',
+          level: u.level ?? 'Bronze',
+          streak: u.current_streak ?? 0,
+          points: u.total_points ?? 0,
+        }));
+        setRanking(mapped);
+        setTotalUsers(count ?? mapped.length);
+
+        // Find current user's position
+        if (user) {
+          const myIndex = mapped.findIndex((r) => r.id === user.id);
+          if (myIndex >= 0) {
+            setMyPosition(myIndex + 1);
+          }
+        }
+      } else {
+        setRanking(MOCK_RANKING);
+        setTotalUsers(MOCK_MY_STATS.totalUsers);
+      }
+    } catch (error) {
+      console.error('Error loading ranking:', error);
+      setRanking(MOCK_RANKING);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const userPoints = user?.total_points ?? user?.points ?? MOCK_MY_STATS.points;
+  const userStreak = user?.current_streak ?? user?.streak ?? MOCK_MY_STATS.streak;
+  const userLevel = user?.level ?? MOCK_MY_STATS.level;
 
   return (
     <View style={styles.container}>
@@ -60,21 +116,21 @@ export default function RankingScreen() {
           <Skull size={80} color="#FFFFFF" opacity={0.08} />
         </View>
         <View style={styles.positionRow}>
-          <Text style={styles.positionNumber}>#{MOCK_MY_STATS.position}</Text>
-          <Text style={styles.positionTotal}>de {MOCK_MY_STATS.totalUsers}</Text>
+          <Text style={styles.positionNumber}>#{myPosition}</Text>
+          <Text style={styles.positionTotal}>de {totalUsers}</Text>
         </View>
         <View style={styles.myStats}>
           <View style={styles.myStat}>
             <Text style={styles.myStatLabel}>Pontos</Text>
-            <Text style={styles.myStatValue}>{MOCK_MY_STATS.points.toLocaleString()}</Text>
+            <Text style={styles.myStatValue}>{userPoints.toLocaleString()}</Text>
           </View>
           <View style={styles.myStat}>
             <Text style={styles.myStatLabel}>Streak</Text>
-            <Text style={styles.myStatValue}>🔥 {MOCK_MY_STATS.streak}</Text>
+            <Text style={styles.myStatValue}>🔥 {userStreak}</Text>
           </View>
           <View style={styles.myStat}>
-            <Text style={styles.myStatLabel}>Nível</Text>
-            <Text style={styles.myStatValue}>{MOCK_MY_STATS.level}</Text>
+            <Text style={styles.myStatLabel}>Nivel</Text>
+            <Text style={styles.myStatValue}>{userLevel}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -95,36 +151,42 @@ export default function RankingScreen() {
       </View>
 
       {/* Ranking list */}
-      <FlatList
-        data={MOCK_RANKING}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          const isTop3 = item.position <= 3;
-          const isMe = item.name === 'Você';
-          return (
-            <View style={[styles.rankCard, isMe && styles.rankCardMe]}>
-              <View style={[styles.posCircle, isTop3 && styles.posCircleTop]}>
-                <Text style={[styles.posText, isTop3 && styles.posTextTop]}>
-                  {item.position}
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={colors.orange} />
+        </View>
+      ) : (
+        <FlatList
+          data={ranking}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => {
+            const isTop3 = item.position <= 3;
+            const isMe = user ? item.id === user.id : item.name === 'Voce';
+            return (
+              <View style={[styles.rankCard, isMe && styles.rankCardMe]}>
+                <View style={[styles.posCircle, isTop3 && styles.posCircleTop]}>
+                  <Text style={[styles.posText, isTop3 && styles.posTextTop]}>
+                    {item.position}
+                  </Text>
+                </View>
+                <View style={styles.rankInfo}>
+                  <Text style={[styles.rankName, isMe && styles.rankNameMe]}>
+                    {isMe ? 'Voce' : item.name}
+                  </Text>
+                  <Text style={styles.rankSub}>
+                    {item.level} • 🔥 {item.streak}
+                  </Text>
+                </View>
+                <Text style={styles.rankPoints}>
+                  {item.points.toLocaleString()}
                 </Text>
               </View>
-              <View style={styles.rankInfo}>
-                <Text style={[styles.rankName, isMe && styles.rankNameMe]}>
-                  {item.name}
-                </Text>
-                <Text style={styles.rankSub}>
-                  {item.level} • 🔥 {item.streak}
-                </Text>
-              </View>
-              <Text style={styles.rankPoints}>
-                {item.points.toLocaleString()}
-              </Text>
-            </View>
-          );
-        }}
-        contentContainerStyle={styles.list}
-        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-      />
+            );
+          }}
+          contentContainerStyle={styles.list}
+          ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
+        />
+      )}
     </View>
   );
 }

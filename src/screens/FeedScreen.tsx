@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,11 @@ import {
   Image,
   Alert,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../services/supabase';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -337,18 +340,80 @@ interface Props {
 }
 
 export default function FeedScreen({ navigation }: Props) {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<FeedPost[]>(MOCK_POSTS);
   const [refreshing, setRefreshing] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPostText, setNewPostText] = useState('');
-  const unreadCount = 3;
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingPosts, setLoadingPosts] = useState(true);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1200);
+  const loadPosts = useCallback(async () => {
+    try {
+      const { data } = await supabase
+        .from('posts')
+        .select('id, text, image_url, hashtags, likes_count, comments_count, created_at, user_id, users!inner(id, name, level, avatar_url)')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (data && data.length > 0) {
+        const mappedPosts: FeedPost[] = data.map((post: any) => ({
+          id: post.id,
+          user: {
+            id: post.users?.id ?? post.user_id,
+            nome: post.users?.name ?? 'Usuario',
+            nivel: post.users?.level ?? 'Bronze',
+            unidade: '',
+            avatar_url: post.users?.avatar_url ?? null,
+          },
+          text: post.text ?? '',
+          image_url: post.image_url ?? null,
+          likes_count: post.likes_count ?? 0,
+          comments_count: post.comments_count ?? 0,
+          isLiked: false,
+          isSaved: false,
+          created_at: post.created_at,
+        }));
+        setPosts(mappedPosts);
+      } else {
+        setPosts(MOCK_POSTS);
+      }
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      setPosts(MOCK_POSTS);
+    } finally {
+      setLoadingPosts(false);
+    }
   }, []);
 
-  const handleLike = useCallback((postId: string) => {
+  const loadUnreadCount = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { count } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('receiver_id', user.id)
+        .eq('is_read', false);
+      setUnreadCount(count ?? 0);
+    } catch (error) {
+      console.error('Error loading unread count:', error);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadPosts();
+    loadUnreadCount();
+  }, [loadPosts, loadUnreadCount]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadPosts();
+    await loadUnreadCount();
+    setRefreshing(false);
+  }, [loadPosts, loadUnreadCount]);
+
+  const handleLike = useCallback(async (postId: string) => {
+    // Optimistic update
     setPosts((prev) =>
       prev.map((p) =>
         p.id === postId
@@ -360,7 +425,42 @@ export default function FeedScreen({ navigation }: Props) {
           : p
       )
     );
-  }, []);
+
+    if (!user) return;
+
+    try {
+      const post = posts.find((p) => p.id === postId);
+      if (!post) return;
+
+      if (post.isLiked) {
+        // Unlike - delete from post_likes
+        await supabase
+          .from('post_likes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id);
+      } else {
+        // Like - insert into post_likes
+        await supabase
+          .from('post_likes')
+          .insert({ post_id: postId, user_id: user.id });
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      // Revert optimistic update on error
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                isLiked: !p.isLiked,
+                likes_count: p.isLiked ? p.likes_count - 1 : p.likes_count + 1,
+              }
+            : p
+        )
+      );
+    }
+  }, [user, posts]);
 
   const handleSave = useCallback((postId: string) => {
     setPosts((prev) =>
@@ -379,11 +479,58 @@ export default function FeedScreen({ navigation }: Props) {
     ]);
   }, []);
 
-  const handleCreatePost = () => {
+  const handleCreatePost = useCallback(async () => {
     if (!newPostText.trim()) return;
+
+    if (user) {
+      try {
+        const { data: inserted, error } = await supabase
+          .from('posts')
+          .insert({
+            text: newPostText,
+            user_id: user.id,
+          })
+          .select('id, text, image_url, created_at')
+          .single();
+
+        if (error) throw error;
+
+        const newPost: FeedPost = {
+          id: inserted.id,
+          user: {
+            id: user.id,
+            nome: user.name ?? 'Voce',
+            nivel: user.level ?? 'Bronze',
+            unidade: '',
+            avatar_url: user.avatar_url ?? null,
+          },
+          text: inserted.text,
+          image_url: inserted.image_url ?? null,
+          likes_count: 0,
+          comments_count: 0,
+          isLiked: false,
+          isSaved: false,
+          created_at: inserted.created_at,
+        };
+        setPosts((prev) => [newPost, ...prev]);
+        setNewPostText('');
+        setShowNewPost(false);
+        return;
+      } catch (error) {
+        console.error('Error creating post:', error);
+      }
+    }
+
+    // Fallback: local-only post
     const newPost: FeedPost = {
       id: Date.now().toString(),
-      user: { id: 'me', nome: 'Voce', nivel: 'Bronze', unidade: 'Centro', avatar_url: null },
+      user: {
+        id: user?.id ?? 'me',
+        nome: user?.name ?? 'Voce',
+        nivel: user?.level ?? 'Bronze',
+        unidade: '',
+        avatar_url: user?.avatar_url ?? null,
+      },
       text: newPostText,
       image_url: null,
       likes_count: 0,
@@ -395,7 +542,7 @@ export default function FeedScreen({ navigation }: Props) {
     setPosts((prev) => [newPost, ...prev]);
     setNewPostText('');
     setShowNewPost(false);
-  };
+  }, [newPostText, user]);
 
   return (
     <View style={styles.container}>
@@ -405,29 +552,35 @@ export default function FeedScreen({ navigation }: Props) {
         unreadCount={unreadCount}
       />
 
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={<StoriesSection />}
-        renderItem={({ item }) => (
-          <PostCard
-            post={item}
-            onLike={() => handleLike(item.id)}
-            onSave={() => handleSave(item.id)}
-            onOptions={() => handleOptions(item.id)}
-          />
-        )}
-        contentContainerStyle={styles.feedList}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.orange}
-            colors={[colors.orange]}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      />
+      {loadingPosts ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={colors.orange} />
+        </View>
+      ) : (
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={<StoriesSection />}
+          renderItem={({ item }) => (
+            <PostCard
+              post={item}
+              onLike={() => handleLike(item.id)}
+              onSave={() => handleSave(item.id)}
+              onOptions={() => handleOptions(item.id)}
+            />
+          )}
+          contentContainerStyle={styles.feedList}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.orange}
+              colors={[colors.orange]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
       {/* New Post Modal */}
       <Modal visible={showNewPost} animationType="slide" transparent>

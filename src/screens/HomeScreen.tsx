@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
 import ProgressRing from '../components/ProgressRing';
 import UnitBubble from '../components/UnitBubble';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../services/supabase';
 
 interface Props {
   navigation: any;
@@ -29,18 +32,63 @@ const MOCK_AULAS = [
   { id: '3', time: '18:00', name: 'HIIT', icon: '🔥', instructor: 'Prof. Bruna', vagas: 3 },
 ];
 
-const MOCK_USER = {
-  name: 'João',
-  level: 'Ouro',
-  points: 12500,
-  streak: 15,
-  todayWorkout: 'Peito + Tríceps + Ombro',
-  ranking: 14,
-};
-
 export default function HomeScreen({ navigation }: Props) {
+  const { user, loading: authLoading } = useAuth();
+  const [units, setUnits] = useState<typeof MOCK_UNITS>([]);
+  const [workoutCount, setWorkoutCount] = useState(0);
+  const [loadingData, setLoadingData] = useState(true);
+
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function loadData() {
+      setLoadingData(true);
+      try {
+        // Load units
+        const { data: unitsData } = await supabase
+          .from('units')
+          .select('id, name, capacity, current_count');
+        if (unitsData && unitsData.length > 0) {
+          setUnits(unitsData);
+        } else {
+          setUnits(MOCK_UNITS);
+        }
+
+        // Load workout count
+        const { count } = await supabase
+          .from('workout_sessions')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user!.id);
+        setWorkoutCount(count ?? 0);
+      } catch (error) {
+        console.error('Error loading home data:', error);
+        setUnits(MOCK_UNITS);
+      } finally {
+        setLoadingData(false);
+      }
+    }
+
+    loadData();
+  }, [user]);
+
+  if (authLoading || !user) {
+    return (
+      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.orange} />
+      </View>
+    );
+  }
+
+  const firstName = user.name?.split(' ')[0] ?? 'Aluno';
+  const userPoints = user.total_points ?? user.points ?? 0;
+  const userStreak = user.current_streak ?? user.streak ?? 0;
+  const userLevel = user.level ?? 'Bronze';
+  const initials = user.name
+    ? user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+    : '?';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -52,34 +100,32 @@ export default function HomeScreen({ navigation }: Props) {
           activeOpacity={0.8}
         >
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {MOCK_USER.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-            </Text>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.greeting}>{greeting},</Text>
-          <Text style={styles.name}>{MOCK_USER.name}</Text>
+          <Text style={styles.name}>{firstName}</Text>
         </View>
         <View style={styles.levelBadge}>
           <Skull size={16} color={colors.orange} />
-          <Text style={styles.levelText}>{MOCK_USER.level}</Text>
+          <Text style={styles.levelText}>{userLevel}</Text>
         </View>
       </View>
 
       {/* Stats row */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{MOCK_USER.points.toLocaleString()}</Text>
+          <Text style={styles.statValue}>{userPoints.toLocaleString()}</Text>
           <Text style={styles.statLabel}>Pontos</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>🔥 {MOCK_USER.streak}</Text>
+          <Text style={styles.statValue}>🔥 {userStreak}</Text>
           <Text style={styles.statLabel}>Streak</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>#{MOCK_USER.ranking}</Text>
-          <Text style={styles.statLabel}>Ranking</Text>
+          <Text style={styles.statValue}>{workoutCount}</Text>
+          <Text style={styles.statLabel}>Treinos</Text>
         </View>
       </View>
 
@@ -91,7 +137,7 @@ export default function HomeScreen({ navigation }: Props) {
       >
         <View style={styles.workoutLeft}>
           <Text style={styles.workoutLabel}>Treino de hoje</Text>
-          <Text style={styles.workoutName}>{MOCK_USER.todayWorkout}</Text>
+          <Text style={styles.workoutName}>Peito + Tríceps + Ombro</Text>
           <Text style={styles.workoutSub}>6 exercícios • ~50 min</Text>
         </View>
         <View style={styles.workoutBtn}>
@@ -126,20 +172,24 @@ export default function HomeScreen({ navigation }: Props) {
 
       {/* Unit capacity */}
       <Text style={styles.sectionTitle}>Lotação das unidades</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.bubbles}
-      >
-        {MOCK_UNITS.map((unit) => (
-          <UnitBubble
-            key={unit.id}
-            name={unit.name}
-            current={unit.current_count}
-            capacity={unit.capacity}
-          />
-        ))}
-      </ScrollView>
+      {loadingData ? (
+        <ActivityIndicator size="small" color={colors.orange} style={{ marginBottom: spacing.xxl }} />
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.bubbles}
+        >
+          {units.map((unit) => (
+            <UnitBubble
+              key={unit.id}
+              name={unit.name}
+              current={unit.current_count}
+              capacity={unit.capacity}
+            />
+          ))}
+        </ScrollView>
+      )}
 
       {/* Quick actions */}
       <Text style={styles.sectionTitle}>Acesso rápido</Text>

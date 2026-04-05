@@ -9,6 +9,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
 import { useModeStore } from '../stores/modeStore';
+import { useAuth } from '../hooks/useAuth';
 
 interface Props {
   navigation: any;
@@ -92,6 +93,7 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
 
 export default function MenuScreen({ navigation }: Props) {
   const { currentMode, toggleMode } = useModeStore();
+  const { podeTrocarModo, cargoSlug } = useAuth();
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -110,23 +112,25 @@ export default function MenuScreen({ navigation }: Props) {
         </View>
       </View>
 
-      {/* Switch mode */}
-      <View style={[styles.section, { marginTop: spacing.md }]}>
-        <View style={styles.sectionCard}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={toggleMode}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.menuIcon}>🔄</Text>
-            <View style={styles.menuInfo}>
-              <Text style={styles.menuLabel}>Trocar modo</Text>
-              <Text style={styles.menuSub}>Alternar entre modo aluno e profissional</Text>
-            </View>
-            <Text style={styles.chevron}>›</Text>
-          </TouchableOpacity>
+      {/* Switch mode - only show if user can switch modes */}
+      {podeTrocarModo && cargoSlug !== 'aluno' && (
+        <View style={[styles.section, { marginTop: spacing.md }]}>
+          <View style={styles.sectionCard}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={toggleMode}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.menuIcon}>🔄</Text>
+              <View style={styles.menuInfo}>
+                <Text style={styles.menuLabel}>Trocar modo</Text>
+                <Text style={styles.menuSub}>Alternar entre modo aluno e profissional</Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>

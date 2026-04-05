@@ -12,6 +12,10 @@ export interface User {
   level: Level;
   points: number;
   streak: number;
+  total_points: number;
+  current_streak: number;
+  total_workouts: number;
+  last_workout_date: string | null;
   created_at: string;
   avatar_url: string | null;
   is_private: boolean;
