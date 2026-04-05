@@ -82,15 +82,25 @@ const PresencaStack = createStackNavigator<any>();
 const HistoricoStack = createStackNavigator<any>();
 const AgendaProfStack = createStackNavigator<any>();
 
-const stackOptions = { headerShown: false, cardStyle: { backgroundColor: colors.bg } } as const;
+const stackOptions = {
+  headerShown: true,
+  headerStyle: { backgroundColor: colors.bg, elevation: 0, shadowOpacity: 0, borderBottomWidth: 0.5, borderBottomColor: colors.elevated },
+  headerTintColor: colors.orange,
+  headerTitleStyle: { fontFamily: fonts.bodyBold, fontSize: 16, color: colors.text },
+  headerBackTitleVisible: false,
+  cardStyle: { backgroundColor: colors.bg },
+} as const;
+
+// For root screens in each tab (no header, tab handles it)
+const rootStackOptions = { headerShown: false, cardStyle: { backgroundColor: colors.bg } } as const;
 
 function HomeNavigator() {
   return (
     <HomeStack.Navigator screenOptions={stackOptions}>
-      <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-      <HomeStack.Screen name="PerfilPessoal" component={PerfilPessoalScreen} />
-      <HomeStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} />
-      <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} />
+      <HomeStack.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
+      <HomeStack.Screen name="PerfilPessoal" component={PerfilPessoalScreen} options={{ title: 'Meu Perfil' }} />
+      <HomeStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} options={{ title: 'Financeiro' }} />
+      <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
     </HomeStack.Navigator>
   );
 }
@@ -98,17 +108,17 @@ function HomeNavigator() {
 function FeedNavigator() {
   return (
     <FeedStack.Navigator screenOptions={stackOptions}>
-      <FeedStack.Screen name="FeedMain" component={FeedScreen} />
-      <FeedStack.Screen name="ProfileView">
+      <FeedStack.Screen name="FeedMain" component={FeedScreen} options={{ headerShown: false }} />
+      <FeedStack.Screen name="ProfileView" options={{ title: 'Perfil' }}>
         {(props: any) => <ProfileViewScreen {...props} />}
       </FeedStack.Screen>
-      <FeedStack.Screen name="Chat">
+      <FeedStack.Screen name="Chat" options={{ title: '' }}>
         {(props: any) => <ChatScreen {...props} />}
       </FeedStack.Screen>
-      <FeedStack.Screen name="Stories">
+      <FeedStack.Screen name="Stories" options={{ headerShown: false }}>
         {(props: any) => <StoriesScreen {...props} />}
       </FeedStack.Screen>
-      <FeedStack.Screen name="Comentarios" component={ComentariosScreen} />
+      <FeedStack.Screen name="Comentarios" component={ComentariosScreen} options={{ title: 'Comentários' }} />
     </FeedStack.Navigator>
   );
 }
@@ -116,10 +126,10 @@ function FeedNavigator() {
 function TreinoNavigator() {
   return (
     <TreinoStack.Navigator screenOptions={stackOptions}>
-      <TreinoStack.Screen name="TreinoMain" component={TreinoScreen} />
-      <TreinoStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
-      <TreinoStack.Screen name="ExerciseSearch" component={ExerciseSearchScreen} />
-      <TreinoStack.Screen name="Templates" component={TemplatesScreen} />
+      <TreinoStack.Screen name="TreinoMain" component={TreinoScreen} options={{ headerShown: false }} />
+      <TreinoStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} options={{ headerShown: false }} />
+      <TreinoStack.Screen name="ExerciseSearch" component={ExerciseSearchScreen} options={{ title: 'Exercícios' }} />
+      <TreinoStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
     </TreinoStack.Navigator>
   );
 }
@@ -127,10 +137,10 @@ function TreinoNavigator() {
 function LojaNavigator() {
   return (
     <LojaStack.Navigator screenOptions={stackOptions}>
-      <LojaStack.Screen name="LojaMain" component={LojaScreen} />
-      <LojaStack.Screen name="LojaCategoria" component={LojaCategoriaScreen} />
-      <LojaStack.Screen name="LojaProdutoDetalhe" component={LojaProdutoDetalheScreen} />
-      <LojaStack.Screen name="Carrinho" component={CarrinhoScreen} />
+      <LojaStack.Screen name="LojaMain" component={LojaScreen} options={{ headerShown: false }} />
+      <LojaStack.Screen name="LojaCategoria" component={LojaCategoriaScreen} options={{ title: '' }} />
+      <LojaStack.Screen name="LojaProdutoDetalhe" component={LojaProdutoDetalheScreen} options={{ title: '' }} />
+      <LojaStack.Screen name="Carrinho" component={CarrinhoScreen} options={{ title: 'Carrinho' }} />
     </LojaStack.Navigator>
   );
 }
@@ -138,45 +148,45 @@ function LojaNavigator() {
 function MenuNavigator() {
   return (
     <MenuStack.Navigator screenOptions={stackOptions}>
-      <MenuStack.Screen name="MenuMain" component={MenuScreen} />
-      <MenuStack.Screen name="ProfileMain" component={ProfileScreen} />
-      <MenuStack.Screen name="Settings" component={SettingsScreen} />
-      <MenuStack.Screen name="Ranking" component={RankingScreen} />
-      <MenuStack.Screen name="Recompensas" component={RecompensasScreen} />
-      <MenuStack.Screen name="TreinosProntos" component={TreinosProntosScreen} />
-      <MenuStack.Screen name="HistoricoTreino" component={HistoricoTreinoScreen} />
-      <MenuStack.Screen name="Personal" component={PersonalScreen} />
-      <MenuStack.Screen name="Grupos" component={GruposScreen} />
-      <MenuStack.Screen name="Desafios" component={DesafiosScreen} />
-      <MenuStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} />
-      <MenuStack.Screen name="Frequencia" component={FrequenciaScreen} />
-      <MenuStack.Screen name="Anamnese" component={AnamneseScreen} />
-      <MenuStack.Screen name="AvaliacaoFisica" component={AvaliacaoFisicaScreen} />
-      <MenuStack.Screen name="Peso" component={PesoScreen} />
-      <MenuStack.Screen name="Nutricao" component={NutricaoScreen} />
-      <MenuStack.Screen name="AulasOnline" component={AulasOnlineScreen} />
-      <MenuStack.Screen name="Suporte" component={SuporteScreen} />
-      <MenuStack.Screen name="Aulas" component={AulasScreen} />
-      <MenuStack.Screen name="Agua" component={AguaScreen} />
-      <MenuStack.Screen name="Jejum" component={JejumScreen} />
-      <MenuStack.Screen name="Receitas" component={ReceitasScreen} />
-      <MenuStack.Screen name="DiarioAlimentar" component={DiarioAlimentarScreen} />
-      <MenuStack.Screen name="QRCode" component={QRCodeScreen} />
-      <MenuStack.Screen name="Comparar" component={CompararScreen} />
-      <MenuStack.Screen name="Missoes" component={MissoesScreen} />
-      <MenuStack.Screen name="Ligas" component={LigasScreen} />
-      <MenuStack.Screen name="Periodizacao" component={PeriodizacaoScreen} />
-      <MenuStack.Screen name="Scanner2" component={ScannerScreen} />
-      <MenuStack.Screen name="LGPD" component={LGPDScreen} />
-      <MenuStack.Screen name="Relatorio" component={RelatorioScreen} />
-      <MenuStack.Screen name="ListaCompras" component={ListaComprasScreen} />
-      <MenuStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} />
-      <MenuStack.Screen name="IndicarAmigos" component={IndicarAmigosScreen} />
-      <MenuStack.Screen name="HistoricoAvaliacoes" component={HistoricoAvaliacoesScreen} />
-      <MenuStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
-      <MenuStack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} />
-      <MenuStack.Screen name="Measurements" component={MeasurementsScreen} />
-      <MenuStack.Screen name="Templates" component={TemplatesScreen} />
+      <MenuStack.Screen name="MenuMain" component={MenuScreen} options={{ headerShown: false }} />
+      <MenuStack.Screen name="ProfileMain" component={ProfileScreen} options={{ title: 'Perfil' }} />
+      <MenuStack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Configurações' }} />
+      <MenuStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
+      <MenuStack.Screen name="Recompensas" component={RecompensasScreen} options={{ title: 'Recompensas' }} />
+      <MenuStack.Screen name="TreinosProntos" component={TreinosProntosScreen} options={{ title: 'Treinos Prontos' }} />
+      <MenuStack.Screen name="HistoricoTreino" component={HistoricoTreinoScreen} options={{ title: 'Histórico' }} />
+      <MenuStack.Screen name="Personal" component={PersonalScreen} options={{ title: 'Personal Trainers' }} />
+      <MenuStack.Screen name="Grupos" component={GruposScreen} options={{ title: 'Grupos' }} />
+      <MenuStack.Screen name="Desafios" component={DesafiosScreen} options={{ title: 'Desafios' }} />
+      <MenuStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} options={{ title: 'Financeiro' }} />
+      <MenuStack.Screen name="Frequencia" component={FrequenciaScreen} options={{ title: 'Frequência' }} />
+      <MenuStack.Screen name="Anamnese" component={AnamneseScreen} options={{ title: 'Anamnese' }} />
+      <MenuStack.Screen name="AvaliacaoFisica" component={AvaliacaoFisicaScreen} options={{ title: 'Avaliação Física' }} />
+      <MenuStack.Screen name="Peso" component={PesoScreen} options={{ title: 'Peso' }} />
+      <MenuStack.Screen name="Nutricao" component={NutricaoScreen} options={{ title: 'Nutrição' }} />
+      <MenuStack.Screen name="AulasOnline" component={AulasOnlineScreen} options={{ title: 'Aulas Online' }} />
+      <MenuStack.Screen name="Suporte" component={SuporteScreen} options={{ title: 'Suporte' }} />
+      <MenuStack.Screen name="Aulas" component={AulasScreen} options={{ title: 'Aulas Coletivas' }} />
+      <MenuStack.Screen name="Agua" component={AguaScreen} options={{ title: 'Hidratação' }} />
+      <MenuStack.Screen name="Jejum" component={JejumScreen} options={{ title: 'Jejum' }} />
+      <MenuStack.Screen name="Receitas" component={ReceitasScreen} options={{ title: 'Receitas' }} />
+      <MenuStack.Screen name="DiarioAlimentar" component={DiarioAlimentarScreen} options={{ title: 'Diário Alimentar' }} />
+      <MenuStack.Screen name="QRCode" component={QRCodeScreen} options={{ title: 'QR Code' }} />
+      <MenuStack.Screen name="Comparar" component={CompararScreen} options={{ title: 'Comparar' }} />
+      <MenuStack.Screen name="Missoes" component={MissoesScreen} options={{ title: 'Missões' }} />
+      <MenuStack.Screen name="Ligas" component={LigasScreen} options={{ title: 'Ligas' }} />
+      <MenuStack.Screen name="Periodizacao" component={PeriodizacaoScreen} options={{ title: 'Periodização' }} />
+      <MenuStack.Screen name="Scanner2" component={ScannerScreen} options={{ title: 'Scanner' }} />
+      <MenuStack.Screen name="LGPD" component={LGPDScreen} options={{ title: 'Dados e Privacidade' }} />
+      <MenuStack.Screen name="Relatorio" component={RelatorioScreen} options={{ title: 'Relatório' }} />
+      <MenuStack.Screen name="ListaCompras" component={ListaComprasScreen} options={{ title: 'Lista de Compras' }} />
+      <MenuStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
+      <MenuStack.Screen name="IndicarAmigos" component={IndicarAmigosScreen} options={{ title: 'Indicar Amigos' }} />
+      <MenuStack.Screen name="HistoricoAvaliacoes" component={HistoricoAvaliacoesScreen} options={{ title: 'Avaliações' }} />
+      <MenuStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} options={{ title: 'Histórico de Treinos' }} />
+      <MenuStack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} options={{ title: 'Progresso' }} />
+      <MenuStack.Screen name="Measurements" component={MeasurementsScreen} options={{ title: 'Medidas Corporais' }} />
+      <MenuStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
     </MenuStack.Navigator>
   );
 }
