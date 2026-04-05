@@ -62,6 +62,7 @@ import HistoricoAvaliacoesScreen from '../screens/HistoricoAvaliacoesScreen';
 import ComentariosScreen from '../screens/ComentariosScreen';
 import CarrinhoScreen from '../screens/loja/CarrinhoScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
+import TrainingScreen from '../screens/TrainingScreen';
 import ExerciseSearchScreen from '../screens/ExerciseSearchScreen';
 import WorkoutHistoryScreen from '../screens/WorkoutHistoryScreen';
 import WorkoutProgressScreen from '../screens/WorkoutProgressScreen';
@@ -126,7 +127,8 @@ function FeedNavigator() {
 function TreinoNavigator() {
   return (
     <TreinoStack.Navigator screenOptions={stackOptions}>
-      <TreinoStack.Screen name="TreinoMain" component={ActiveWorkoutScreen} options={{ headerShown: false }} />
+      <TreinoStack.Screen name="TreinoMain" component={TrainingScreen} options={{ headerShown: false }} />
+      <TreinoStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} options={{ headerShown: false }} />
       <TreinoStack.Screen name="ExerciseSearch" component={ExerciseSearchScreen} options={{ title: 'Exercícios' }} />
       <TreinoStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
     </TreinoStack.Navigator>
