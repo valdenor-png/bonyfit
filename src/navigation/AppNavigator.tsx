@@ -61,6 +61,12 @@ import IndicarAmigosScreen from '../screens/indicacao/IndicarAmigosScreen';
 import HistoricoAvaliacoesScreen from '../screens/HistoricoAvaliacoesScreen';
 import ComentariosScreen from '../screens/ComentariosScreen';
 import CarrinhoScreen from '../screens/loja/CarrinhoScreen';
+import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
+import ExerciseSearchScreen from '../screens/ExerciseSearchScreen';
+import WorkoutHistoryScreen from '../screens/WorkoutHistoryScreen';
+import WorkoutProgressScreen from '../screens/WorkoutProgressScreen';
+import TemplatesScreen from '../screens/TemplatesScreen';
+import MeasurementsScreen from '../screens/MeasurementsScreen';
 
 const AlunoTab = createBottomTabNavigator();
 const ProfessorTab = createBottomTabNavigator();
@@ -111,6 +117,9 @@ function TreinoNavigator() {
   return (
     <TreinoStack.Navigator screenOptions={stackOptions}>
       <TreinoStack.Screen name="TreinoMain" component={TreinoScreen} />
+      <TreinoStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
+      <TreinoStack.Screen name="ExerciseSearch" component={ExerciseSearchScreen} />
+      <TreinoStack.Screen name="Templates" component={TemplatesScreen} />
     </TreinoStack.Navigator>
   );
 }
@@ -164,6 +173,10 @@ function MenuNavigator() {
       <MenuStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} />
       <MenuStack.Screen name="IndicarAmigos" component={IndicarAmigosScreen} />
       <MenuStack.Screen name="HistoricoAvaliacoes" component={HistoricoAvaliacoesScreen} />
+      <MenuStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
+      <MenuStack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} />
+      <MenuStack.Screen name="Measurements" component={MeasurementsScreen} />
+      <MenuStack.Screen name="Templates" component={TemplatesScreen} />
     </MenuStack.Navigator>
   );
 }
