@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../../tokens';
 import Button from '../../components/Button';
+import { supabase } from '../../services/supabase';
+import { useAuth } from '../../hooks/useAuth';
 
 // --- TYPES ---
 
@@ -19,9 +21,10 @@ interface Attendee {
   initials: string;
   escaneouAt: string;
   removido: boolean;
+  aluno_id?: string;
 }
 
-// --- MOCK DATA ---
+// --- MOCK DATA (fallback) ---
 
 const MOCK_ATTENDEES: Attendee[] = [
   { id: 'a1', nome: 'Carlos Pereira', initials: 'CP', escaneouAt: '09:02', removido: false },
@@ -44,6 +47,22 @@ function formatTimer(totalSeconds: number): string {
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
+function formatTimeShort(isoStr: string | null): string {
+  if (!isoStr) return '--:--';
+  const d = new Date(isoStr);
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 }
 
 // QR grid pattern placeholder
@@ -83,14 +102,24 @@ function QRPattern() {
 
 interface Props {
   navigation?: any;
+  route?: any;
 }
 
-export default function AulaAtivaScreen({ navigation }: Props) {
+export default function AulaAtivaScreen({ navigation, route }: Props) {
+  // Route params from MinhasAulasScreen
+  const sessionId = route?.params?.sessionId;
+  const qrToken = route?.params?.qrToken ?? 'BONYFIT_AULA_DEMO';
+  const modalidadeNome = route?.params?.modalidadeNome ?? 'Funcional';
+  const modalidadeIcone = route?.params?.modalidadeIcone ?? '\u{1F3CB}\u{FE0F}';
+  const pontosAula = route?.params?.pontosAula ?? 15;
+
   const [elapsed, setElapsed] = useState(0);
   const [qrTimeLeft, setQrTimeLeft] = useState(QR_WINDOW_MINUTES * 60);
-  const [attendees, setAttendees] = useState<Attendee[]>(MOCK_ATTENDEES);
+  const [attendees, setAttendees] = useState<Attendee[]>(sessionId ? [] : MOCK_ATTENDEES);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const user = useAuth((s) => s.user);
 
+  // Timer
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setElapsed((prev) => prev + 1);
@@ -101,20 +130,91 @@ export default function AulaAtivaScreen({ navigation }: Props) {
     };
   }, []);
 
+  // Load attendance from Supabase
+  const loadAttendees = useCallback(async () => {
+    if (!sessionId) return;
+    try {
+      const { data, error } = await supabase
+        .from('aula_presencas')
+        .select('*, users!aluno_id(name, avatar_url)')
+        .eq('sessao_id', sessionId)
+        .eq('removido', false);
+
+      if (error) throw error;
+      if (data) {
+        const mapped: Attendee[] = data.map((p: any) => ({
+          id: p.id,
+          nome: p.users?.name ?? 'Aluno',
+          initials: getInitials(p.users?.name ?? 'A'),
+          escaneouAt: formatTimeShort(p.escaneou_at),
+          removido: p.removido ?? false,
+          aluno_id: p.aluno_id,
+        }));
+        setAttendees(mapped);
+      }
+    } catch (err) {
+      console.warn('Error loading attendees:', err);
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
+    loadAttendees();
+  }, [loadAttendees]);
+
+  // Realtime subscription for attendance changes
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const channel = supabase
+      .channel(`aula_presencas_${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'aula_presencas',
+          filter: `sessao_id=eq.${sessionId}`,
+        },
+        () => {
+          // Reload full list on any change
+          loadAttendees();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [sessionId, loadAttendees]);
+
   const qrOpen = qrTimeLeft > 0;
   const qrMinLeft = Math.ceil(qrTimeLeft / 60);
   const activeAttendees = attendees.filter((a) => !a.removido);
   const presentCount = activeAttendees.length;
 
-  const handleRemove = (id: string) => {
+  const handleRemove = (presencaId: string) => {
     Alert.alert('Remover aluno?', 'O aluno sera removido da lista de presenca.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Remover',
         style: 'destructive',
-        onPress: () => {
+        onPress: async () => {
+          if (sessionId) {
+            try {
+              const { error } = await supabase
+                .from('aula_presencas')
+                .update({ removido: true, removido_at: new Date().toISOString() })
+                .eq('id', presencaId);
+              if (error) throw error;
+            } catch (err) {
+              console.warn('Error removing attendee:', err);
+              Alert.alert('Erro', 'Nao foi possivel remover o aluno.');
+              return;
+            }
+          }
+          // Update local state immediately
           setAttendees((prev) =>
-            prev.map((a) => (a.id === id ? { ...a, removido: true } : a)),
+            prev.map((a) => (a.id === presencaId ? { ...a, removido: true } : a)),
           );
         },
       },
@@ -124,10 +224,87 @@ export default function AulaAtivaScreen({ navigation }: Props) {
   const handleFinalize = () => {
     Alert.alert(
       'Finalizar aula?',
-      `Conceder pontos para ${presentCount} alunos?`,
+      `Conceder ${pontosAula} pontos para ${presentCount} alunos?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Finalizar', style: 'default', onPress: () => {} },
+        {
+          text: 'Finalizar',
+          style: 'default',
+          onPress: async () => {
+            if (!sessionId) return;
+            try {
+              // 1. Update session status
+              const { error: sessError } = await supabase
+                .from('aula_sessoes')
+                .update({
+                  status: 'finalizada',
+                  horario_fim: new Date().toISOString(),
+                })
+                .eq('id', sessionId);
+              if (sessError) throw sessError;
+
+              // 2. Mark all non-removed presencas as present + grant points
+              const { error: presError } = await supabase
+                .from('aula_presencas')
+                .update({
+                  presente_no_fim: true,
+                  pontos_concedidos: pontosAula,
+                })
+                .eq('sessao_id', sessionId)
+                .eq('removido', false);
+              if (presError) throw presError;
+
+              // 3. Add points to each present student
+              const presentStudents = attendees.filter((a) => !a.removido && a.aluno_id);
+              for (const student of presentStudents) {
+                try {
+                  // Fetch current points
+                  const { data: userData, error: userErr } = await supabase
+                    .from('users')
+                    .select('total_points')
+                    .eq('id', student.aluno_id)
+                    .single();
+
+                  if (userErr) {
+                    console.warn('Error fetching user points:', userErr);
+                    continue;
+                  }
+
+                  const currentPoints = userData?.total_points ?? 0;
+                  const { error: updateErr } = await supabase
+                    .from('users')
+                    .update({ total_points: currentPoints + pontosAula })
+                    .eq('id', student.aluno_id);
+
+                  if (updateErr) {
+                    console.warn('Error updating user points:', updateErr);
+                  }
+                } catch (innerErr) {
+                  console.warn('Error updating student points:', innerErr);
+                }
+              }
+
+              // 4. Navigate to summary
+              Alert.alert(
+                'Aula Finalizada!',
+                `${presentCount} alunos receberam ${pontosAula} pontos cada.`,
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      navigation?.navigate?.('Minhas Aulas', {
+                        screen: 'AulaFinalizada',
+                      });
+                    },
+                  },
+                ],
+              );
+            } catch (err) {
+              console.warn('Error finalizing class:', err);
+              Alert.alert('Erro', 'Nao foi possivel finalizar a aula. Tente novamente.');
+            }
+          },
+        },
       ],
     );
   };
@@ -167,8 +344,8 @@ export default function AulaAtivaScreen({ navigation }: Props) {
       {/* Top: Modalidade + Timer */}
       <View style={styles.topSection}>
         <View style={styles.modalidadeRow}>
-          <Text style={styles.modalidadeIcon}>🏋️</Text>
-          <Text style={styles.modalidadeName}>Funcional</Text>
+          <Text style={styles.modalidadeIcon}>{modalidadeIcone}</Text>
+          <Text style={styles.modalidadeName}>{modalidadeNome}</Text>
         </View>
         <Text style={styles.timer}>{formatTimer(elapsed)}</Text>
       </View>
@@ -179,7 +356,12 @@ export default function AulaAtivaScreen({ navigation }: Props) {
           <Text style={styles.qrTitle}>BONY FIT AULA</Text>
           <QRPattern />
         </View>
-        <Text style={styles.qrHint}>Mostre este QR para os alunos</Text>
+        {/* Show QR token so students can type it manually */}
+        <View style={styles.qrTokenBox}>
+          <Text style={styles.qrTokenLabel}>Codigo da aula:</Text>
+          <Text style={styles.qrTokenText} selectable>{qrToken}</Text>
+        </View>
+        <Text style={styles.qrHint}>Mostre este QR ou compartilhe o codigo</Text>
         {qrOpen ? (
           <Text style={styles.qrWindowOpen}>
             Aceitando check-ins por mais {qrMinLeft}min
@@ -282,6 +464,26 @@ const styles = StyleSheet.create({
     width: QR_CELL_SIZE,
     height: QR_CELL_SIZE,
     borderRadius: 2,
+  },
+  qrTokenBox: {
+    marginTop: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  qrTokenLabel: {
+    fontSize: 11,
+    fontFamily: fonts.body,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  qrTokenText: {
+    fontSize: 12,
+    fontFamily: fonts.numbersBold,
+    color: colors.orange,
+    letterSpacing: 0.5,
   },
   qrHint: {
     fontSize: 13,

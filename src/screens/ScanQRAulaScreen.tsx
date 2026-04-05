@@ -7,13 +7,17 @@ import {
   TextInput,
   Animated,
   Easing,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Button from '../components/Button';
+import { supabase } from '../services/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 // --- TYPES ---
 
-type ScanState = 'scanning' | 'success' | 'error';
+type ScanState = 'scanning' | 'success' | 'error' | 'loading';
 
 // --- COMPONENT ---
 
@@ -29,6 +33,9 @@ export default function ScanQRAulaScreen({ navigation }: Props) {
   const [scanState, setScanState] = useState<ScanState>('scanning');
   const [errorMessage, setErrorMessage] = useState('');
   const [manualCode, setManualCode] = useState('');
+  const [successInfo, setSuccessInfo] = useState({ modalidade: '' });
+
+  const user = useAuth((s) => s.user);
 
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const resultOpacity = useRef(new Animated.Value(0)).current;
@@ -73,12 +80,88 @@ export default function ScanQRAulaScreen({ navigation }: Props) {
           duration: 300,
           useNativeDriver: true,
         }).start(() => setScanState('scanning'));
-      }, 2000);
+      }, 3000);
+    }
+  };
+
+  const validateAndRegister = async (token: string) => {
+    if (!user?.id) {
+      showResult('error', 'Voce precisa estar logado.');
+      return;
+    }
+
+    setScanState('loading');
+
+    try {
+      // 1. Find the session by QR token
+      const { data: session, error: sessError } = await supabase
+        .from('aula_sessoes')
+        .select('id, status, horario_inicio, janela_qr_minutos, modalidade_id, modalidades(nome)')
+        .eq('qr_token', token)
+        .single();
+
+      if (sessError || !session) {
+        showResult('error', 'Codigo QR nao encontrado. Verifique e tente novamente.');
+        return;
+      }
+
+      // 2. Validate session status
+      if (session.status !== 'aberta' && session.status !== 'em_andamento') {
+        showResult('error', 'Esta aula ja foi finalizada.');
+        return;
+      }
+
+      // 3. Check QR time window
+      const janelaMinutos = session.janela_qr_minutos ?? 15;
+      const inicioMs = new Date(session.horario_inicio).getTime();
+      const agoraMs = Date.now();
+      const limiteMs = inicioMs + janelaMinutos * 60 * 1000;
+
+      if (agoraMs > limiteMs) {
+        showResult('error', 'A janela de check-in desta aula ja encerrou.');
+        return;
+      }
+
+      // 4. Check if already registered
+      const { data: existing, error: existErr } = await supabase
+        .from('aula_presencas')
+        .select('id')
+        .eq('sessao_id', session.id)
+        .eq('aluno_id', user.id)
+        .eq('removido', false);
+
+      if (existErr) throw existErr;
+
+      if (existing && existing.length > 0) {
+        showResult('error', 'Voce ja esta registrado nesta aula.');
+        return;
+      }
+
+      // 5. Insert presence
+      const { error: insertErr } = await supabase
+        .from('aula_presencas')
+        .insert({
+          sessao_id: session.id,
+          aluno_id: user.id,
+          escaneou_at: new Date().toISOString(),
+        });
+
+      if (insertErr) throw insertErr;
+
+      // 6. Show success
+      const modalidadeNome = (session as any).modalidades?.nome ?? 'Aula';
+      setSuccessInfo({ modalidade: modalidadeNome });
+      showResult('success');
+
+    } catch (err) {
+      console.warn('Error validating QR:', err);
+      showResult('error', 'Erro ao registrar presenca. Tente novamente.');
     }
   };
 
   const handleSimulate = () => {
-    showResult('success');
+    // Run full validation with a test token (will likely fail, showing real behavior)
+    validateAndRegister('BONYFIT_AULA_DEMO_TEST');
   };
 
   const handleSimulateError = () => {
@@ -86,8 +169,9 @@ export default function ScanQRAulaScreen({ navigation }: Props) {
   };
 
   const handleManualSubmit = () => {
-    if (manualCode.trim().length === 0) return;
-    showResult('success');
+    const code = manualCode.trim();
+    if (code.length === 0) return;
+    validateAndRegister(code);
     setManualCode('');
   };
 
@@ -132,20 +216,29 @@ export default function ScanQRAulaScreen({ navigation }: Props) {
           </View>
         )}
 
+        {scanState === 'loading' && (
+          <Animated.View style={[styles.resultContainer, { opacity: 1 }]}>
+            <ActivityIndicator size="large" color={colors.orange} />
+            <Text style={[styles.resultTitle, { marginTop: spacing.lg }]}>
+              Validando...
+            </Text>
+          </Animated.View>
+        )}
+
         {scanState === 'success' && (
           <Animated.View style={[styles.resultContainer, { opacity: resultOpacity }]}>
             <View style={styles.successCircle}>
-              <Text style={styles.successCheck}>✓</Text>
+              <Text style={styles.successCheck}>{'\u2713'}</Text>
             </View>
             <Text style={styles.resultTitle}>Presenca confirmada!</Text>
-            <Text style={styles.resultSubtitle}>💃 Danca</Text>
+            <Text style={styles.resultSubtitle}>{successInfo.modalidade}</Text>
           </Animated.View>
         )}
 
         {scanState === 'error' && (
           <Animated.View style={[styles.resultContainer, { opacity: resultOpacity }]}>
             <View style={styles.errorCircle}>
-              <Text style={styles.errorX}>✕</Text>
+              <Text style={styles.errorX}>{'\u2715'}</Text>
             </View>
             <Text style={styles.resultTitle}>{errorMessage}</Text>
             <TouchableOpacity
@@ -186,7 +279,7 @@ export default function ScanQRAulaScreen({ navigation }: Props) {
             style={styles.manualInput}
             value={manualCode}
             onChangeText={setManualCode}
-            placeholder="BONY-XXXX"
+            placeholder="BONYFIT_AULA_..."
             placeholderTextColor={colors.textMuted}
             autoCapitalize="characters"
             returnKeyType="go"
@@ -347,6 +440,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyBold,
     color: colors.text,
     marginBottom: spacing.xs,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
   },
   resultSubtitle: {
     fontSize: 16,

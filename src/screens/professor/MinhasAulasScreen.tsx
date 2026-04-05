@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../../tokens';
+import { supabase } from '../../services/supabase';
+import { useAuth } from '../../hooks/useAuth';
 
 // --- TYPES ---
 
@@ -25,9 +29,12 @@ interface ClassItem {
   alunosCount?: number;
   pontosTotal?: number;
   data?: string;
+  qr_token?: string;
+  modalidade_id?: string;
+  pontos_aula_completa?: number;
 }
 
-// --- MOCK DATA ---
+// --- MOCK DATA (fallback) ---
 
 const TODAY = new Date().toLocaleDateString('pt-BR', {
   weekday: 'long',
@@ -36,43 +43,37 @@ const TODAY = new Date().toLocaleDateString('pt-BR', {
   year: 'numeric',
 });
 
-const TODAY_CLASSES: ClassItem[] = [
-  { id: 'h1', modalidade: 'Danca', icone: '💃', horarioInicio: '07:00', horarioFim: '08:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 12, pontosTotal: 150 },
-  { id: 'h2', modalidade: 'Funcional', icone: '🏋️', horarioInicio: '09:00', horarioFim: '10:00', unidade: 'Unidade Centro', status: 'em_andamento' },
-  { id: 'h3', modalidade: 'Danca', icone: '💃', horarioInicio: '18:00', horarioFim: '19:00', unidade: 'Unidade Norte', status: 'agendada' },
+const FALLBACK_TODAY: ClassItem[] = [
+  { id: 'h1', modalidade: 'Danca', icone: '\u{1F483}', horarioInicio: '07:00', horarioFim: '08:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 12, pontosTotal: 150 },
+  { id: 'h2', modalidade: 'Funcional', icone: '\u{1F3CB}\u{FE0F}', horarioInicio: '09:00', horarioFim: '10:00', unidade: 'Unidade Centro', status: 'em_andamento' },
+  { id: 'h3', modalidade: 'Danca', icone: '\u{1F483}', horarioInicio: '18:00', horarioFim: '19:00', unidade: 'Unidade Norte', status: 'agendada' },
 ];
 
-const WEEK_CLASSES: Record<string, ClassItem[]> = {
-  'Segunda': [
-    { id: 'w1', modalidade: 'Danca', icone: '💃', horarioInicio: '07:00', horarioFim: '08:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 14, pontosTotal: 175 },
-    { id: 'w2', modalidade: 'Funcional', icone: '🏋️', horarioInicio: '09:00', horarioFim: '10:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 8, pontosTotal: 100 },
-  ],
-  'Terca': [
-    { id: 'w3', modalidade: 'Yoga', icone: '🧘', horarioInicio: '08:00', horarioFim: '09:00', unidade: 'Unidade Sul', status: 'finalizada', alunosCount: 10, pontosTotal: 125 },
-  ],
-  'Quarta': [
-    { id: 'w4', modalidade: 'Danca', icone: '💃', horarioInicio: '07:00', horarioFim: '08:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 12, pontosTotal: 150 },
-    { id: 'w5', modalidade: 'Funcional', icone: '🏋️', horarioInicio: '09:00', horarioFim: '10:00', unidade: 'Unidade Centro', status: 'em_andamento' },
-    { id: 'w6', modalidade: 'Danca', icone: '💃', horarioInicio: '18:00', horarioFim: '19:00', unidade: 'Unidade Norte', status: 'agendada' },
-  ],
-  'Quinta': [
-    { id: 'w7', modalidade: 'Yoga', icone: '🧘', horarioInicio: '08:00', horarioFim: '09:00', unidade: 'Unidade Sul', status: 'agendada' },
-    { id: 'w8', modalidade: 'Funcional', icone: '🏋️', horarioInicio: '17:00', horarioFim: '18:00', unidade: 'Unidade Centro', status: 'agendada' },
-  ],
-};
+const FALLBACK_HISTORY: ClassItem[] = [
+  { id: 'hs1', modalidade: 'Danca', icone: '\u{1F483}', horarioInicio: '07:00', horarioFim: '08:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 15, pontosTotal: 188, data: '28/03/2026' },
+  { id: 'hs2', modalidade: 'Funcional', icone: '\u{1F3CB}\u{FE0F}', horarioInicio: '09:00', horarioFim: '10:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 9, pontosTotal: 113, data: '28/03/2026' },
+];
 
-const HISTORY_CLASSES: ClassItem[] = [
-  { id: 'hs1', modalidade: 'Danca', icone: '💃', horarioInicio: '07:00', horarioFim: '08:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 15, pontosTotal: 188, data: '28/03/2026' },
-  { id: 'hs2', modalidade: 'Funcional', icone: '🏋️', horarioInicio: '09:00', horarioFim: '10:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 9, pontosTotal: 113, data: '28/03/2026' },
-  { id: 'hs3', modalidade: 'Yoga', icone: '🧘', horarioInicio: '08:00', horarioFim: '09:00', unidade: 'Unidade Sul', status: 'finalizada', alunosCount: 11, pontosTotal: 138, data: '27/03/2026' },
-  { id: 'hs4', modalidade: 'Danca', icone: '💃', horarioInicio: '18:00', horarioFim: '19:00', unidade: 'Unidade Norte', status: 'finalizada', alunosCount: 18, pontosTotal: 225, data: '26/03/2026' },
-  { id: 'hs5', modalidade: 'Funcional', icone: '🏋️', horarioInicio: '09:00', horarioFim: '10:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 7, pontosTotal: 88, data: '25/03/2026' },
-  { id: 'hs6', modalidade: 'Danca', icone: '💃', horarioInicio: '07:00', horarioFim: '08:00', unidade: 'Unidade Centro', status: 'finalizada', alunosCount: 13, pontosTotal: 163, data: '24/03/2026' },
-  { id: 'hs7', modalidade: 'Yoga', icone: '🧘', horarioInicio: '08:00', horarioFim: '09:00', unidade: 'Unidade Sul', status: 'finalizada', alunosCount: 10, pontosTotal: 125, data: '23/03/2026' },
-  { id: 'hs8', modalidade: 'Funcional', icone: '🏋️', horarioInicio: '17:00', horarioFim: '18:00', unidade: 'Unidade Norte', status: 'finalizada', alunosCount: 6, pontosTotal: 75, data: '22/03/2026' },
+// Hardcoded modalidades as fallback
+const MODALIDADES_FALLBACK = [
+  { id: 'mod-danca', nome: 'Danca', icone: '\u{1F483}', pontos_aula_completa: 15 },
+  { id: 'mod-funcional', nome: 'Funcional', icone: '\u{1F3CB}\u{FE0F}', pontos_aula_completa: 15 },
+  { id: 'mod-abdominal', nome: 'Abdominal', icone: '\u{1F4AA}', pontos_aula_completa: 10 },
 ];
 
 // --- HELPERS ---
+
+function formatTime(isoStr: string | null): string {
+  if (!isoStr) return '--:--';
+  const d = new Date(isoStr);
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+}
+
+function mapStatus(status: string): ClassStatus {
+  if (status === 'aberta' || status === 'em_andamento') return 'em_andamento';
+  if (status === 'finalizada') return 'finalizada';
+  return 'agendada';
+}
 
 function StatusBadge({ status }: { status: ClassStatus }) {
   const config = {
@@ -97,6 +98,157 @@ interface Props {
 
 export default function MinhasAulasScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>('hoje');
+  const [sessions, setSessions] = useState<ClassItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalidades, setModalidades] = useState(MODALIDADES_FALLBACK);
+  const user = useAuth((s) => s.user);
+
+  const loadSessions = useCallback(async () => {
+    if (!user?.id) {
+      setSessions([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from('aula_sessoes')
+        .select('*, modalidades(nome, icone, pontos_aula_completa)')
+        .eq('professor_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const mapped: ClassItem[] = data.map((s: any) => ({
+          id: s.id,
+          modalidade: s.modalidades?.nome ?? 'Aula',
+          icone: s.modalidades?.icone ?? '\u{1F3CB}\u{FE0F}',
+          horarioInicio: formatTime(s.horario_inicio),
+          horarioFim: formatTime(s.horario_fim),
+          unidade: 'Unidade Centro',
+          status: mapStatus(s.status),
+          qr_token: s.qr_token,
+          modalidade_id: s.modalidade_id,
+          pontos_aula_completa: s.modalidades?.pontos_aula_completa ?? 15,
+          data: s.horario_inicio
+            ? new Date(s.horario_inicio).toLocaleDateString('pt-BR')
+            : undefined,
+        }));
+        setSessions(mapped);
+      } else {
+        // Keep fallback if no real data
+        setSessions([]);
+      }
+    } catch (err) {
+      console.warn('Error loading sessions:', err);
+      setSessions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  const loadModalidades = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('modalidades')
+        .select('id, nome, icone, pontos_aula_completa');
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setModalidades(data as any);
+      }
+    } catch (err) {
+      console.warn('Error loading modalidades:', err);
+      // keep fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSessions();
+    loadModalidades();
+  }, [loadSessions, loadModalidades]);
+
+  // Refresh when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation?.addListener?.('focus', () => {
+      loadSessions();
+    });
+    return unsubscribe;
+  }, [navigation, loadSessions]);
+
+  const handleIniciarAula = () => {
+    const options = modalidades.map((m) => m.nome);
+    Alert.alert(
+      'Selecione a Modalidade',
+      'Escolha a modalidade para iniciar a aula:',
+      [
+        ...options.map((nome) => ({
+          text: nome,
+          onPress: () => criarSessao(nome),
+        })),
+        { text: 'Cancelar', style: 'cancel' as const },
+      ],
+    );
+  };
+
+  const criarSessao = async (modalidadeNome: string) => {
+    const mod = modalidades.find((m) => m.nome === modalidadeNome);
+    if (!mod || !user?.id) return;
+
+    const qr_token = `BONYFIT_AULA_${Date.now()}_${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+    try {
+      const { data, error } = await supabase
+        .from('aula_sessoes')
+        .insert({
+          modalidade_id: mod.id,
+          professor_id: user.id,
+          qr_token,
+          status: 'aberta',
+          horario_inicio: new Date().toISOString(),
+        })
+        .select('*, modalidades(nome, icone, pontos_aula_completa)')
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to AulaAtiva tab (Presenca tab) with session params
+      navigation?.navigate?.('Presen\u00E7a', {
+        screen: 'AulaAtivaMain',
+        params: {
+          sessionId: data.id,
+          qrToken: data.qr_token,
+          modalidadeNome: mod.nome,
+          modalidadeIcone: mod.icone ?? '\u{1F3CB}\u{FE0F}',
+          pontosAula: mod.pontos_aula_completa ?? 15,
+        },
+      });
+    } catch (err) {
+      console.warn('Error creating session:', err);
+      Alert.alert('Erro', 'Nao foi possivel iniciar a aula. Tente novamente.');
+    }
+  };
+
+  const handleVerAula = (cls: ClassItem) => {
+    navigation?.navigate?.('Presen\u00E7a', {
+      screen: 'AulaAtivaMain',
+      params: {
+        sessionId: cls.id,
+        qrToken: cls.qr_token,
+        modalidadeNome: cls.modalidade,
+        modalidadeIcone: cls.icone,
+        pontosAula: cls.pontos_aula_completa ?? 15,
+      },
+    });
+  };
+
+  // Determine which data to display
+  const todayStr = new Date().toLocaleDateString('pt-BR');
+  const todayClasses = sessions.length > 0
+    ? sessions.filter((s) => s.data === todayStr || s.status === 'em_andamento')
+    : FALLBACK_TODAY;
+  const historyClasses = sessions.length > 0
+    ? sessions.filter((s) => s.status === 'finalizada')
+    : FALLBACK_HISTORY;
 
   const renderClassCard = (cls: ClassItem, showDate = false) => (
     <View key={cls.id} style={styles.classCard}>
@@ -119,12 +271,16 @@ export default function MinhasAulasScreen({ navigation }: Props) {
 
       {/* Action area */}
       {cls.status === 'agendada' && (
-        <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7} onPress={handleIniciarAula}>
           <Text style={styles.actionBtnText}>Iniciar Aula</Text>
         </TouchableOpacity>
       )}
       {cls.status === 'em_andamento' && (
-        <TouchableOpacity style={[styles.actionBtn, styles.actionBtnGreen]} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnGreen]}
+          activeOpacity={0.7}
+          onPress={() => handleVerAula(cls)}
+        >
           <Text style={styles.actionBtnText}>Ver Aula</Text>
         </TouchableOpacity>
       )}
@@ -133,7 +289,7 @@ export default function MinhasAulasScreen({ navigation }: Props) {
           <Text style={styles.summaryText}>
             {cls.alunosCount} alunos
           </Text>
-          <Text style={styles.summaryDot}>•</Text>
+          <Text style={styles.summaryDot}>{'\u2022'}</Text>
           <Text style={styles.summaryPoints}>{cls.pontosTotal} pts</Text>
         </View>
       )}
@@ -154,6 +310,15 @@ export default function MinhasAulasScreen({ navigation }: Props) {
         <Text style={styles.headerDate}>{TODAY}</Text>
       </View>
 
+      {/* Start new class button */}
+      <TouchableOpacity
+        style={styles.newAulaBtn}
+        activeOpacity={0.7}
+        onPress={handleIniciarAula}
+      >
+        <Text style={styles.newAulaBtnText}>+ Iniciar Nova Aula</Text>
+      </TouchableOpacity>
+
       {/* Tabs */}
       <View style={styles.tabs}>
         {TABS.map((tab) => (
@@ -169,37 +334,50 @@ export default function MinhasAulasScreen({ navigation }: Props) {
         ))}
       </View>
 
+      {/* Loading */}
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={colors.orange} size="large" />
+        </View>
+      )}
+
       {/* Content */}
-      {activeTab === 'hoje' && (
+      {!loading && activeTab === 'hoje' && (
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {TODAY_CLASSES.map((cls) => renderClassCard(cls))}
+          {todayClasses.length === 0 ? (
+            <Text style={styles.emptyText}>Nenhuma aula hoje</Text>
+          ) : (
+            todayClasses.map((cls) => renderClassCard(cls))
+          )}
         </ScrollView>
       )}
 
-      {activeTab === 'semana' && (
+      {!loading && activeTab === 'semana' && (
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {Object.entries(WEEK_CLASSES).map(([day, classes]) => (
-            <View key={day}>
-              <Text style={styles.dayHeader}>{day}</Text>
-              {classes.map((cls) => renderClassCard(cls))}
-            </View>
-          ))}
+          {sessions.length > 0 ? (
+            sessions.map((cls) => renderClassCard(cls, true))
+          ) : (
+            FALLBACK_TODAY.map((cls) => renderClassCard(cls))
+          )}
         </ScrollView>
       )}
 
-      {activeTab === 'historico' && (
+      {!loading && activeTab === 'historico' && (
         <FlatList
-          data={HISTORY_CLASSES}
+          data={historyClasses}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => renderClassCard(item, true)}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>Nenhuma aula no historico</Text>
+          }
         />
       )}
     </View>
@@ -229,6 +407,32 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     color: colors.textSecondary,
     textTransform: 'capitalize',
+  },
+  newAulaBtn: {
+    backgroundColor: colors.orange,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    alignItems: 'center',
+  },
+  newAulaBtnText: {
+    fontSize: 15,
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    fontSize: 14,
+    fontFamily: fonts.body,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: spacing.xl,
   },
   // Tabs
   tabs: {

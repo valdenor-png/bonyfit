@@ -16,6 +16,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
+import * as ImagePicker from 'expo-image-picker';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -216,11 +217,13 @@ function PostCard({
   onLike,
   onSave,
   onOptions,
+  onComment,
 }: {
   post: FeedPost;
   onLike: () => void;
   onSave: () => void;
   onOptions: () => void;
+  onComment: () => void;
 }) {
   const levelColor = LEVEL_COLORS[post.user.nivel] || colors.orange;
   const initials = getInitials(post.user.nome);
@@ -276,7 +279,7 @@ function PostCard({
               {post.isLiked ? '❤️' : '♡'}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.6} style={styles.actionBtn}>
+          <TouchableOpacity onPress={onComment} activeOpacity={0.6} style={styles.actionBtn}>
             <Text style={styles.actionComment}>💬</Text>
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.6} style={styles.actionBtn}>
@@ -303,7 +306,7 @@ function PostCard({
 
       {/* Comments Link */}
       {post.comments_count > 0 && (
-        <TouchableOpacity activeOpacity={0.6}>
+        <TouchableOpacity activeOpacity={0.6} onPress={onComment}>
           <Text style={styles.commentsLink}>
             Ver todos os {post.comments_count} comentarios
           </Text>
@@ -345,6 +348,7 @@ export default function FeedScreen({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPostText, setNewPostText] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingPosts, setLoadingPosts] = useState(true);
 
@@ -471,24 +475,101 @@ export default function FeedScreen({ navigation }: Props) {
   }, []);
 
   const handleOptions = useCallback((postId: string) => {
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return;
+
     Alert.alert('Opcoes', undefined, [
-      { text: 'Denunciar', style: 'destructive' },
+      {
+        text: 'Denunciar',
+        style: 'destructive',
+        onPress: async () => {
+          if (!user) return;
+          try {
+            await supabase.from('reports').insert({
+              reporter_id: user.id,
+              reported_user_id: post.user.id,
+              reason: 'conteudo_impróprio',
+            });
+            Alert.alert('Denúncia enviada');
+          } catch (error) {
+            console.error('Error reporting:', error);
+            Alert.alert('Erro', 'Não foi possível enviar a denúncia.');
+          }
+        },
+      },
+      {
+        text: 'Bloquear',
+        style: 'destructive',
+        onPress: async () => {
+          if (!user) return;
+          try {
+            await supabase.from('blocks').insert({
+              blocker_id: user.id,
+              blocked_id: post.user.id,
+            });
+            // Remove blocked user's posts from feed
+            setPosts((prev) => prev.filter((p) => p.user.id !== post.user.id));
+            Alert.alert('Usuário bloqueado');
+          } catch (error) {
+            console.error('Error blocking:', error);
+            Alert.alert('Erro', 'Não foi possível bloquear o usuário.');
+          }
+        },
+      },
       { text: 'Silenciar' },
       { text: 'Copiar link' },
       { text: 'Cancelar', style: 'cancel' },
     ]);
+  }, [posts, user]);
+
+  const handlePickImage = useCallback(async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setSelectedImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+    }
   }, []);
 
   const handleCreatePost = useCallback(async () => {
     if (!newPostText.trim()) return;
 
+    let imageUrl: string | null = null;
+
     if (user) {
       try {
+        // Upload image if selected
+        if (selectedImage) {
+          const fileName = `${user.id}_${Date.now()}.jpg`;
+          const response = await fetch(selectedImage);
+          const blob = await response.blob();
+
+          const { error: uploadError } = await supabase.storage
+            .from('posts')
+            .upload(fileName, blob, { contentType: 'image/jpeg' });
+
+          if (uploadError) {
+            console.error('Error uploading image:', uploadError);
+          } else {
+            const { data: publicData } = supabase.storage
+              .from('posts')
+              .getPublicUrl(fileName);
+            imageUrl = publicData.publicUrl;
+          }
+        }
+
         const { data: inserted, error } = await supabase
           .from('posts')
           .insert({
             text: newPostText,
             user_id: user.id,
+            image_url: imageUrl,
           })
           .select('id, text, image_url, created_at')
           .single();
@@ -514,6 +595,7 @@ export default function FeedScreen({ navigation }: Props) {
         };
         setPosts((prev) => [newPost, ...prev]);
         setNewPostText('');
+        setSelectedImage(null);
         setShowNewPost(false);
         return;
       } catch (error) {
@@ -532,7 +614,7 @@ export default function FeedScreen({ navigation }: Props) {
         avatar_url: user?.avatar_url ?? null,
       },
       text: newPostText,
-      image_url: null,
+      image_url: selectedImage,
       likes_count: 0,
       comments_count: 0,
       isLiked: false,
@@ -541,8 +623,9 @@ export default function FeedScreen({ navigation }: Props) {
     };
     setPosts((prev) => [newPost, ...prev]);
     setNewPostText('');
+    setSelectedImage(null);
     setShowNewPost(false);
-  }, [newPostText, user]);
+  }, [newPostText, user, selectedImage]);
 
   return (
     <View style={styles.container}>
@@ -567,6 +650,7 @@ export default function FeedScreen({ navigation }: Props) {
               onLike={() => handleLike(item.id)}
               onSave={() => handleSave(item.id)}
               onOptions={() => handleOptions(item.id)}
+              onComment={() => Alert.alert('Comentários', 'Em breve!')}
             />
           )}
           contentContainerStyle={styles.feedList}
@@ -588,7 +672,7 @@ export default function FeedScreen({ navigation }: Props) {
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setShowNewPost(false)}>
+              <TouchableOpacity onPress={() => { setShowNewPost(false); setSelectedImage(null); }}>
                 <Text style={styles.modalCancel}>Cancelar</Text>
               </TouchableOpacity>
               <Text style={styles.modalTitle}>Novo Post</Text>
@@ -612,6 +696,20 @@ export default function FeedScreen({ navigation }: Props) {
               multiline
               autoFocus
             />
+            {selectedImage && (
+              <View style={styles.imagePreviewContainer}>
+                <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
+                <TouchableOpacity
+                  style={styles.imageRemoveBtn}
+                  onPress={() => setSelectedImage(null)}
+                >
+                  <Text style={styles.imageRemoveText}>X</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            <TouchableOpacity style={styles.addPhotoBtn} onPress={handlePickImage} activeOpacity={0.7}>
+              <Text style={styles.addPhotoBtnText}>Adicionar foto</Text>
+            </TouchableOpacity>
             <View style={styles.modalFooter}>
               <View style={styles.ptsBadge}>
                 <Text style={styles.ptsBadgeText}>+25 pts</Text>
@@ -981,5 +1079,46 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.numbersBold,
     color: colors.orange,
+  },
+
+  // Photo picker
+  addPhotoBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(242,101,34,0.12)',
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    marginTop: 10,
+  },
+  addPhotoBtnText: {
+    fontSize: 14,
+    fontFamily: fonts.body,
+    color: colors.orange,
+  },
+  imagePreviewContainer: {
+    marginTop: 10,
+    position: 'relative',
+    alignSelf: 'flex-start',
+  },
+  imagePreview: {
+    width: 120,
+    height: 120,
+    borderRadius: 10,
+  },
+  imageRemoveBtn: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#444',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageRemoveText: {
+    fontSize: 11,
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
   },
 });
