@@ -298,35 +298,99 @@ export default function ActiveWorkoutScreen({
     ).length;
     const points = totalCompletedSets * 15 + totalExercises * 50 + 200;
 
-    // Save to Supabase
     if (user) {
       try {
-        await supabase.from('workouts').insert({
+        // 1. Salvar sessão de treino
+        const { data: logData } = await supabase.from('workout_logs_v2').insert({
           user_id: user.id,
           name: workoutName,
+          started_at: new Date(Date.now() - elapsedSeconds * 1000).toISOString(),
+          finished_at: new Date().toISOString(),
           duration_seconds: elapsedSeconds,
-          volume: totalVolume,
-          sets_completed: totalCompletedSets,
-          exercises_count: totalExercises,
+          volume_total: totalVolume,
           points_earned: points,
-          completed_at: new Date().toISOString(),
+          workout_date: new Date().toISOString().split('T')[0],
+        }).select('id').single();
+
+        // 2. Salvar séries individuais
+        if (logData) {
+          const setsToInsert: any[] = [];
+          exercises.forEach((ex) => {
+            ex.sets.forEach((s, i) => {
+              if (s.completed) {
+                setsToInsert.push({
+                  workout_log_id: logData.id,
+                  exercise_id: ex.id,
+                  set_index: i + 1,
+                  set_type: s.type || 'normal',
+                  weight_kg: s.weight || null,
+                  reps: s.reps || null,
+                  is_completed: true,
+                });
+              }
+            });
+          });
+          if (setsToInsert.length > 0) {
+            await supabase.from('workout_sets').insert(setsToInsert);
+          }
+        }
+
+        // 3. Atualizar pontos e streak do usuário
+        const { data: userData } = await supabase
+          .from('users')
+          .select('total_points, current_streak, last_workout_date, total_workouts')
+          .eq('id', user.id)
+          .single();
+
+        if (userData) {
+          const today = new Date().toISOString().split('T')[0];
+          const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+          let newStreak = 1;
+          if (userData.last_workout_date === today) {
+            newStreak = userData.current_streak || 1;
+          } else if (userData.last_workout_date === yesterday) {
+            newStreak = (userData.current_streak || 0) + 1;
+          }
+
+          let multiplier = 1.0;
+          if (newStreak >= 30) multiplier = 2.0;
+          else if (newStreak >= 14) multiplier = 1.5;
+          else if (newStreak >= 7) multiplier = 1.2;
+
+          const finalPoints = Math.round(points * multiplier);
+
+          await supabase.from('users').update({
+            total_points: (userData.total_points || 0) + finalPoints,
+            current_streak: newStreak,
+            last_workout_date: today,
+            total_workouts: (userData.total_workouts || 0) + 1,
+          }).eq('id', user.id);
+        }
+
+        // 4. Postar automaticamente no feed
+        const exerciseNames = exercises
+          .filter((ex) => ex.sets.some((s) => s.completed))
+          .slice(0, 3)
+          .map((ex) => ex.name)
+          .join(', ');
+        const moreCount = totalExercises - 3;
+        const feedText = `Completou ${workoutName}! 💪 ${totalExercises} exercícios, ${totalCompletedSets} séries, ${formatVolume(totalVolume)} de volume.${moreCount > 0 ? `\n${exerciseNames} e mais ${moreCount}` : `\n${exerciseNames}`}`;
+
+        await supabase.from('posts').insert({
+          user_id: user.id,
+          text: feedText,
+          hashtags: ['#BonyFit', '#Treino'],
         });
+
       } catch (err) {
-        // silent fail — show summary anyway
+        console.warn('Erro ao salvar treino:', err);
       }
     }
 
     Alert.alert(
-      'Treino Finalizado!',
-      `Duracao: ${formatTimer(elapsedSeconds)}\nSeries completas: ${totalCompletedSets}\nVolume total: ${formatVolume(totalVolume)}\nPontos: +${points} pts`,
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            if (navigation) navigation.goBack();
-          },
-        },
-      ],
+      'Treino Finalizado! 🏆',
+      `Duração: ${formatTimer(elapsedSeconds)}\nSéries completas: ${totalCompletedSets}\nVolume total: ${formatVolume(totalVolume)}\nPontos: +${points} pts`,
+      [{ text: 'OK', onPress: () => { if (navigation) navigation.goBack(); } }],
     );
   };
 
