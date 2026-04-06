@@ -70,6 +70,9 @@ import WorkoutHistoryScreen from '../screens/WorkoutHistoryScreen';
 import WorkoutProgressScreen from '../screens/WorkoutProgressScreen';
 import TemplatesScreen from '../screens/TemplatesScreen';
 import MeasurementsScreen from '../screens/MeasurementsScreen';
+import EscolherPersonalScreen from '../screens/EscolherPersonalScreen';
+import ListaPersonaisScreen from '../screens/ListaPersonaisScreen';
+import AgendarAvaliacaoScreen from '../screens/AgendarAvaliacaoScreen';
 
 // Personal screens
 import MeusAlunosScreen from '../screens/personal/MeusAlunosScreen';
@@ -119,6 +122,9 @@ function HomeNavigator() {
       <HomeStack.Screen name="Personal" component={PersonalScreen} options={{ title: 'Personal Trainers' }} />
       <HomeStack.Screen name="Desafios" component={DesafiosScreen} options={{ title: 'Desafios' }} />
       <HomeStack.Screen name="Recompensas" component={RecompensasScreen} options={{ title: 'Recompensas' }} />
+      <HomeStack.Screen name="EscolherPersonal" component={EscolherPersonalScreen} options={{ title: 'Escolher Personal' }} />
+      <HomeStack.Screen name="ListaPersonais" component={ListaPersonaisScreen} options={{ title: 'Personais' }} />
+      <HomeStack.Screen name="AgendarAvaliacao" component={AgendarAvaliacaoScreen} options={{ title: 'Avaliacao' }} />
     </HomeStack.Navigator>
   );
 }
@@ -206,6 +212,9 @@ function MenuNavigator() {
       <MenuStack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} options={{ title: 'Progresso' }} />
       <MenuStack.Screen name="Measurements" component={MeasurementsScreen} options={{ title: 'Medidas Corporais' }} />
       <MenuStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
+      <MenuStack.Screen name="EscolherPersonal" component={EscolherPersonalScreen} options={{ title: 'Escolher Personal' }} />
+      <MenuStack.Screen name="ListaPersonais" component={ListaPersonaisScreen} options={{ title: 'Personais' }} />
+      <MenuStack.Screen name="AgendarAvaliacao" component={AgendarAvaliacaoScreen} options={{ title: 'Avaliacao' }} />
     </MenuStack.Navigator>
   );
 }

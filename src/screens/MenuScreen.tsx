@@ -10,6 +10,7 @@ import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
 import { useModeStore } from '../stores/modeStore';
 import { useAuth } from '../hooks/useAuth';
+import { useVip } from '../hooks/useVip';
 
 interface Props {
   navigation: any;
@@ -93,7 +94,13 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
 
 export default function MenuScreen({ navigation }: Props) {
   const { currentMode, toggleMode } = useModeStore();
-  const { podeTrocarModo, cargoSlug } = useAuth();
+  const { user, podeTrocarModo, cargoSlug } = useAuth();
+  const { isVip } = useVip(user?.id);
+
+  const VIP_ITEMS: MenuItem[] = [
+    { icon: '\uD83D\uDC8E', label: 'Escolher Personal', sub: 'Seu personal exclusivo VIP', screen: 'EscolherPersonal' },
+    { icon: '\uD83D\uDCCB', label: 'Agendar Avaliacao', sub: 'Solicitar avaliacao fisica', screen: 'AgendarAvaliacao' },
+  ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -107,7 +114,7 @@ export default function MenuScreen({ navigation }: Props) {
       <View style={styles.modeBadgeRow}>
         <View style={styles.modeBadge}>
           <Text style={styles.modeBadgeText}>
-            {currentMode === 'aluno' ? '👤 Modo Aluno' : '🏋️ Modo Profissional'}
+            {currentMode === 'aluno' ? '\uD83D\uDC64 Modo Aluno' : '\uD83C\uDFCB\uFE0F Modo Profissional'}
           </Text>
         </View>
       </View>
@@ -121,13 +128,40 @@ export default function MenuScreen({ navigation }: Props) {
               onPress={toggleMode}
               activeOpacity={0.7}
             >
-              <Text style={styles.menuIcon}>🔄</Text>
+              <Text style={styles.menuIcon}>{'\uD83D\uDD04'}</Text>
               <View style={styles.menuInfo}>
                 <Text style={styles.menuLabel}>Trocar modo</Text>
                 <Text style={styles.menuSub}>Alternar entre modo aluno e profissional</Text>
               </View>
-              <Text style={styles.chevron}>›</Text>
+              <Text style={styles.chevron}>{'\u203A'}</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* VIP Section - only show if user is VIP */}
+      {isVip && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>VIP</Text>
+          <View style={styles.sectionCard}>
+            {VIP_ITEMS.map((item, i) => (
+              <TouchableOpacity
+                key={item.screen}
+                style={[
+                  styles.menuItem,
+                  i < VIP_ITEMS.length - 1 && styles.menuItemBorder,
+                ]}
+                onPress={() => navigation.navigate(item.screen)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.menuIcon}>{item.icon}</Text>
+                <View style={styles.menuInfo}>
+                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  {item.sub && <Text style={styles.menuSub}>{item.sub}</Text>}
+                </View>
+                <Text style={styles.chevron}>{'\u203A'}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       )}

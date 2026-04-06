@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
+import { useVip } from '../hooks/useVip';
 import { fetchPlanoAluno } from '../services/personal';
 import type { WorkoutPlan } from '../types/workout';
 
@@ -34,7 +35,10 @@ const MOCK_TODAY_WORKOUT: TodayWorkout | null = {
 export default function TrainingScreen({ navigation }: { navigation: any }) {
   const todayWorkout = MOCK_TODAY_WORKOUT;
   const { user } = useAuth();
+  const { isVip } = useVip(user?.id);
   const [personalPlan, setPersonalPlan] = useState<WorkoutPlan | null>(null);
+  const [hasPersonal, setHasPersonal] = useState(false);
+  const [personalNome, setPersonalNome] = useState('');
 
   useEffect(() => {
     if (user?.id) {
@@ -43,8 +47,29 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
           if (plan) setPersonalPlan(plan as WorkoutPlan);
         })
         .catch(() => {});
+
+      // Check if VIP user has a personal assigned
+      if (isVip) {
+        import('../services/supabase').then(({ supabase }) => {
+          supabase
+            .from('personal_alunos')
+            .select('personal:personal_id(name)')
+            .eq('aluno_id', user.id)
+            .eq('status', 'ativo')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single()
+            .then(({ data }) => {
+              if (data?.personal) {
+                setHasPersonal(true);
+                setPersonalNome((data.personal as any).name || '');
+              }
+            })
+            .then(() => {});
+        });
+      }
     }
-  }, [user?.id]);
+  }, [user?.id, isVip]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -63,6 +88,28 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
           <Text style={styles.agendaLabel}>Agenda</Text>
         </TouchableOpacity>
       </View>
+
+      {/* ── VIP Banner ──────────────────────────────────────────────────── */}
+      {isVip && !hasPersonal && (
+        <TouchableOpacity
+          style={styles.vipBanner}
+          onPress={() => navigation.navigate('EscolherPersonal')}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.vipBannerText}>
+            {'\uD83D\uDC8E'} VIP — Escolha seu personal exclusivo
+          </Text>
+          <Text style={styles.vipBannerChevron}>{'\u203A'}</Text>
+        </TouchableOpacity>
+      )}
+
+      {isVip && hasPersonal && personalNome ? (
+        <View style={styles.vipPersonalInfo}>
+          <Text style={styles.vipPersonalInfoText}>
+            Seu personal: {personalNome}
+          </Text>
+        </View>
+      ) : null}
 
       {/* ── Personal Plan Section ───────────────────────────────────────── */}
       {personalPlan && (
@@ -365,5 +412,40 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: fonts.bodyBold,
     color: '#FFFFFF',
+  },
+
+  // VIP banner
+  vipBanner: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.orange,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  vipBannerText: {
+    fontSize: 14,
+    fontFamily: fonts.bodyBold,
+    color: '#FFFFFF',
+    flex: 1,
+  },
+  vipBannerChevron: {
+    fontSize: 22,
+    color: colors.orange,
+    marginLeft: spacing.sm,
+  },
+  vipPersonalInfo: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  vipPersonalInfoText: {
+    fontSize: 13,
+    fontFamily: fonts.bodyMedium,
+    color: '#999999',
   },
 });
