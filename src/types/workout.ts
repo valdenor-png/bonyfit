@@ -51,3 +51,57 @@ export interface ExerciseProgress {
   totalSets: number;
   pointsEarned: number;
 }
+
+// ===== PERSONAL TRAINER TYPES =====
+
+export interface WorkoutPlan {
+  id: string;
+  aluno_id: string;
+  personal_id: string;
+  nome: string;
+  objetivo: string;
+  observacoes?: string;
+  data_inicio: string;
+  data_fim?: string;
+  status: 'ativo' | 'pausado' | 'concluido' | 'substituido';
+  personal?: { name: string; avatar_url: string | null };
+  splits: WorkoutPlanSplit[];
+}
+
+export interface WorkoutPlanSplit {
+  id: string;
+  plan_id: string;
+  label: string;
+  nome: string;
+  dia_semana?: number[];
+  ordem: number;
+  exercises: PlanSplitExercise[];
+}
+
+export interface PlanSplitExercise {
+  id: string;
+  split_id: string;
+  exercise_id: string;
+  exercise: Exercise;
+  series: number;
+  repeticoes: string;
+  descanso_seg: number;
+  carga_kg?: number;
+  tecnica?: string;
+  observacoes?: string;
+  ordem: number;
+}
+
+export interface AlunoVinculado {
+  id: string;
+  aluno: {
+    id: string;
+    name: string;
+    avatar_url: string | null;
+    level: string;
+    total_points: number;
+  };
+  plano_ativo?: { id: string; nome: string } | null;
+  ultimo_treino?: string | null;
+  vinculado_em: string;
+}

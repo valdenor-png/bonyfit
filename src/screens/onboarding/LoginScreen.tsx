@@ -134,8 +134,24 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
             />
           </View>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Welcome')}>
-            <Text style={styles.link}>N\u00e3o tenho conta</Text>
+          <Text style={styles.infoText}>
+            Não tem conta? Procure a recepção da sua unidade.
+          </Text>
+          <TouchableOpacity onPress={async () => {
+            if (!cpf || cpf.replace(/\D/g, '').length < 11) {
+              Alert.alert('CPF necessário', 'Digite seu CPF primeiro para recuperar a senha.');
+              return;
+            }
+            const cpfClean = cpf.replace(/\D/g, '');
+            const { data } = await supabase.from('users').select('email').eq('cpf', cpfClean).single();
+            if (data?.email) {
+              await supabase.auth.resetPasswordForEmail(data.email);
+              Alert.alert('E-mail enviado', 'Verifique seu e-mail para redefinir sua senha.');
+            } else {
+              Alert.alert('CPF não encontrado', 'Procure a recepção da sua unidade.');
+            }
+          }}>
+            <Text style={styles.link}>Esqueci minha senha</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -193,10 +209,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.elevated,
   },
+  infoText: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
   link: {
     fontFamily: fonts.bodyMedium,
     fontSize: 14,
     color: colors.orange,
     textAlign: 'center',
+    marginTop: 8,
   },
 });

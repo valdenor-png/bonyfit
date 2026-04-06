@@ -5,6 +5,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors, fonts } from '../tokens';
 import Skull from '../components/Skull';
 import { useModeStore } from '../stores/modeStore';
+import { useAuth } from '../hooks/useAuth';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -70,13 +71,22 @@ import WorkoutProgressScreen from '../screens/WorkoutProgressScreen';
 import TemplatesScreen from '../screens/TemplatesScreen';
 import MeasurementsScreen from '../screens/MeasurementsScreen';
 
+// Personal screens
+import MeusAlunosScreen from '../screens/personal/MeusAlunosScreen';
+import FichaAlunoScreen from '../screens/personal/FichaAlunoScreen';
+import MontarTreinoScreen from '../screens/personal/MontarTreinoScreen';
+
 const AlunoTab = createBottomTabNavigator();
 const ProfessorTab = createBottomTabNavigator();
+const PersonalTab = createBottomTabNavigator();
 const HomeStack = createStackNavigator<any>();
 const FeedStack = createStackNavigator<any>();
 const TreinoStack = createStackNavigator<any>();
 const LojaStack = createStackNavigator<any>();
 const MenuStack = createStackNavigator<any>();
+
+// Personal stacks
+const MeusAlunosStack = createStackNavigator<any>();
 
 // Professor stacks
 const MinhasAulasStack = createStackNavigator<any>();
@@ -254,6 +264,7 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
     'Minhas Aulas': '📋',
     'Presença': '✅',
     'Histórico': '📊',
+    'Alunos': '👥',
   };
 
   return (
@@ -317,6 +328,31 @@ function AlunoTabs() {
   );
 }
 
+// Personal stack navigator
+function MeusAlunosNavigator() {
+  return (
+    <MeusAlunosStack.Navigator screenOptions={stackOptions}>
+      <MeusAlunosStack.Screen name="MeusAlunosMain" component={MeusAlunosScreen} options={{ headerShown: false }} />
+      <MeusAlunosStack.Screen name="FichaAluno" component={FichaAlunoScreen} options={{ title: 'Ficha do Aluno' }} />
+      <MeusAlunosStack.Screen name="MontarTreino" component={MontarTreinoScreen} options={{ title: 'Montar Treino' }} />
+    </MeusAlunosStack.Navigator>
+  );
+}
+
+function PersonalTabs() {
+  return (
+    <PersonalTab.Navigator screenOptions={tabScreenOptions}>
+      <PersonalTab.Screen name="Alunos" component={MeusAlunosNavigator} />
+      <PersonalTab.Screen
+        name="Treino"
+        component={TreinoNavigator}
+        options={{ tabBarLabel: '' }}
+      />
+      <PersonalTab.Screen name="Menu" component={MenuNavigator} />
+    </PersonalTab.Navigator>
+  );
+}
+
 function ProfessorTabs() {
   return (
     <ProfessorTab.Navigator screenOptions={tabScreenOptions}>
@@ -331,8 +367,10 @@ function ProfessorTabs() {
 
 export default function AppNavigator() {
   const { currentMode } = useModeStore();
+  const { cargoSlug } = useAuth();
 
   if (currentMode === 'profissional') {
+    if (cargoSlug === 'personal') return <PersonalTabs />;
     return <ProfessorTabs />;
   }
 
