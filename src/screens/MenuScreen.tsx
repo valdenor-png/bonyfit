@@ -31,6 +31,7 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
       { icon: '📊', label: 'Histórico de treinos', sub: 'Seus treinos anteriores', screen: 'HistoricoTreino' },
       { icon: '📅', label: 'Frequência', sub: 'Calendário de presença', screen: 'Frequencia' },
       { icon: '📆', label: 'Periodização', sub: 'Mesociclo e fases do treino', screen: 'Periodizacao' },
+      { icon: '📈', label: 'Progressão de Carga', sub: 'Evolução e sugestões', screen: 'ProgressaoCarga' },
     ],
   },
   {

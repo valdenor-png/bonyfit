@@ -73,6 +73,7 @@ import MeasurementsScreen from '../screens/MeasurementsScreen';
 import EscolherPersonalScreen from '../screens/EscolherPersonalScreen';
 import ListaPersonaisScreen from '../screens/ListaPersonaisScreen';
 import AgendarAvaliacaoScreen from '../screens/AgendarAvaliacaoScreen';
+import ProgressaoCargaScreen from '../screens/ProgressaoCargaScreen';
 
 // Personal screens
 import MeusAlunosScreen from '../screens/personal/MeusAlunosScreen';
@@ -134,6 +135,7 @@ function HomeNavigator() {
       <HomeStack.Screen name="EscolherPersonal" component={EscolherPersonalScreen} options={{ title: 'Escolher Personal' }} />
       <HomeStack.Screen name="ListaPersonais" component={ListaPersonaisScreen} options={{ title: 'Personais' }} />
       <HomeStack.Screen name="AgendarAvaliacao" component={AgendarAvaliacaoScreen} options={{ title: 'Avaliacao' }} />
+      <HomeStack.Screen name="ProgressaoCarga" component={ProgressaoCargaScreen} options={{ title: 'Progressão de Carga' }} />
     </HomeStack.Navigator>
   );
 }
@@ -224,6 +226,7 @@ function MenuNavigator() {
       <MenuStack.Screen name="EscolherPersonal" component={EscolherPersonalScreen} options={{ title: 'Escolher Personal' }} />
       <MenuStack.Screen name="ListaPersonais" component={ListaPersonaisScreen} options={{ title: 'Personais' }} />
       <MenuStack.Screen name="AgendarAvaliacao" component={AgendarAvaliacaoScreen} options={{ title: 'Avaliacao' }} />
+      <MenuStack.Screen name="ProgressaoCarga" component={ProgressaoCargaScreen} options={{ title: 'Progressão de Carga' }} />
     </MenuStack.Navigator>
   );
 }
