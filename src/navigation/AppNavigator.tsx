@@ -79,14 +79,23 @@ import MeusAlunosScreen from '../screens/personal/MeusAlunosScreen';
 import FichaAlunoScreen from '../screens/personal/FichaAlunoScreen';
 import MontarTreinoScreen from '../screens/personal/MontarTreinoScreen';
 
+// Supervisor screens
+import GestaoSalaoScreen from '../screens/supervisor/GestaoSalaoScreen';
+import DetalhePersonalScreen from '../screens/supervisor/DetalhePersonalScreen';
+import AtribuirPersonalScreen from '../screens/supervisor/AtribuirPersonalScreen';
+
 const AlunoTab = createBottomTabNavigator();
 const ProfessorTab = createBottomTabNavigator();
 const PersonalTab = createBottomTabNavigator();
+const SupervisorTab = createBottomTabNavigator();
 const HomeStack = createStackNavigator<any>();
 const FeedStack = createStackNavigator<any>();
 const TreinoStack = createStackNavigator<any>();
 const LojaStack = createStackNavigator<any>();
 const MenuStack = createStackNavigator<any>();
+
+// Supervisor stacks
+const GestaoStack = createStackNavigator<any>();
 
 // Personal stacks
 const MeusAlunosStack = createStackNavigator<any>();
@@ -274,6 +283,7 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
     'Presença': '✅',
     'Histórico': '📊',
     'Alunos': '👥',
+    'Gestao': '⚡',
   };
 
   return (
@@ -337,6 +347,17 @@ function AlunoTabs() {
   );
 }
 
+// Supervisor stack navigator
+function GestaoNavigator() {
+  return (
+    <GestaoStack.Navigator screenOptions={stackOptions}>
+      <GestaoStack.Screen name="GestaoMain" component={GestaoSalaoScreen} options={{ headerShown: false }} />
+      <GestaoStack.Screen name="DetalhePersonal" component={DetalhePersonalScreen} options={{ title: 'Personal' }} />
+      <GestaoStack.Screen name="AtribuirPersonal" component={AtribuirPersonalScreen} options={{ title: 'Atribuir' }} />
+    </GestaoStack.Navigator>
+  );
+}
+
 // Personal stack navigator
 function MeusAlunosNavigator() {
   return (
@@ -362,6 +383,21 @@ function PersonalTabs() {
   );
 }
 
+function SupervisorTabs() {
+  return (
+    <SupervisorTab.Navigator screenOptions={tabScreenOptions}>
+      <SupervisorTab.Screen name="Alunos" component={MeusAlunosNavigator} />
+      <SupervisorTab.Screen
+        name="Treino"
+        component={TreinoNavigator}
+        options={{ tabBarLabel: '' }}
+      />
+      <SupervisorTab.Screen name="Gestao" component={GestaoNavigator} />
+      <SupervisorTab.Screen name="Menu" component={MenuNavigator} />
+    </SupervisorTab.Navigator>
+  );
+}
+
 function ProfessorTabs() {
   return (
     <ProfessorTab.Navigator screenOptions={tabScreenOptions}>
@@ -379,6 +415,7 @@ export default function AppNavigator() {
   const { cargoSlug } = useAuth();
 
   if (currentMode === 'profissional') {
+    if (cargoSlug === 'supervisor') return <SupervisorTabs />;
     if (cargoSlug === 'personal') return <PersonalTabs />;
     return <ProfessorTabs />;
   }
