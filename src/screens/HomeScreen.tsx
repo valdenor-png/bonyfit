@@ -6,12 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  ImageBackground,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
-
-const bgHome = require('../../assets/images/bg-home.jpg');
+import ScreenBackground from '../components/ScreenBackground';
 import ProgressRing from '../components/ProgressRing';
 import UnitBubble from '../components/UnitBubble';
 import { useAuth } from '../hooks/useAuth';
@@ -94,8 +92,7 @@ export default function HomeScreen({ navigation }: Props) {
     : '?';
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
-    <ImageBackground source={bgHome} style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.18 }} resizeMode="cover" />
+    <ScreenBackground>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
@@ -207,7 +204,7 @@ export default function HomeScreen({ navigation }: Props) {
         <QuickAction icon="🎁" label="Prêmios" onPress={() => navigation.navigate('Recompensas')} />
       </View>
     </ScrollView>
-    </View>
+    </ScreenBackground>
   );
 }
 

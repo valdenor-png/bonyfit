@@ -5,9 +5,11 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  ImageBackground,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
-import ScreenBackground from '../components/ScreenBackground';
+
+const bgGym = require('../../assets/images/bg-home.jpg');
 import { useAuth } from '../hooks/useAuth';
 import { useVip } from '../hooks/useVip';
 import { fetchPlanoAluno } from '../services/personal';
@@ -73,7 +75,8 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
   }, [user?.id, isVip]);
 
   return (
-    <ScreenBackground>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <ImageBackground source={bgGym} style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.15 }} resizeMode="center" />
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* ── SECTION 1: Header + Agenda button ───────────────────────────── */}
       <View style={styles.headerRow}>
@@ -210,7 +213,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
 
       <View style={{ height: 40 }} />
     </ScrollView>
-    </ScreenBackground>
+    </View>
   );
 }
 
