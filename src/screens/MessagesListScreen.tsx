@@ -9,7 +9,9 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { useMessagesStore } from '../stores/messagesStore';
@@ -109,7 +111,8 @@ function ChatItem({ conversation, onPress }: ChatItemProps) {
 }
 
 // ─── Main Screen ────────────────────────────────────────────────
-export default function MessagesListScreen({ navigation }: { navigation: any }) {
+export default function MessagesListScreen() {
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
   const { conversations, loading, fetchConversations } = useMessagesStore();
   const [search, setSearch] = useState('');
@@ -160,11 +163,20 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mensagens</Text>
-        <TouchableOpacity style={styles.newChatBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.newChatBtn}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          onPress={() => Alert.alert('Nova conversa', 'Escolha um amigo para conversar.')}
+        >
           <Text style={styles.newChatIcon}>✏️</Text>
         </TouchableOpacity>
       </View>

@@ -10,7 +10,9 @@ import {
   Platform,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { useMessagesStore } from '../stores/messagesStore';
@@ -66,10 +68,20 @@ function ChallengeCard({ message }: { message: any }) {
       <Text style={challengeStyles.icon}>⚡</Text>
       <Text style={challengeStyles.text}>{message.content}</Text>
       <View style={challengeStyles.buttons}>
-        <TouchableOpacity style={challengeStyles.acceptBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={challengeStyles.acceptBtn}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          onPress={() => Alert.alert('Desafio', 'Desafio aceito! 💪')}
+        >
           <Text style={challengeStyles.acceptText}>Aceitar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={challengeStyles.declineBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={challengeStyles.declineBtn}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          onPress={() => Alert.alert('Desafio', 'Desafio recusado.')}
+        >
           <Text style={challengeStyles.declineText}>Recusar</Text>
         </TouchableOpacity>
       </View>
@@ -149,7 +161,8 @@ function MessageBubble({ message, isMine }: { message: any; isMine: boolean }) {
 }
 
 // ─── Main Screen ────────────────────────────────────────────────
-export default function ConversationScreen({ navigation, route }: { navigation: any; route: any }) {
+export default function ConversationScreen({ route }: { route: any }) {
+  const navigation = useNavigation();
   const { conversationId, userName, userLevel } = route.params;
   const { user } = useAuth();
   const { currentMessages, fetchMessages, sendMessage, markAsRead } = useMessagesStore();
@@ -203,7 +216,11 @@ export default function ConversationScreen({ navigation, route }: { navigation: 
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
 
@@ -238,13 +255,28 @@ export default function ConversationScreen({ navigation, route }: { navigation: 
           keyExtractor={item => item.id}
           renderItem={renderMessage}
           inverted
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={15}
+          initialNumToRender={20}
           contentContainerStyle={styles.messagesList}
           showsVerticalScrollIndicator={false}
+          style={styles.flex}
         />
 
         {/* Input bar */}
         <View style={styles.inputBar}>
-          <TouchableOpacity style={styles.cameraBtn} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.cameraBtn}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => {
+              Alert.alert('Enviar imagem', '', [
+                { text: 'Câmera', onPress: () => Alert.alert('Em breve', 'Câmera em desenvolvimento.') },
+                { text: 'Galeria', onPress: () => Alert.alert('Em breve', 'Galeria em desenvolvimento.') },
+                { text: 'Cancelar', style: 'cancel' },
+              ]);
+            }}
+          >
             <Text style={styles.cameraIcon}>📷</Text>
           </TouchableOpacity>
 
@@ -263,6 +295,7 @@ export default function ConversationScreen({ navigation, route }: { navigation: 
             onPress={handleSend}
             disabled={!text.trim()}
             activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={styles.sendIcon}>▶</Text>
           </TouchableOpacity>

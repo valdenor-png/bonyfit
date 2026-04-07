@@ -26,7 +26,11 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      ["expo-image-picker", {
+        "photosPermission": "Acesso às fotos para enviar no chat",
+        "cameraPermission": "Acesso à câmera para tirar fotos"
+      }]
     ]
   }
 }
