@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   Dimensions,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
@@ -24,6 +25,7 @@ import StreakPostCard from '../components/StreakPostCard';
 import LevelUpPostCard from '../components/LevelUpPostCard';
 import SugestoesSociais, { MOCK_SUGESTOES } from '../components/SugestoesSociais';
 import ReactionPicker from '../components/ReactionPicker';
+import RepostModal from '../components/RepostModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -67,6 +69,7 @@ interface FeedPost {
   user: {
     id: string;
     nome: string;
+    username?: string;
     nivel: string;
     unidade: string;
     avatar_url: string | null;
@@ -77,6 +80,8 @@ interface FeedPost {
   metadata?: PostMetadata;
   likes_count: number;
   comments_count: number;
+  view_count: number;
+  share_count: number;
   isLiked: boolean;
   isSaved: boolean;
   reaction?: string;
@@ -100,6 +105,14 @@ function getInitials(name: string): string {
   if (parts.length === 0) return '?';
   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? '?';
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function formatCount(count: number | undefined): string {
+  if (!count || count === 0) return '';
+  if (count < 1000) return count.toString();
+  if (count < 10000) return (count / 1000).toFixed(1).replace('.0', '') + 'mil';
+  if (count < 1000000) return Math.round(count / 1000) + 'mil';
+  return (count / 1000000).toFixed(1) + 'mi';
 }
 
 // ─── Mock Data ──────────────────────────────────────────────────
@@ -129,6 +142,8 @@ const MOCK_POSTS: FeedPost[] = [
     },
     likes_count: 24,
     comments_count: 5,
+    view_count: 1200,
+    share_count: 5,
     isLiked: false,
     isSaved: false,
     created_at: new Date(Date.now() - 2 * 3600000).toISOString(),
@@ -146,6 +161,8 @@ const MOCK_POSTS: FeedPost[] = [
     },
     likes_count: 42,
     comments_count: 8,
+    view_count: 3400,
+    share_count: 12,
     isLiked: true,
     isSaved: false,
     created_at: new Date(Date.now() - 5 * 3600000).toISOString(),
@@ -158,6 +175,8 @@ const MOCK_POSTS: FeedPost[] = [
     post_type: 'manual',
     likes_count: 67,
     comments_count: 12,
+    view_count: 890,
+    share_count: 3,
     isLiked: false,
     isSaved: true,
     created_at: new Date(Date.now() - 8 * 3600000).toISOString(),
@@ -171,6 +190,8 @@ const MOCK_POSTS: FeedPost[] = [
     metadata: { dias: 30 },
     likes_count: 15,
     comments_count: 2,
+    view_count: 5600,
+    share_count: 8,
     isLiked: false,
     isSaved: false,
     created_at: new Date(Date.now() - 24 * 3600000).toISOString(),
@@ -183,6 +204,8 @@ const MOCK_POSTS: FeedPost[] = [
     post_type: 'manual',
     likes_count: 89,
     comments_count: 3,
+    view_count: 53000,
+    share_count: 45,
     isLiked: true,
     isSaved: false,
     created_at: new Date(Date.now() - 48 * 3600000).toISOString(),
@@ -262,20 +285,21 @@ function PostCard({
   post,
   onReaction,
   onLongPressReaction,
-  onSave,
+  onRepostPress,
   onOptions,
   onComment,
 }: {
   post: FeedPost;
   onReaction: () => void;
   onLongPressReaction: () => void;
-  onSave: () => void;
+  onRepostPress: () => void;
   onOptions: () => void;
   onComment: () => void;
 }) {
   const levelColor = LEVEL_COLORS[post.user.nivel] || colors.orange;
   const initials = getInitials(post.user.nome);
   const hasReaction = !!post.reaction;
+  const username = post.user.username || post.user.nome.toLowerCase().replace(/\s/g, '.');
 
   // Render typed content card
   const renderTypedContent = () => {
@@ -351,6 +375,11 @@ function PostCard({
           <View style={styles.postHeaderInfo}>
             <View style={styles.postNameRow}>
               <Text style={styles.postUserName}>{post.user.nome}</Text>
+              <Text style={styles.postUsername}>@{username}</Text>
+              <Text style={styles.postTimeDot}>{' \u00B7 '}</Text>
+              <Text style={styles.postTimeInline}>{formatTimeAgo(post.created_at)}</Text>
+            </View>
+            <View style={styles.postLevelRow}>
               <View
                 style={[
                   styles.levelBadge,
@@ -362,7 +391,6 @@ function PostCard({
                 </Text>
               </View>
             </View>
-            <Text style={styles.postUnitName}>{post.user.unidade}</Text>
           </View>
         </View>
         <TouchableOpacity onPress={onOptions} activeOpacity={0.6}>
@@ -382,37 +410,37 @@ function PostCard({
         </View>
       )}
 
-      {/* Actions Row */}
+      {/* Actions Row - Twitter Style */}
       <View style={styles.actionsRow}>
-        <View style={styles.actionsLeft}>
-          <TouchableOpacity
-            onPress={onReaction}
-            onLongPress={onLongPressReaction}
-            activeOpacity={0.6}
-            style={styles.actionBtn}
-          >
-            <Text style={[styles.actionHeart, hasReaction && styles.actionHeartActive]}>
-              {hasReaction ? post.reaction : '🔥'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onComment} activeOpacity={0.6} style={styles.actionBtn}>
-            <Text style={styles.actionComment}>💬</Text>
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.6} style={styles.actionBtn}>
-            <Text style={styles.actionShare}>✈</Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity onPress={onSave} activeOpacity={0.6}>
-          <Text style={[styles.actionSave, post.isSaved && styles.actionSaveActive]}>
-            {post.isSaved ? '🔖' : '🔖'}
+        <TouchableOpacity onPress={onComment} activeOpacity={0.6} style={styles.actionBtn}>
+          <Text style={styles.actionIconGray}>{'\uD83D\uDCAC'}</Text>
+          <Text style={styles.actionCountGray}>{formatCount(post.comments_count)}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={onRepostPress} activeOpacity={0.6} style={styles.actionBtn}>
+          <Text style={styles.actionIconGray}>{'\uD83D\uDD04'}</Text>
+          <Text style={styles.actionCountGray}>{formatCount(post.share_count)}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onReaction}
+          onLongPress={onLongPressReaction}
+          activeOpacity={0.6}
+          style={styles.actionBtn}
+        >
+          <Text style={hasReaction ? styles.actionIconOrange : styles.actionIconGray}>
+            {hasReaction ? post.reaction : '\uD83D\uDD25'}
+          </Text>
+          <Text style={hasReaction ? styles.actionCountOrange : styles.actionCountGray}>
+            {formatCount(post.likes_count)}
           </Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Likes */}
-      <Text style={styles.likesText}>
-        {post.likes_count} curtidas
-      </Text>
+        <View style={styles.actionBtn}>
+          <Text style={styles.actionIconGray}>{'\uD83D\uDCCA'}</Text>
+          <Text style={styles.actionCountGray}>{formatCount(post.view_count)}</Text>
+        </View>
+      </View>
 
       {/* Post Text */}
       <Text style={styles.postText}>
@@ -429,8 +457,7 @@ function PostCard({
         </TouchableOpacity>
       )}
 
-      {/* Time */}
-      <Text style={styles.postTime}>{formatTimeAgo(post.created_at)}</Text>
+      {/* Time - now shown in header */}
     </View>
   );
 }
@@ -449,6 +476,9 @@ export default function FeedScreen({ navigation }: Props) {
   const [activeFilter, setActiveFilter] = useState('Pra Voce');
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [reactionPickerPostId, setReactionPickerPostId] = useState<string | null>(null);
+  const [showRepostModal, setShowRepostModal] = useState(false);
+  const [repostingPost, setRepostingPost] = useState<FeedPost | null>(null);
+  const viewedPosts = useRef(new Set<string>());
 
   const loadPosts = useCallback(async () => {
     try {
@@ -474,6 +504,8 @@ export default function FeedScreen({ navigation }: Props) {
           metadata: post.metadata ?? undefined,
           likes_count: post.likes_count ?? 0,
           comments_count: post.comments_count ?? 0,
+          view_count: post.view_count ?? 0,
+          share_count: post.share_count ?? 0,
           isLiked: false,
           isSaved: false,
           created_at: post.created_at,
@@ -656,6 +688,40 @@ export default function FeedScreen({ navigation }: Props) {
     ]);
   }, [posts, user]);
 
+  // ─── View tracking ────────────────────────────────────────────
+  const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
+    if (!user) return;
+    viewableItems.forEach((item: any) => {
+      if (item.isViewable && !viewedPosts.current.has(item.item.id)) {
+        viewedPosts.current.add(item.item.id);
+        supabase.from('post_views')
+          .upsert({ post_id: item.item.id, user_id: user.id }, { onConflict: 'post_id,user_id' })
+          .then(() => {});
+      }
+    });
+  }, [user]);
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+
+  // ─── Repost handlers ─────────────────────────────────────────
+  const handleOpenRepostModal = useCallback((post: FeedPost) => {
+    setRepostingPost(post);
+    setShowRepostModal(true);
+  }, []);
+
+  const handleRepost = useCallback(async () => {
+    if (!user || !repostingPost) return;
+    await supabase.from('post_reposts').insert({ post_id: repostingPost.id, user_id: user.id });
+    setShowRepostModal(false);
+    Alert.alert('Repostado!');
+  }, [user, repostingPost]);
+
+  const handleShareExternal = useCallback(async () => {
+    if (!repostingPost) return;
+    await Share.share({ message: `${repostingPost.user.nome}: ${repostingPost.text}\n\n#BonyFit \uD83D\uDCAA` });
+    setShowRepostModal(false);
+  }, [repostingPost]);
+
   // ─── Build flat list data with inline SugestoesSociais ────────
   const buildFeedData = useCallback(() => {
     const result: (FeedPost | { id: string; type: 'sugestoes' })[] = [];
@@ -706,7 +772,7 @@ export default function FeedScreen({ navigation }: Props) {
         post={post}
         onReaction={() => handleQuickReaction(post.id)}
         onLongPressReaction={() => handleLongPressReaction(post.id)}
-        onSave={() => handleSave(post.id)}
+        onRepostPress={() => handleOpenRepostModal(post)}
         onOptions={() => handleOptions(post.id)}
         onComment={() =>
           navigation.navigate('Comentarios', {
@@ -746,6 +812,8 @@ export default function FeedScreen({ navigation }: Props) {
             />
           }
           showsVerticalScrollIndicator={false}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
         />
       )}
 
@@ -762,6 +830,20 @@ export default function FeedScreen({ navigation }: Props) {
             ? posts.find((p) => p.id === reactionPickerPostId)?.reaction
             : undefined
         }
+      />
+
+      {/* Repost Modal */}
+      <RepostModal
+        visible={showRepostModal}
+        onClose={() => setShowRepostModal(false)}
+        onRepost={handleRepost}
+        onQuote={() => {
+          setShowRepostModal(false);
+          if (repostingPost) {
+            navigation.navigate('CriarPost', { quotePost: repostingPost });
+          }
+        }}
+        onShareExternal={handleShareExternal}
       />
     </View>
   );
@@ -929,7 +1011,8 @@ const styles = StyleSheet.create({
   postNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    flexWrap: 'wrap',
+    gap: 2,
   },
   postUserName: {
     fontSize: 13,
@@ -944,6 +1027,27 @@ const styles = StyleSheet.create({
   levelBadgeText: {
     fontSize: 9,
     fontFamily: fonts.bodyBold,
+  },
+  postUsername: {
+    fontSize: 12,
+    fontFamily: fonts.body,
+    color: '#999',
+    marginLeft: 4,
+  },
+  postTimeDot: {
+    fontSize: 12,
+    fontFamily: fonts.body,
+    color: '#666',
+  },
+  postTimeInline: {
+    fontSize: 12,
+    fontFamily: fonts.body,
+    color: '#666',
+  },
+  postLevelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
   },
   postUnitName: {
     fontSize: 11,
@@ -980,53 +1084,36 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
 
-  // Actions
+  // Actions - Twitter style
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
   },
-  actionsLeft: {
+  actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-  },
-  actionBtn: {
+    gap: 4,
     padding: 2,
   },
-  actionHeart: {
-    fontSize: 24,
-    color: colors.text,
-  },
-  actionHeartActive: {
-    color: colors.orange,
-  },
-  actionComment: {
-    fontSize: 22,
-    color: colors.text,
-  },
-  actionShare: {
-    fontSize: 22,
-    color: colors.text,
-  },
-  actionSave: {
-    fontSize: 22,
-    color: colors.text,
+  actionIconGray: {
+    fontSize: 18,
     opacity: 0.6,
   },
-  actionSaveActive: {
-    opacity: 1,
+  actionIconOrange: {
+    fontSize: 18,
   },
-
-  // Likes
-  likesText: {
-    fontSize: 13,
+  actionCountGray: {
+    fontSize: 12,
+    fontFamily: fonts.body,
+    color: '#666',
+  },
+  actionCountOrange: {
+    fontSize: 12,
     fontFamily: fonts.bodyBold,
-    color: colors.text,
-    paddingHorizontal: 16,
-    marginBottom: 4,
+    color: colors.orange,
   },
 
   // Post Text
