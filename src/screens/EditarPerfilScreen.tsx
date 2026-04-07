@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
+import SocialLinksManager from '../components/profile/SocialLinksManager';
 
 const LEVEL_COLORS: Record<string, string> = {
   Bronze: '#CD7F32',
@@ -50,6 +51,7 @@ export default function EditarPerfilScreen({ navigation }: Props) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showUnitPicker, setShowUnitPicker] = useState(false);
+  const [showSocialManager, setShowSocialManager] = useState(false);
 
   const level = user?.level || 'Bronze';
   const levelColor = LEVEL_COLORS[level] || LEVEL_COLORS.Bronze;
@@ -290,6 +292,21 @@ export default function EditarPerfilScreen({ navigation }: Props) {
             ))}
           </View>
         )}
+
+        {/* ── Redes sociais ──────────────────────────────── */}
+        <Text style={styles.label}>Redes Sociais</Text>
+        <TouchableOpacity
+          style={styles.socialButton}
+          onPress={() => setShowSocialManager(true)}
+        >
+          <Text style={styles.socialButtonText}>Gerenciar redes sociais</Text>
+        </TouchableOpacity>
+
+        <SocialLinksManager
+          visible={showSocialManager}
+          onClose={() => setShowSocialManager(false)}
+          userId={user?.id || ''}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -415,6 +432,22 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   unitItemTextActive: {
+    fontFamily: fonts.bodyBold,
+    color: colors.orange,
+  },
+
+  /* Social */
+  socialButton: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: '#333333',
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  socialButtonText: {
+    fontSize: 14,
     fontFamily: fonts.bodyBold,
     color: colors.orange,
   },

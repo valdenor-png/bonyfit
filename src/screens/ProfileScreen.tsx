@@ -15,6 +15,7 @@ import { colors, fonts, spacing, radius } from '../tokens';
 import ScreenBackground from '../components/ScreenBackground';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
+import SocialIconsBar from '../components/profile/SocialIconsBar';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_GAP = 2;
@@ -297,6 +298,9 @@ export default function ProfileScreen({ navigation }: Props) {
         <Text style={styles.unitText}>{'\u{1F4CD}'} Bony Fit {'\u2014'} Centro</Text>
         <Text style={styles.streakText}>{'\u{1F525}'} Streak: {streak} dias</Text>
       </View>
+
+      {/* ── B2) Social links ──────────────────────────────── */}
+      <SocialIconsBar userId={user?.id || ''} editable={true} />
 
       {/* ── C) Action buttons ───────────────────────────────── */}
       <View style={styles.actionRow}>
