@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
-import ScreenBackground from '../components/ScreenBackground';
 import Skull from '../components/Skull';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
@@ -105,7 +104,6 @@ export default function RankingScreen() {
   const userLevel = user?.level ?? MOCK_MY_STATS.level;
 
   return (
-    <ScreenBackground>
     <View style={styles.container}>
       {/* My stats card */}
       <LinearGradient
@@ -190,12 +188,11 @@ export default function RankingScreen() {
         />
       )}
     </View>
-    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
+  container: { flex: 1, backgroundColor: colors.bg },
   myCard: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,

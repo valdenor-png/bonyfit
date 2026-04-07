@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
-import ScreenBackground from '../components/ScreenBackground';
 import Skull from '../components/Skull';
 
 interface Props {
@@ -37,7 +36,6 @@ const ACHIEVEMENTS = [
 
 export default function ProfileScreen({ navigation }: Props) {
   return (
-    <ScreenBackground>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Settings icon */}
       <View style={styles.headerRow}>
@@ -96,12 +94,11 @@ export default function ProfileScreen({ navigation }: Props) {
         ))}
       </View>
     </ScrollView>
-    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxl },
   headerRow: { flexDirection: 'row', paddingVertical: spacing.lg },
   settingsIcon: { fontSize: 24, color: colors.textSecondary },

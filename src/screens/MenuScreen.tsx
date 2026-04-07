@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
-import ScreenBackground from '../components/ScreenBackground';
 import Skull from '../components/Skull';
 import { useModeStore } from '../stores/modeStore';
 import { useAuth } from '../hooks/useAuth';
@@ -93,7 +92,6 @@ export default function MenuScreen({ navigation }: Props) {
   ];
 
   return (
-    <ScreenBackground>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
@@ -185,12 +183,11 @@ export default function MenuScreen({ navigation }: Props) {
 
       <Text style={styles.version}>Bony Fit App v1.0.0</Text>
     </ScrollView>
-    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { paddingBottom: 40 },
   header: {
     flexDirection: 'row',
