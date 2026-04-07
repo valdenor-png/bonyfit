@@ -10,8 +10,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
 import ScreenBackground from '../components/ScreenBackground';
-import ProgressRing from '../components/ProgressRing';
-import UnitBubble from '../components/UnitBubble';
+import BannerCarousel from '../components/home/BannerCarousel';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 
@@ -19,25 +18,9 @@ interface Props {
   navigation: any;
 }
 
-const MOCK_UNITS = [
-  { id: '1', name: 'Centro', capacity: 120, current_count: 45 },
-  { id: '2', name: 'Jaderlândia', capacity: 80, current_count: 62 },
-  { id: '3', name: 'Nova Olinda', capacity: 100, current_count: 30 },
-  { id: '4', name: 'Apeú', capacity: 60, current_count: 55 },
-  { id: '5', name: 'Icuí', capacity: 90, current_count: 20 },
-];
-
-const MOCK_AULAS = [
-  { id: '1', time: '07:00', name: 'Dança', icon: '💃', instructor: 'Prof. Ana', vagas: 8 },
-  { id: '2', time: '09:00', name: 'Funcional', icon: '🏋️', instructor: 'Prof. Carlos', vagas: 5 },
-  { id: '3', time: '18:00', name: 'HIIT', icon: '🔥', instructor: 'Prof. Bruna', vagas: 3 },
-];
-
 export default function HomeScreen({ navigation }: Props) {
   const { user, loading: authLoading } = useAuth();
-  const [units, setUnits] = useState<typeof MOCK_UNITS>([]);
   const [workoutCount, setWorkoutCount] = useState(0);
-  const [loadingData, setLoadingData] = useState(true);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
@@ -46,18 +29,7 @@ export default function HomeScreen({ navigation }: Props) {
     if (!user) return;
 
     async function loadData() {
-      setLoadingData(true);
       try {
-        // Load units
-        const { data: unitsData } = await supabase
-          .from('units')
-          .select('id, name, capacity, current_count');
-        if (unitsData && unitsData.length > 0) {
-          setUnits(unitsData);
-        } else {
-          setUnits(MOCK_UNITS);
-        }
-
         // Load workout count
         const { count } = await supabase
           .from('workout_sessions')
@@ -66,9 +38,6 @@ export default function HomeScreen({ navigation }: Props) {
         setWorkoutCount(count ?? 0);
       } catch (error) {
         console.error('Error loading home data:', error);
-        setUnits(MOCK_UNITS);
-      } finally {
-        setLoadingData(false);
       }
     }
 
@@ -148,50 +117,8 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
       </TouchableOpacity>
 
-      {/* Aulas de hoje */}
-      <Text style={styles.sectionTitle}>Aulas de hoje</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.aulasRow}
-      >
-        {MOCK_AULAS.map((aula) => (
-          <View key={aula.id} style={styles.aulaCard}>
-            <Text style={styles.aulaTime}>{aula.time}</Text>
-            <Text style={styles.aulaName}>{aula.icon} {aula.name}</Text>
-            <Text style={styles.aulaInstructor}>{aula.instructor}</Text>
-            <Text style={styles.aulaVagas}>{aula.vagas} vagas</Text>
-            <TouchableOpacity
-              style={styles.aulaScanBtn}
-              onPress={() => navigation.navigate('ScanQRAula')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.aulaScanText}>Escanear QR</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/* Unit capacity */}
-      <Text style={styles.sectionTitle}>Lotação das unidades</Text>
-      {loadingData ? (
-        <ActivityIndicator size="small" color={colors.orange} style={{ marginBottom: spacing.xxl }} />
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.bubbles}
-        >
-          {units.map((unit) => (
-            <UnitBubble
-              key={unit.id}
-              name={unit.name}
-              current={unit.current_count}
-              capacity={unit.capacity}
-            />
-          ))}
-        </ScrollView>
-      )}
+      {/* Banner Carousel */}
+      <BannerCarousel slides={[]} onScanQR={() => navigation.navigate('ScanQRAula')} />
 
       {/* Quick actions */}
       <Text style={styles.sectionTitle}>Acesso rápido</Text>
@@ -303,49 +230,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.md,
   },
-  aulasRow: { paddingHorizontal: spacing.xl, gap: spacing.sm, marginBottom: spacing.xxl },
-  aulaCard: {
-    backgroundColor: colors.card,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    width: 160,
-    gap: 4,
-  },
-  aulaTime: {
-    fontSize: 18,
-    fontFamily: fonts.numbersBold,
-    color: colors.orange,
-  },
-  aulaName: {
-    fontSize: 14,
-    fontFamily: fonts.bodyBold,
-    color: colors.text,
-  },
-  aulaInstructor: {
-    fontSize: 11,
-    fontFamily: fonts.body,
-    color: colors.textSecondary,
-  },
-  aulaVagas: {
-    fontSize: 11,
-    fontFamily: fonts.bodyMedium,
-    color: colors.textMuted,
-    marginBottom: spacing.sm,
-  },
-  aulaScanBtn: {
-    borderWidth: 1,
-    borderColor: colors.orange,
-    borderRadius: radius.md,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    alignItems: 'center',
-  },
-  aulaScanText: {
-    fontSize: 11,
-    fontFamily: fonts.bodyBold,
-    color: colors.orange,
-  },
-  bubbles: { paddingHorizontal: spacing.xl, gap: spacing.lg, marginBottom: spacing.xxl },
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
