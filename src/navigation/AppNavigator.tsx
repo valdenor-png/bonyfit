@@ -31,24 +31,17 @@ import FrequenciaScreen from '../screens/FrequenciaScreen';
 import AnamneseScreen from '../screens/AnamneseScreen';
 import AvaliacaoFisicaScreen from '../screens/AvaliacaoFisicaScreen';
 import PesoScreen from '../screens/PesoScreen';
-import NutricaoScreen from '../screens/NutricaoScreen';
 import AulasOnlineScreen from '../screens/AulasOnlineScreen';
 import SuporteScreen from '../screens/SuporteScreen';
 import PerfilPessoalScreen from '../screens/PerfilPessoalScreen';
-import AguaScreen from '../screens/AguaScreen';
-import JejumScreen from '../screens/JejumScreen';
-import ReceitasScreen from '../screens/ReceitasScreen';
-import DiarioAlimentarScreen from '../screens/DiarioAlimentarScreen';
 import StoriesScreen from '../screens/StoriesScreen';
 import QRCodeScreen from '../screens/QRCodeScreen';
 import CompararScreen from '../screens/CompararScreen';
 import MissoesScreen from '../screens/MissoesScreen';
 import LigasScreen from '../screens/LigasScreen';
 import PeriodizacaoScreen from '../screens/PeriodizacaoScreen';
-import ScannerScreen from '../screens/ScannerScreen';
 import LGPDScreen from '../screens/LGPDScreen';
 import RelatorioScreen from '../screens/RelatorioScreen';
-import ListaComprasScreen from '../screens/ListaComprasScreen';
 
 // New screens
 import LojaScreen from '../screens/loja/LojaScreen';
@@ -128,7 +121,6 @@ function HomeNavigator() {
       <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
       <HomeStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
       <HomeStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} options={{ title: 'Histórico' }} />
-      <HomeStack.Screen name="Nutricao" component={NutricaoScreen} options={{ title: 'Nutrição' }} />
       <HomeStack.Screen name="Personal" component={PersonalScreen} options={{ title: 'Personal Trainers' }} />
       <HomeStack.Screen name="Desafios" component={DesafiosScreen} options={{ title: 'Desafios' }} />
       <HomeStack.Screen name="Recompensas" component={RecompensasScreen} options={{ title: 'Recompensas' }} />
@@ -199,23 +191,16 @@ function MenuNavigator() {
       <MenuStack.Screen name="Anamnese" component={AnamneseScreen} options={{ title: 'Anamnese' }} />
       <MenuStack.Screen name="AvaliacaoFisica" component={AvaliacaoFisicaScreen} options={{ title: 'Avaliação Física' }} />
       <MenuStack.Screen name="Peso" component={PesoScreen} options={{ title: 'Peso' }} />
-      <MenuStack.Screen name="Nutricao" component={NutricaoScreen} options={{ title: 'Nutrição' }} />
       <MenuStack.Screen name="AulasOnline" component={AulasOnlineScreen} options={{ title: 'Aulas Online' }} />
       <MenuStack.Screen name="Suporte" component={SuporteScreen} options={{ title: 'Suporte' }} />
       <MenuStack.Screen name="Aulas" component={AulasScreen} options={{ title: 'Aulas Coletivas' }} />
-      <MenuStack.Screen name="Agua" component={AguaScreen} options={{ title: 'Hidratação' }} />
-      <MenuStack.Screen name="Jejum" component={JejumScreen} options={{ title: 'Jejum' }} />
-      <MenuStack.Screen name="Receitas" component={ReceitasScreen} options={{ title: 'Receitas' }} />
-      <MenuStack.Screen name="DiarioAlimentar" component={DiarioAlimentarScreen} options={{ title: 'Diário Alimentar' }} />
       <MenuStack.Screen name="QRCode" component={QRCodeScreen} options={{ title: 'QR Code' }} />
       <MenuStack.Screen name="Comparar" component={CompararScreen} options={{ title: 'Comparar' }} />
       <MenuStack.Screen name="Missoes" component={MissoesScreen} options={{ title: 'Missões' }} />
       <MenuStack.Screen name="Ligas" component={LigasScreen} options={{ title: 'Ligas' }} />
       <MenuStack.Screen name="Periodizacao" component={PeriodizacaoScreen} options={{ title: 'Periodização' }} />
-      <MenuStack.Screen name="Scanner2" component={ScannerScreen} options={{ title: 'Scanner' }} />
       <MenuStack.Screen name="LGPD" component={LGPDScreen} options={{ title: 'Dados e Privacidade' }} />
       <MenuStack.Screen name="Relatorio" component={RelatorioScreen} options={{ title: 'Relatório' }} />
-      <MenuStack.Screen name="ListaCompras" component={ListaComprasScreen} options={{ title: 'Lista de Compras' }} />
       <MenuStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
       <MenuStack.Screen name="IndicarAmigos" component={IndicarAmigosScreen} options={{ title: 'Indicar Amigos' }} />
       <MenuStack.Screen name="HistoricoAvaliacoes" component={HistoricoAvaliacoesScreen} options={{ title: 'Avaliações' }} />

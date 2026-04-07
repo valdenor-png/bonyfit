@@ -54,18 +54,6 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
     ],
   },
   {
-    title: 'Nutrição',
-    items: [
-      { icon: '🥗', label: 'Nutrição', sub: 'Plano alimentar e calorias', screen: 'Nutricao' },
-      { icon: '📖', label: 'Diário alimentar', sub: 'Timeline de refeições', screen: 'DiarioAlimentar' },
-      { icon: '💧', label: 'Hidratação', sub: 'Rastreamento de água', screen: 'Agua' },
-      { icon: '⏰', label: 'Jejum intermitente', sub: 'Timer e protocolos', screen: 'Jejum' },
-      { icon: '🍳', label: 'Receitas fitness', sub: '10+ receitas saudáveis', screen: 'Receitas' },
-      { icon: '🔍', label: 'Scanner de alimentos', sub: 'Escaneie códigos de barras', screen: 'Scanner2' },
-      { icon: '🛒', label: 'Lista de compras', sub: 'Gerada do plano alimentar', screen: 'ListaCompras' },
-    ],
-  },
-  {
     title: 'Saúde',
     items: [
       { icon: '📝', label: 'Anamnese', sub: 'Questionário de saúde', screen: 'Anamnese' },
