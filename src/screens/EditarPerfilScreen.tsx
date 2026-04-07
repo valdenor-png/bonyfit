@@ -147,7 +147,8 @@ export default function EditarPerfilScreen({ navigation }: Props) {
       // Build update payload — only non-null fields
       const payload: Record<string, any> = { name: name.trim() };
       if (bio.trim()) payload.bio = bio.trim();
-      if (selectedUnit) payload.unit_id = selectedUnit;
+      // Only set unit_id if it's a real UUID (36 chars with dashes)
+      if (selectedUnit && selectedUnit.length >= 30) payload.unit_id = selectedUnit;
       if (avatarUri) payload.avatar_url = avatarUri;
 
       const { error } = await supabase
