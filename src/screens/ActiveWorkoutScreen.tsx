@@ -5,6 +5,7 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   Alert,
   SafeAreaView,
@@ -143,7 +144,8 @@ interface ActiveWorkoutScreenProps {
 export default function ActiveWorkoutScreen({
   navigation: navProp,
 }: ActiveWorkoutScreenProps) {
-  const nav = navProp || useNavigation();
+  const navigationHook = useNavigation();
+  const nav = navProp || navigationHook;
   const { user } = useAuth();
 
   // ---- state ----
@@ -468,9 +470,14 @@ export default function ActiveWorkoutScreen({
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
           {/* Close button */}
-          <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+          <Pressable style={styles.closeButton} onPress={() => {
+            Alert.alert('Sair do treino?', 'Deseja descartar o treino?', [
+              { text: 'Continuar', style: 'cancel' },
+              { text: 'Descartar', style: 'destructive', onPress: () => nav.goBack() },
+            ]);
+          }}>
             <Text style={styles.closeButtonText}>{'\u2715'}</Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {/* Timer center */}
           <View style={styles.timerContainer}>
@@ -478,9 +485,9 @@ export default function ActiveWorkoutScreen({
           </View>
 
           {/* Finalizar button */}
-          <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
+          <Pressable style={styles.finishButton} onPress={handleFinish}>
             <Text style={styles.finishButtonText}>Finalizar</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Workout name */}
