@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import ScreenBackground from '../components/ScreenBackground';
 import { useAuth } from '../hooks/useAuth';
 import { useVip } from '../hooks/useVip';
 import { fetchPlanoAluno } from '../services/personal';
@@ -72,6 +73,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
   }, [user?.id, isVip]);
 
   return (
+    <ScreenBackground>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* ── SECTION 1: Header + Agenda button ───────────────────────────── */}
       <View style={styles.headerRow}>
@@ -208,6 +210,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
 
       <View style={{ height: 40 }} />
     </ScrollView>
+    </ScreenBackground>
   );
 }
 
@@ -216,7 +219,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: 'transparent',
   },
   content: {
     padding: spacing.lg,
