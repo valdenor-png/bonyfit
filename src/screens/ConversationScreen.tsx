@@ -163,35 +163,36 @@ function MessageBubble({ message, isMine }: { message: any; isMine: boolean }) {
 // ─── Main Screen ────────────────────────────────────────────────
 export default function ConversationScreen({ route }: { route: any }) {
   const navigation = useNavigation();
-  const { conversationId, userName, userLevel } = route.params;
+  const { conversationId, userName, userLevel, otherUserId } = route.params;
   const { user } = useAuth();
   const { currentMessages, fetchMessages, sendMessage, markAsRead } = useMessagesStore();
   const [text, setText] = useState('');
   const flatListRef = useRef<FlatList>(null);
 
-  const userId = user?.id || 'me';
+  const myId = user?.id || '';
+  const otherId = otherUserId || '';
   const level = userLevel || 'Ouro';
-  const isOnline = true; // Mock
+  const isOnline = true;
 
   useEffect(() => {
-    fetchMessages(conversationId);
-    if (user?.id) {
-      markAsRead(conversationId, user.id);
+    if (myId) {
+      fetchMessages(myId, otherId, conversationId);
+      markAsRead(conversationId, myId);
     }
-  }, [conversationId, user?.id]);
+  }, [conversationId, myId]);
 
   const handleSend = useCallback(() => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed || !myId) return;
     setText('');
-    sendMessage(conversationId, userId, trimmed);
-  }, [text, conversationId, userId, sendMessage]);
+    sendMessage(myId, otherId, trimmed, conversationId);
+  }, [text, conversationId, myId, otherId, sendMessage]);
 
   // Messages ordered for display (newest at bottom, inverted FlatList shows newest first)
   const orderedMessages = [...currentMessages].reverse();
 
   const renderMessage = useCallback(({ item, index }: { item: any; index: number }) => {
-    const isMine = item.senderId === userId || item.senderId === 'me';
+    const isMine = item.senderId === myId || item.senderId === 'me';
     // Since list is inverted, index 0 = newest. For date separators, compare with next (older)
     const realIndex = currentMessages.length - 1 - index;
     const showDate = shouldShowDateSeparator(currentMessages, realIndex);
@@ -208,7 +209,7 @@ export default function ConversationScreen({ route }: { route: any }) {
         <MessageBubble message={item} isMine={isMine} />
       </View>
     );
-  }, [userId, currentMessages]);
+  }, [myId, currentMessages]);
 
   return (
     <SafeAreaView style={styles.container}>

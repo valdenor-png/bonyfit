@@ -64,10 +64,10 @@ interface ChatItemProps {
 }
 
 function ChatItem({ conversation, onPress }: ChatItemProps) {
-  const { otherUser, type, name, lastMessageText, lastMessageAt, unreadCount } = conversation;
-  const displayName = type === 'official' ? name : otherUser?.name || 'Desconhecido';
-  const level = otherUser?.level || 'Bronze';
-  const isOnline = ONLINE_USERS.has(otherUser?.id || '');
+  const { type, name, lastMessageText, lastMessageAt, unreadCount, otherUserName, otherUserLevel, otherUserId } = conversation;
+  const displayName = type === 'official' ? name : otherUserName || 'Desconhecido';
+  const level = otherUserLevel || 'Bronze';
+  const isOnline = ONLINE_USERS.has(otherUserId || '');
   const isOfficial = type === 'official';
   const hasUnread = unreadCount > 0;
 
@@ -125,17 +125,19 @@ export default function MessagesListScreen() {
 
   const filteredConversations = conversations.filter(c => {
     if (!search.trim()) return true;
-    const name = c.type === 'official' ? c.name : c.otherUser?.name;
+    const name = c.type === 'official' ? c.name : c.otherUserName;
     return name?.toLowerCase().includes(search.toLowerCase());
   });
 
   const handleConversationPress = useCallback((conv: any) => {
-    const userName = conv.type === 'official' ? conv.name : conv.otherUser?.name || 'Chat';
-    const userLevel = conv.otherUser?.level;
+    const userName = conv.otherUserName || conv.name || 'Chat';
+    const userLevel = conv.otherUserLevel;
+    const otherUserId = conv.otherUserId;
     navigation.navigate('Conversation', {
       conversationId: conv.id,
       userName,
       userLevel,
+      otherUserId,
     });
   }, [navigation]);
 
