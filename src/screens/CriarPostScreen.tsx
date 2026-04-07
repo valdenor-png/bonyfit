@@ -70,48 +70,54 @@ export default function CriarPostScreen({ navigation }: Props) {
     let imageUrl: string | null = null;
 
     try {
-      if (user) {
-        // Upload image if selected
-        if (selectedImage) {
-          const fileName = `${user.id}_${Date.now()}.jpg`;
-          const response = await fetch(selectedImage);
-          const blob = await response.blob();
-
-          const { error: uploadError } = await supabase.storage
-            .from('posts')
-            .upload(fileName, blob, { contentType: 'image/jpeg' });
-
-          if (uploadError) {
-            console.error('Error uploading image:', uploadError);
-          } else {
-            const { data: publicData } = supabase.storage
-              .from('posts')
-              .getPublicUrl(fileName);
-            imageUrl = publicData.publicUrl;
-          }
-        }
-
-        const hashtags = extractHashtags(text);
-
-        const { error } = await supabase.from('posts').insert({
-          user_id: user.id,
-          unit_id: user.unit_id ?? null,
-          text: text.trim(),
-          image_url: imageUrl,
-          post_type: 'manual',
-          hashtags: hashtags.length > 0 ? hashtags : null,
-        });
-
-        if (error) throw error;
-
-        Alert.alert('Publicado!', 'Seu post foi publicado com sucesso.', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
-      } else {
-        Alert.alert('Post criado!', 'Post salvo localmente.', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
+      // Get user from Supabase Auth directly if useAuth user is null
+      const authUser = user || (await supabase.auth.getUser()).data?.user;
+      if (!authUser) {
+        Alert.alert('Erro', 'Você precisa estar logado para publicar.');
+        setPublishing(false);
+        return;
       }
+
+      const userId = user?.id || authUser.id;
+
+      // Upload image if selected
+      if (selectedImage) {
+        const fileName = `${userId}_${Date.now()}.jpg`;
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+
+        const { error: uploadError } = await supabase.storage
+          .from('posts')
+          .upload(fileName, blob, { contentType: 'image/jpeg' });
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+        } else {
+          const { data: publicData } = supabase.storage
+            .from('posts')
+            .getPublicUrl(fileName);
+          imageUrl = publicData.publicUrl;
+        }
+      }
+
+      const hashtags = extractHashtags(text);
+
+      const { error } = await supabase.from('posts').insert({
+        user_id: userId,
+        text: text.trim(),
+        image_url: imageUrl,
+        post_type: 'manual',
+        hashtags: hashtags.length > 0 ? hashtags : null,
+      });
+
+      if (error) {
+        Alert.alert('Erro ao publicar', error.message);
+        return;
+      }
+
+      Alert.alert('Publicado!', 'Seu post foi publicado com sucesso.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
     } catch (error) {
       console.error('Error creating post:', error);
       Alert.alert('Erro', 'Nao foi possivel publicar o post. Tente novamente.');
