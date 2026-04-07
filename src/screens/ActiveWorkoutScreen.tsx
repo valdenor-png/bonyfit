@@ -463,19 +463,25 @@ export default function ActiveWorkoutScreen({
 
   // ---- render ----
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <SafeAreaView style={{ backgroundColor: '#0A0A0A' }} />
       <StatusBar barStyle="light-content" backgroundColor="#0A0A0A" />
 
       {/* ============ HEADER ============ */}
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
           {/* Close button */}
-          <Pressable style={styles.closeButton} onPress={() => {
-            Alert.alert('Sair do treino?', 'Deseja descartar o treino?', [
-              { text: 'Continuar', style: 'cancel' },
-              { text: 'Descartar', style: 'destructive', onPress: () => nav.goBack() },
-            ]);
-          }}>
+          <Pressable
+            style={styles.closeButton}
+            onPress={() => {
+              console.warn('X PRESSED');
+              Alert.alert('Sair do treino?', 'Deseja descartar o treino?', [
+                { text: 'Continuar', style: 'cancel' },
+                { text: 'Descartar', style: 'destructive', onPress: () => nav.goBack() },
+              ]);
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             <Text style={styles.closeButtonText}>{'\u2715'}</Text>
           </Pressable>
 
@@ -485,7 +491,14 @@ export default function ActiveWorkoutScreen({
           </View>
 
           {/* Finalizar button */}
-          <Pressable style={styles.finishButton} onPress={handleFinish}>
+          <Pressable
+            style={styles.finishButton}
+            onPress={() => {
+              console.warn('FINALIZAR PRESSED');
+              handleFinish();
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             <Text style={styles.finishButtonText}>Finalizar</Text>
           </Pressable>
         </View>
@@ -703,7 +716,7 @@ export default function ActiveWorkoutScreen({
           <Text style={styles.discardText}>Descartar Treino</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -730,18 +743,21 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: '#1A1A1A',
+    zIndex: 100,
   },
   headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
+    zIndex: 101,
   },
   closeButton: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 102,
   },
   closeButtonText: {
     color: '#FFFFFF',
@@ -760,8 +776,11 @@ const styles = StyleSheet.create({
   finishButton: {
     backgroundColor: '#F26522',
     paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: radius.sm,
+    zIndex: 102,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   finishButtonText: {
     color: '#FFFFFF',
