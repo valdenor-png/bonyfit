@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
+import ScreenBackground from '../components/ScreenBackground';
 import ProgressRing from '../components/ProgressRing';
 import UnitBubble from '../components/UnitBubble';
 import { useAuth } from '../hooks/useAuth';
@@ -91,6 +92,7 @@ export default function HomeScreen({ navigation }: Props) {
     : '?';
 
   return (
+    <ScreenBackground>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
@@ -202,6 +204,7 @@ export default function HomeScreen({ navigation }: Props) {
         <QuickAction icon="🎁" label="Prêmios" onPress={() => navigation.navigate('Recompensas')} />
       </View>
     </ScrollView>
+    </ScreenBackground>
   );
 }
 
@@ -215,7 +218,7 @@ function QuickAction({ icon, label, onPress }: { icon: string; label: string; on
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { paddingBottom: 40 },
   header: {
     flexDirection: 'row',

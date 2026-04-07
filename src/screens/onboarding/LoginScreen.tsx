@@ -16,6 +16,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/types';
 import { colors, fonts, spacing, radius } from '../../tokens';
 import Skull from '../../components/Skull';
+import ScreenBackground from '../../components/ScreenBackground';
 import Button from '../../components/Button';
 import { supabase } from '../../services/supabase';
 
@@ -85,6 +86,7 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
   };
 
   return (
+    <ScreenBackground opacity={0.12}>
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -156,13 +158,14 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: 'transparent',
   },
   container: {
     flexGrow: 1,

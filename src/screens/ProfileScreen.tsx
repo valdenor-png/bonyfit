@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import ScreenBackground from '../components/ScreenBackground';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 
@@ -263,6 +264,7 @@ export default function ProfileScreen({ navigation }: Props) {
   }
 
   return (
+    <ScreenBackground>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* ── A) Header row: avatar + stats ───────────────────── */}
       <View style={styles.headerRow}>
@@ -376,6 +378,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
       {renderTabContent()}
     </ScrollView>
+    </ScreenBackground>
   );
 }
 
@@ -383,7 +386,7 @@ export default function ProfileScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: 'transparent',
   },
   content: {
     paddingBottom: spacing.xxl + 40,
