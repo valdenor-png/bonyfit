@@ -159,9 +159,18 @@ function FeedNavigator() {
 
 function TreinoNavigator() {
   return (
-    <TreinoStack.Navigator screenOptions={stackOptions}>
+    <TreinoStack.Navigator screenOptions={{ ...stackOptions, headerMode: 'screen' as any }}>
       <TreinoStack.Screen name="TreinoMain" component={TrainingScreen} options={{ headerShown: false }} />
-      <TreinoStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} options={{ headerShown: false }} />
+      <TreinoStack.Screen
+        name="ActiveWorkout"
+        component={ActiveWorkoutScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+          cardStyle: { backgroundColor: '#0A0A0A' },
+          headerMode: 'none' as any,
+        }}
+      />
       <TreinoStack.Screen name="ExerciseSearch" component={ExerciseSearchScreen} options={{ title: 'Exercícios' }} />
       <TreinoStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
       <TreinoStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Agenda' }} />
