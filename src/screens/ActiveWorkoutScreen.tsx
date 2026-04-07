@@ -380,8 +380,17 @@ export default function ActiveWorkoutScreen({
 
         await supabase.from('posts').insert({
           user_id: user.id,
+          post_type: 'treino',
           text: feedText,
           hashtags: ['#BonyFit', '#Treino'],
+          metadata: {
+            splitLabel: 'A',
+            splitNome: workoutName,
+            duracao: Math.round(elapsedSeconds / 60),
+            volume: totalVolume,
+            exercicios: totalExercises,
+            series: totalCompletedSets,
+          },
         });
 
       } catch (err) {

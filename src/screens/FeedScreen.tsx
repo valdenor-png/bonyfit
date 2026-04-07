@@ -6,8 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  TextInput,
-  Modal,
   Image,
   Alert,
   Dimensions,
@@ -16,7 +14,16 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
-import * as ImagePicker from 'expo-image-picker';
+
+// ─── Social Components ─────────────────────────────────────────
+import TreinandoAgora, { MOCK_TRAINING_USERS } from '../components/TreinandoAgora';
+import FeedFilters from '../components/FeedFilters';
+import WorkoutPostCard from '../components/WorkoutPostCard';
+import PRPostCard from '../components/PRPostCard';
+import StreakPostCard from '../components/StreakPostCard';
+import LevelUpPostCard from '../components/LevelUpPostCard';
+import SugestoesSociais, { MOCK_SUGESTOES } from '../components/SugestoesSociais';
+import ReactionPicker from '../components/ReactionPicker';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -39,6 +46,22 @@ interface StoryUser {
   hasNewStory: boolean;
 }
 
+interface PostMetadata {
+  splitLabel?: string;
+  splitNome?: string;
+  duracao?: number;
+  volume?: number;
+  exercicios?: number;
+  series?: number;
+  rating?: number;
+  exercicio?: string;
+  cargaAnterior?: number;
+  cargaNova?: number;
+  dias?: number;
+  nivelAnterior?: string;
+  nivelNovo?: string;
+}
+
 interface FeedPost {
   id: string;
   user: {
@@ -50,10 +73,13 @@ interface FeedPost {
   };
   text: string;
   image_url: string | null;
+  post_type: 'manual' | 'treino' | 'pr' | 'streak' | 'nivel';
+  metadata?: PostMetadata;
   likes_count: number;
   comments_count: number;
   isLiked: boolean;
   isSaved: boolean;
+  reaction?: string;
   created_at: string;
 }
 
@@ -90,7 +116,17 @@ const MOCK_POSTS: FeedPost[] = [
     id: '1',
     user: { id: 'u1', nome: 'Carlos Mendes', nivel: 'Ouro', unidade: 'Centro', avatar_url: null },
     text: 'Treino de peito destruido hoje! Supino reto bateu recorde pessoal. Bora que bora!',
-    image_url: 'https://placeholder.com/workout1.jpg',
+    image_url: null,
+    post_type: 'treino',
+    metadata: {
+      splitLabel: 'A',
+      splitNome: 'Peito e Triceps',
+      duracao: 58,
+      volume: 4850,
+      exercicios: 6,
+      series: 18,
+      rating: 5,
+    },
     likes_count: 24,
     comments_count: 5,
     isLiked: false,
@@ -100,8 +136,14 @@ const MOCK_POSTS: FeedPost[] = [
   {
     id: '2',
     user: { id: 'u2', nome: 'Ana Paula', nivel: 'Platina', unidade: 'Jaderlandia', avatar_url: null },
-    text: 'Streak de 15 dias! Ninguem me para. Disciplina e consistencia sao tudo nessa vida.',
+    text: 'Novo recorde no supino! Evoluindo cada dia mais.',
     image_url: null,
+    post_type: 'pr',
+    metadata: {
+      exercicio: 'Supino Reto',
+      cargaAnterior: 60,
+      cargaNova: 65,
+    },
     likes_count: 42,
     comments_count: 8,
     isLiked: true,
@@ -113,6 +155,7 @@ const MOCK_POSTS: FeedPost[] = [
     user: { id: 'u3', nome: 'Rafael Santos', nivel: 'Diamante', unidade: 'Nova Olinda', avatar_url: null },
     text: 'Primeira semana completa na Bony Fit! Ambiente animal, galera motivada. Melhor decisao que tomei!',
     image_url: 'https://placeholder.com/workout3.jpg',
+    post_type: 'manual',
     likes_count: 67,
     comments_count: 12,
     isLiked: false,
@@ -122,8 +165,10 @@ const MOCK_POSTS: FeedPost[] = [
   {
     id: '4',
     user: { id: 'u4', nome: 'Julia Reis', nivel: 'Bronze', unidade: 'Apeu', avatar_url: null },
-    text: 'Dia de perna e o melhor dia. Agachamento livre com carga nova, evoluindo sempre!',
+    text: 'Streak de 30 dias! Ninguem me para!',
     image_url: null,
+    post_type: 'streak',
+    metadata: { dias: 30 },
     likes_count: 15,
     comments_count: 2,
     isLiked: false,
@@ -134,7 +179,8 @@ const MOCK_POSTS: FeedPost[] = [
     id: '5',
     user: { id: 'u5', nome: 'Pedro Lima', nivel: 'Master', unidade: 'Icui', avatar_url: null },
     text: 'Shape vindo! 3 meses de dedicacao e o resultado ja aparece. Valeu Bony Fit!',
-    image_url: 'https://placeholder.com/workout5.jpg',
+    image_url: null,
+    post_type: 'manual',
     likes_count: 89,
     comments_count: 3,
     isLiked: true,
@@ -214,19 +260,81 @@ function StoryCircle({ story }: { story: StoryUser }) {
 // ─── Post Card ──────────────────────────────────────────────────
 function PostCard({
   post,
-  onLike,
+  onReaction,
+  onLongPressReaction,
   onSave,
   onOptions,
   onComment,
 }: {
   post: FeedPost;
-  onLike: () => void;
+  onReaction: () => void;
+  onLongPressReaction: () => void;
   onSave: () => void;
   onOptions: () => void;
   onComment: () => void;
 }) {
   const levelColor = LEVEL_COLORS[post.user.nivel] || colors.orange;
   const initials = getInitials(post.user.nome);
+  const hasReaction = !!post.reaction;
+
+  // Render typed content card
+  const renderTypedContent = () => {
+    switch (post.post_type) {
+      case 'treino':
+        if (post.metadata) {
+          return (
+            <View style={styles.typedCardWrapper}>
+              <WorkoutPostCard
+                splitLabel={post.metadata.splitLabel || 'A'}
+                splitNome={post.metadata.splitNome || ''}
+                duracao={post.metadata.duracao || 0}
+                volume={post.metadata.volume || 0}
+                exercicios={post.metadata.exercicios || 0}
+                series={post.metadata.series || 0}
+                rating={post.metadata.rating}
+              />
+            </View>
+          );
+        }
+        return null;
+      case 'pr':
+        if (post.metadata) {
+          return (
+            <View style={styles.typedCardWrapper}>
+              <PRPostCard
+                exercicio={post.metadata.exercicio || ''}
+                cargaAnterior={post.metadata.cargaAnterior || 0}
+                cargaNova={post.metadata.cargaNova || 0}
+              />
+            </View>
+          );
+        }
+        return null;
+      case 'streak':
+        if (post.metadata) {
+          return (
+            <View style={styles.typedCardWrapper}>
+              <StreakPostCard dias={post.metadata.dias || 0} />
+            </View>
+          );
+        }
+        return null;
+      case 'nivel':
+        if (post.metadata) {
+          return (
+            <View style={styles.typedCardWrapper}>
+              <LevelUpPostCard
+                nivelAnterior={post.metadata.nivelAnterior || 'Bronze'}
+                nivelNovo={post.metadata.nivelNovo || 'Prata'}
+              />
+            </View>
+          );
+        }
+        return null;
+      default:
+        return null;
+    }
+  };
 
   return (
     <View style={styles.postCard}>
@@ -262,8 +370,11 @@ function PostCard({
         </TouchableOpacity>
       </View>
 
-      {/* Post Image */}
-      {post.image_url && (
+      {/* Typed Content Card */}
+      {renderTypedContent()}
+
+      {/* Post Image (manual posts only) */}
+      {post.post_type === 'manual' && post.image_url && (
         <View style={styles.postImageContainer}>
           <View style={styles.postImagePlaceholder}>
             <Text style={styles.postImageEmoji}>💀</Text>
@@ -274,9 +385,14 @@ function PostCard({
       {/* Actions Row */}
       <View style={styles.actionsRow}>
         <View style={styles.actionsLeft}>
-          <TouchableOpacity onPress={onLike} activeOpacity={0.6} style={styles.actionBtn}>
-            <Text style={[styles.actionHeart, post.isLiked && styles.actionHeartActive]}>
-              {post.isLiked ? '❤️' : '♡'}
+          <TouchableOpacity
+            onPress={onReaction}
+            onLongPress={onLongPressReaction}
+            activeOpacity={0.6}
+            style={styles.actionBtn}
+          >
+            <Text style={[styles.actionHeart, hasReaction && styles.actionHeartActive]}>
+              {hasReaction ? post.reaction : '🔥'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onComment} activeOpacity={0.6} style={styles.actionBtn}>
@@ -319,24 +435,6 @@ function PostCard({
   );
 }
 
-// ─── Stories Section (ListHeaderComponent) ──────────────────────
-function StoriesSection() {
-  return (
-    <View>
-      <FlatList
-        data={MOCK_STORIES}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.storiesList}
-        ListHeaderComponent={<MyStoryCircle />}
-        renderItem={({ item }) => <StoryCircle story={item} />}
-      />
-      <View style={styles.sectionSeparator} />
-    </View>
-  );
-}
-
 // ─── Main Screen ────────────────────────────────────────────────
 interface Props {
   navigation: any;
@@ -346,17 +444,17 @@ export default function FeedScreen({ navigation }: Props) {
   const { user } = useAuth();
   const [posts, setPosts] = useState<FeedPost[]>(MOCK_POSTS);
   const [refreshing, setRefreshing] = useState(false);
-  const [showNewPost, setShowNewPost] = useState(false);
-  const [newPostText, setNewPostText] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('Pra Voce');
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [reactionPickerPostId, setReactionPickerPostId] = useState<string | null>(null);
 
   const loadPosts = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('posts')
-        .select('id, text, image_url, hashtags, likes_count, comments_count, created_at, user_id, users!inner(id, name, level, avatar_url)')
+        .select('id, text, image_url, hashtags, likes_count, comments_count, created_at, user_id, post_type, metadata, users!inner(id, name, level, avatar_url)')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -372,6 +470,8 @@ export default function FeedScreen({ navigation }: Props) {
           },
           text: post.text ?? '',
           image_url: post.image_url ?? null,
+          post_type: post.post_type ?? 'manual',
+          metadata: post.metadata ?? undefined,
           likes_count: post.likes_count ?? 0,
           comments_count: post.comments_count ?? 0,
           isLiked: false,
@@ -416,55 +516,90 @@ export default function FeedScreen({ navigation }: Props) {
     setRefreshing(false);
   }, [loadPosts, loadUnreadCount]);
 
-  const handleLike = useCallback(async (postId: string) => {
-    // Optimistic update
+  // ─── Reaction handlers ────────────────────────────────────────
+  const handleQuickReaction = useCallback(async (postId: string) => {
+    // Toggle fire reaction
     setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? {
-              ...p,
-              isLiked: !p.isLiked,
-              likes_count: p.isLiked ? p.likes_count - 1 : p.likes_count + 1,
-            }
-          : p
-      )
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const wasReacted = !!p.reaction;
+        return {
+          ...p,
+          reaction: wasReacted ? undefined : '🔥',
+          isLiked: !wasReacted,
+          likes_count: wasReacted ? p.likes_count - 1 : p.likes_count + 1,
+        };
+      })
     );
 
     if (!user) return;
-
     try {
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
-
-      if (post.isLiked) {
-        // Unlike - delete from post_likes
+      if (post.reaction) {
         await supabase
           .from('post_likes')
           .delete()
           .eq('post_id', postId)
           .eq('user_id', user.id);
       } else {
-        // Like - insert into post_likes
         await supabase
           .from('post_likes')
-          .insert({ post_id: postId, user_id: user.id });
+          .insert({ post_id: postId, user_id: user.id, reaction: '🔥' });
       }
     } catch (error) {
-      console.error('Error toggling like:', error);
-      // Revert optimistic update on error
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === postId
-            ? {
-                ...p,
-                isLiked: !p.isLiked,
-                likes_count: p.isLiked ? p.likes_count - 1 : p.likes_count + 1,
-              }
-            : p
-        )
-      );
+      console.error('Error toggling reaction:', error);
     }
   }, [user, posts]);
+
+  const handleLongPressReaction = useCallback((postId: string) => {
+    setReactionPickerPostId(postId);
+    setShowReactionPicker(true);
+  }, []);
+
+  const handleSelectReaction = useCallback(async (reaction: string) => {
+    if (!reactionPickerPostId) return;
+    const postId = reactionPickerPostId;
+
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const wasReacted = !!p.reaction;
+        const sameReaction = p.reaction === reaction;
+        return {
+          ...p,
+          reaction: sameReaction ? undefined : reaction,
+          isLiked: !sameReaction,
+          likes_count: sameReaction
+            ? p.likes_count - 1
+            : wasReacted
+              ? p.likes_count
+              : p.likes_count + 1,
+        };
+      })
+    );
+
+    setShowReactionPicker(false);
+    setReactionPickerPostId(null);
+
+    if (!user) return;
+    try {
+      await supabase
+        .from('post_likes')
+        .delete()
+        .eq('post_id', postId)
+        .eq('user_id', user.id);
+
+      const post = posts.find((p) => p.id === postId);
+      if (post?.reaction !== reaction) {
+        await supabase
+          .from('post_likes')
+          .insert({ post_id: postId, user_id: user.id, reaction });
+      }
+    } catch (error) {
+      console.error('Error setting reaction:', error);
+    }
+  }, [user, posts, reactionPickerPostId]);
 
   const handleSave = useCallback((postId: string) => {
     setPosts((prev) =>
@@ -488,12 +623,12 @@ export default function FeedScreen({ navigation }: Props) {
             await supabase.from('reports').insert({
               reporter_id: user.id,
               reported_user_id: post.user.id,
-              reason: 'conteudo_impróprio',
+              reason: 'conteudo_improprio',
             });
-            Alert.alert('Denúncia enviada');
+            Alert.alert('Denuncia enviada');
           } catch (error) {
             console.error('Error reporting:', error);
-            Alert.alert('Erro', 'Não foi possível enviar a denúncia.');
+            Alert.alert('Erro', 'Nao foi possivel enviar a denuncia.');
           }
         },
       },
@@ -507,12 +642,11 @@ export default function FeedScreen({ navigation }: Props) {
               blocker_id: user.id,
               blocked_id: post.user.id,
             });
-            // Remove blocked user's posts from feed
             setPosts((prev) => prev.filter((p) => p.user.id !== post.user.id));
-            Alert.alert('Usuário bloqueado');
+            Alert.alert('Usuario bloqueado');
           } catch (error) {
             console.error('Error blocking:', error);
-            Alert.alert('Erro', 'Não foi possível bloquear o usuário.');
+            Alert.alert('Erro', 'Nao foi possivel bloquear o usuario.');
           }
         },
       },
@@ -522,115 +656,72 @@ export default function FeedScreen({ navigation }: Props) {
     ]);
   }, [posts, user]);
 
-  const handlePickImage = useCallback(async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: 'images',
-        quality: 0.7,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedImage(result.assets[0].uri);
+  // ─── Build flat list data with inline SugestoesSociais ────────
+  const buildFeedData = useCallback(() => {
+    const result: (FeedPost | { id: string; type: 'sugestoes' })[] = [];
+    posts.forEach((post, index) => {
+      result.push(post);
+      if ((index + 1) % 5 === 0) {
+        result.push({ id: `sugestoes-${index}`, type: 'sugestoes' });
       }
-    } catch (error) {
-      console.error('Error picking image:', error);
+    });
+    return result;
+  }, [posts]);
+
+  const feedData = buildFeedData();
+
+  // ─── List Header ──────────────────────────────────────────────
+  const renderListHeader = () => (
+    <View>
+      {/* TreinandoAgora */}
+      <TreinandoAgora users={MOCK_TRAINING_USERS} onPress={() => {}} />
+
+      {/* Stories */}
+      <FlatList
+        data={MOCK_STORIES}
+        keyExtractor={(item) => item.id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.storiesList}
+        ListHeaderComponent={<MyStoryCircle />}
+        renderItem={({ item }) => <StoryCircle story={item} />}
+      />
+      <View style={styles.sectionSeparator} />
+
+      {/* Feed Filters */}
+      <FeedFilters selected={activeFilter} onSelect={setActiveFilter} />
+    </View>
+  );
+
+  // ─── Render Item ──────────────────────────────────────────────
+  const renderItem = ({ item }: { item: any }) => {
+    if (item.type === 'sugestoes') {
+      return <SugestoesSociais sugestoes={MOCK_SUGESTOES} onFollow={() => {}} />;
     }
-  }, []);
 
-  const handleCreatePost = useCallback(async () => {
-    if (!newPostText.trim()) return;
+    const post = item as FeedPost;
 
-    let imageUrl: string | null = null;
-
-    if (user) {
-      try {
-        // Upload image if selected
-        if (selectedImage) {
-          const fileName = `${user.id}_${Date.now()}.jpg`;
-          const response = await fetch(selectedImage);
-          const blob = await response.blob();
-
-          const { error: uploadError } = await supabase.storage
-            .from('posts')
-            .upload(fileName, blob, { contentType: 'image/jpeg' });
-
-          if (uploadError) {
-            console.error('Error uploading image:', uploadError);
-          } else {
-            const { data: publicData } = supabase.storage
-              .from('posts')
-              .getPublicUrl(fileName);
-            imageUrl = publicData.publicUrl;
-          }
-        }
-
-        const { data: inserted, error } = await supabase
-          .from('posts')
-          .insert({
-            text: newPostText,
-            user_id: user.id,
-            image_url: imageUrl,
+    return (
+      <PostCard
+        post={post}
+        onReaction={() => handleQuickReaction(post.id)}
+        onLongPressReaction={() => handleLongPressReaction(post.id)}
+        onSave={() => handleSave(post.id)}
+        onOptions={() => handleOptions(post.id)}
+        onComment={() =>
+          navigation.navigate('Comentarios', {
+            postId: post.id,
+            postUserName: post.user.nome,
           })
-          .select('id, text, image_url, created_at')
-          .single();
-
-        if (error) throw error;
-
-        const newPost: FeedPost = {
-          id: inserted.id,
-          user: {
-            id: user.id,
-            nome: user.name ?? 'Voce',
-            nivel: user.level ?? 'Bronze',
-            unidade: '',
-            avatar_url: user.avatar_url ?? null,
-          },
-          text: inserted.text,
-          image_url: inserted.image_url ?? null,
-          likes_count: 0,
-          comments_count: 0,
-          isLiked: false,
-          isSaved: false,
-          created_at: inserted.created_at,
-        };
-        setPosts((prev) => [newPost, ...prev]);
-        setNewPostText('');
-        setSelectedImage(null);
-        setShowNewPost(false);
-        return;
-      } catch (error) {
-        console.error('Error creating post:', error);
-      }
-    }
-
-    // Fallback: local-only post
-    const newPost: FeedPost = {
-      id: Date.now().toString(),
-      user: {
-        id: user?.id ?? 'me',
-        nome: user?.name ?? 'Voce',
-        nivel: user?.level ?? 'Bronze',
-        unidade: '',
-        avatar_url: user?.avatar_url ?? null,
-      },
-      text: newPostText,
-      image_url: selectedImage,
-      likes_count: 0,
-      comments_count: 0,
-      isLiked: false,
-      isSaved: false,
-      created_at: new Date().toISOString(),
-    };
-    setPosts((prev) => [newPost, ...prev]);
-    setNewPostText('');
-    setSelectedImage(null);
-    setShowNewPost(false);
-  }, [newPostText, user, selectedImage]);
+        }
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
       <FeedHeader
-        onCreatePost={() => setShowNewPost(true)}
+        onCreatePost={() => navigation.navigate('CriarPost')}
         onChat={() => navigation.navigate('Chat')}
         unreadCount={unreadCount}
       />
@@ -641,18 +732,10 @@ export default function FeedScreen({ navigation }: Props) {
         </View>
       ) : (
         <FlatList
-          data={posts}
+          data={feedData}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={<StoriesSection />}
-          renderItem={({ item }) => (
-            <PostCard
-              post={item}
-              onLike={() => handleLike(item.id)}
-              onSave={() => handleSave(item.id)}
-              onOptions={() => handleOptions(item.id)}
-              onComment={() => navigation.navigate('Comentarios', { postId: item.id, postUserName: item.user.nome })}
-            />
-          )}
+          ListHeaderComponent={renderListHeader}
+          renderItem={renderItem}
           contentContainerStyle={styles.feedList}
           refreshControl={
             <RefreshControl
@@ -666,58 +749,20 @@ export default function FeedScreen({ navigation }: Props) {
         />
       )}
 
-      {/* New Post Modal */}
-      <Modal visible={showNewPost} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => { setShowNewPost(false); setSelectedImage(null); }}>
-                <Text style={styles.modalCancel}>Cancelar</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Novo Post</Text>
-              <TouchableOpacity onPress={handleCreatePost}>
-                <Text
-                  style={[
-                    styles.modalPublish,
-                    !newPostText.trim() && styles.modalPublishDisabled,
-                  ]}
-                >
-                  Publicar
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="No que voce esta pensando?"
-              placeholderTextColor={colors.textMuted}
-              value={newPostText}
-              onChangeText={setNewPostText}
-              multiline
-              autoFocus
-            />
-            {selectedImage && (
-              <View style={styles.imagePreviewContainer}>
-                <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
-                <TouchableOpacity
-                  style={styles.imageRemoveBtn}
-                  onPress={() => setSelectedImage(null)}
-                >
-                  <Text style={styles.imageRemoveText}>X</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            <TouchableOpacity style={styles.addPhotoBtn} onPress={handlePickImage} activeOpacity={0.7}>
-              <Text style={styles.addPhotoBtnText}>Adicionar foto</Text>
-            </TouchableOpacity>
-            <View style={styles.modalFooter}>
-              <View style={styles.ptsBadge}>
-                <Text style={styles.ptsBadgeText}>+25 pts</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Reaction Picker */}
+      <ReactionPicker
+        visible={showReactionPicker}
+        onSelect={handleSelectReaction}
+        onClose={() => {
+          setShowReactionPicker(false);
+          setReactionPickerPostId(null);
+        }}
+        selectedReaction={
+          reactionPickerPostId
+            ? posts.find((p) => p.id === reactionPickerPostId)?.reaction
+            : undefined
+        }
+      />
     </View>
   );
 }
@@ -912,6 +957,12 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
   },
 
+  // Typed content wrapper
+  typedCardWrapper: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+
   // Post Image
   postImageContainer: {
     width: '100%',
@@ -1009,116 +1060,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     textTransform: 'uppercase',
-  },
-
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#141414',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    minHeight: 320,
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#333',
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 16,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalCancel: {
-    fontSize: 14,
-    fontFamily: fonts.body,
-    color: '#999',
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontFamily: fonts.bodyBold,
-    color: colors.text,
-  },
-  modalPublish: {
-    fontSize: 14,
-    fontFamily: fonts.bodyBold,
-    color: colors.orange,
-  },
-  modalPublishDisabled: {
-    opacity: 0.4,
-  },
-  modalInput: {
-    fontSize: 15,
-    fontFamily: fonts.body,
-    color: colors.text,
-    minHeight: 140,
-    textAlignVertical: 'top',
-  },
-  modalFooter: {
-    marginTop: 16,
-    alignItems: 'flex-start',
-  },
-  ptsBadge: {
-    backgroundColor: 'rgba(242,101,34,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  ptsBadgeText: {
-    fontSize: 12,
-    fontFamily: fonts.numbersBold,
-    color: colors.orange,
-  },
-
-  // Photo picker
-  addPhotoBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: 'rgba(242,101,34,0.12)',
-    borderRadius: 10,
-    alignSelf: 'flex-start',
-    marginTop: 10,
-  },
-  addPhotoBtnText: {
-    fontSize: 14,
-    fontFamily: fonts.body,
-    color: colors.orange,
-  },
-  imagePreviewContainer: {
-    marginTop: 10,
-    position: 'relative',
-    alignSelf: 'flex-start',
-  },
-  imagePreview: {
-    width: 120,
-    height: 120,
-    borderRadius: 10,
-  },
-  imageRemoveBtn: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#444',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageRemoveText: {
-    fontSize: 11,
-    fontFamily: fonts.bodyBold,
-    color: colors.text,
   },
 });
