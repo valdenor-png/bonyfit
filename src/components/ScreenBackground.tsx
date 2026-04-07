@@ -9,7 +9,7 @@ interface Props {
   opacity?: number;
 }
 
-export default function ScreenBackground({ children, opacity = 0.08 }: Props) {
+export default function ScreenBackground({ children, opacity = 0.16 }: Props) {
   return (
     <View style={styles.root}>
       <ImageBackground
