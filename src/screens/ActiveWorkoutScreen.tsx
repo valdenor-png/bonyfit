@@ -60,28 +60,41 @@ function createInitialExercises(): WorkoutExercise[] {
       id: uid(), name: 'Supino Reto com Barra', equipment: 'Barra', muscleGroup: 'Peito',
       restSeconds: 90,
       sets: [
-        { id: uid(), weight: null, reps: null, completed: false, prevWeight: 60, prevReps: 12 },
-        { id: uid(), weight: null, reps: null, completed: false, prevWeight: 60, prevReps: 12 },
-        { id: uid(), weight: null, reps: null, completed: false, prevWeight: 55, prevReps: 10 },
-        { id: uid(), weight: null, reps: null, completed: false, prevWeight: 55, prevReps: 10 },
+        { id: uid(), weight: 60, reps: 12, completed: false, prevWeight: 60, prevReps: 12 },
+        { id: uid(), weight: 60, reps: 12, completed: false, prevWeight: 60, prevReps: 12 },
+        { id: uid(), weight: 55, reps: 10, completed: false, prevWeight: 55, prevReps: 10 },
+        { id: uid(), weight: 55, reps: 10, completed: false, prevWeight: 55, prevReps: 10 },
       ],
     },
     {
       id: uid(), name: 'Rosca Direta com Barra', equipment: 'Barra', muscleGroup: 'Bíceps',
       restSeconds: 90,
       sets: [
-        { id: uid(), weight: null, reps: null, completed: false, prevWeight: 30, prevReps: 12 },
-        { id: uid(), weight: null, reps: null, completed: false, prevWeight: 30, prevReps: 10 },
-        { id: uid(), weight: null, reps: null, completed: false, prevWeight: 25, prevReps: 10 },
+        { id: uid(), weight: 30, reps: 12, completed: false, prevWeight: 30, prevReps: 12 },
+        { id: uid(), weight: 30, reps: 10, completed: false, prevWeight: 30, prevReps: 10 },
+        { id: uid(), weight: 25, reps: 10, completed: false, prevWeight: 25, prevReps: 10 },
       ],
     },
   ];
+}
+
+// ─── Cross-platform confirm ───────────────────────────────────
+function confirmAction(title: string, message: string, onConfirm: () => void, destructive = false) {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n\n${message}`)) onConfirm();
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: destructive ? 'Descartar' : 'OK', style: destructive ? 'destructive' : 'default', onPress: onConfirm },
+    ]);
+  }
 }
 
 // ─── Component ────────────────────────────────────────────────
 export default function ActiveWorkoutScreen() {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const [errorSetId, setErrorSetId] = useState<string | null>(null);
 
   // State
   const [workoutName] = useState('Treino A - Peito e Bíceps');
@@ -147,25 +160,32 @@ export default function ActiveWorkoutScreen() {
   };
 
   const toggleComplete = (exId: string, setIdx: number) => {
+    const ex = exercises.find((e) => e.id === exId);
+    if (!ex) return;
+    const set = ex.sets[setIdx];
+    if (!set) return;
+
+    // Validate before completing
+    if (!set.completed && (!set.weight || !set.reps)) {
+      // Flash error on the set
+      setErrorSetId(set.id);
+      setTimeout(() => setErrorSetId(null), 1200);
+      return;
+    }
+
+    const nowCompleted = !set.completed;
+    if (nowCompleted) {
+      try { Vibration.vibrate(100); } catch {}
+      Keyboard.dismiss();
+      startRest(ex.restSeconds);
+    }
+
     setExercises((prev) =>
-      prev.map((ex) => {
-        if (ex.id !== exId) return ex;
-        const newSets = ex.sets.map((s, i) => {
-          if (i !== setIdx) return s;
-          if (!s.completed && (!s.weight || !s.reps)) {
-            Alert.alert('Preencha', 'Informe o peso e as repetições.');
-            return s;
-          }
-          const nowCompleted = !s.completed;
-          if (nowCompleted) {
-            Vibration.vibrate(100);
-            Keyboard.dismiss();
-            startRest(ex.restSeconds);
-          }
-          return { ...s, completed: nowCompleted };
-        });
-        return { ...ex, sets: newSets };
-      })
+      prev.map((e) =>
+        e.id === exId
+          ? { ...e, sets: e.sets.map((s, i) => (i === setIdx ? { ...s, completed: nowCompleted } : s)) }
+          : e
+      )
     );
   };
 
@@ -180,30 +200,23 @@ export default function ActiveWorkoutScreen() {
   };
 
   const removeExercise = (exId: string) => {
-    Alert.alert('Remover exercício?', '', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Remover', style: 'destructive', onPress: () => setExercises((prev) => prev.filter((ex) => ex.id !== exId)) },
-    ]);
+    confirmAction('Remover exercício?', '', () => {
+      setExercises((prev) => prev.filter((ex) => ex.id !== exId));
+    }, true);
   };
 
   // ─── Finish ─────────────────────────────────────────────────
-  const handleFinish = async () => {
+  const handleFinish = () => {
     if (seriesTotal === 0) {
-      Alert.alert('Nenhuma série', 'Complete pelo menos uma série.');
+      if (Platform.OS === 'web') { window.alert('Complete pelo menos uma série.'); }
+      else { Alert.alert('Nenhuma série', 'Complete pelo menos uma série.'); }
       return;
     }
 
     const exercisesCompleted = exercises.filter((ex) => ex.sets.some((s) => s.completed)).length;
     const points = seriesTotal * 15 + exercisesCompleted * 50 + 200;
 
-    Alert.alert(
-      'Finalizar Treino?',
-      `${seriesTotal} séries · ${formatVolume(volumeTotal)} volume\n${exercisesCompleted} exercícios · +${points} pts`,
-      [
-        { text: 'Continuar', style: 'cancel' },
-        {
-          text: 'Finalizar',
-          onPress: async () => {
+    const doFinish = async () => {
             try {
               const authUser = user || (await supabase.auth.getUser()).data?.user;
               if (authUser) {
@@ -280,27 +293,24 @@ export default function ActiveWorkoutScreen() {
             if (timerRef.current) clearInterval(timerRef.current);
             stopRest();
             navigation.goBack();
-            Alert.alert('Treino finalizado! 💪', `+${points} pontos!`);
-          },
-        },
-      ]
+            if (Platform.OS === 'web') window.alert(`Treino finalizado! 💪 +${points} pontos!`);
+            else Alert.alert('Treino finalizado! 💪', `+${points} pontos!`);
+    };
+
+    confirmAction(
+      'Finalizar Treino?',
+      `${seriesTotal} séries · ${formatVolume(volumeTotal)} volume\n${exercisesCompleted} exercícios · +${points} pts`,
+      doFinish
     );
   };
 
   // ─── Close/Discard ──────────────────────────────────────────
   const handleClose = () => {
-    Alert.alert('Descartar treino?', 'Seu progresso será perdido.', [
-      { text: 'Continuar', style: 'cancel' },
-      {
-        text: 'Descartar',
-        style: 'destructive',
-        onPress: () => {
-          if (timerRef.current) clearInterval(timerRef.current);
-          stopRest();
-          navigation.goBack();
-        },
-      },
-    ]);
+    confirmAction('Descartar treino?', 'Seu progresso será perdido.', () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      stopRest();
+      navigation.goBack();
+    }, true);
   };
 
   // ─── Render ─────────────────────────────────────────────────
@@ -377,7 +387,7 @@ export default function ActiveWorkoutScreen() {
                   {set.prevWeight && set.prevReps ? `${set.prevWeight}kg × ${set.prevReps}` : '—'}
                 </Text>
                 <TextInput
-                  style={[styles.input, { width: 60 }, set.completed && styles.inputDone]}
+                  style={[styles.input, { width: 60 }, set.completed && styles.inputDone, errorSetId === set.id && styles.inputError]}
                   value={set.weight?.toString() ?? ''}
                   onChangeText={(v) => updateWeight(ex.id, si, v)}
                   keyboardType="decimal-pad"
@@ -386,7 +396,7 @@ export default function ActiveWorkoutScreen() {
                   editable={!set.completed}
                 />
                 <TextInput
-                  style={[styles.input, { width: 56 }, set.completed && styles.inputDone]}
+                  style={[styles.input, { width: 56 }, set.completed && styles.inputDone, errorSetId === set.id && styles.inputError]}
                   value={set.reps?.toString() ?? ''}
                   onChangeText={(v) => updateReps(ex.id, si, v)}
                   keyboardType="number-pad"
@@ -487,6 +497,7 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === 'ios' ? 10 : 6,
   },
   inputDone: { backgroundColor: 'rgba(46,204,113,0.15)', color: colors.success },
+  inputError: { borderWidth: 2, borderColor: colors.danger },
 
   // Check
   checkBtn: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: '#333', alignItems: 'center', justifyContent: 'center', marginLeft: 4 },
