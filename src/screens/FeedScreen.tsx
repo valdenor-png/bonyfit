@@ -534,7 +534,7 @@ export default function FeedScreen({ navigation }: Props) {
     } catch (error) {
       console.error('Error loading unread count:', error);
     }
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     loadPosts();
@@ -690,16 +690,19 @@ export default function FeedScreen({ navigation }: Props) {
 
   // ─── View tracking ────────────────────────────────────────────
   const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
-    if (!user) return;
+    if (!user?.id) return;
     viewableItems.forEach((item: any) => {
-      if (item.isViewable && !viewedPosts.current.has(item.item.id)) {
-        viewedPosts.current.add(item.item.id);
+      const postId = item?.item?.id;
+      // Skip mock posts (not real UUIDs) and already viewed
+      if (!postId || postId.length < 20 || viewedPosts.current.has(postId)) return;
+      if (item.isViewable) {
+        viewedPosts.current.add(postId);
         supabase.from('post_views')
-          .upsert({ post_id: item.item.id, user_id: user.id }, { onConflict: 'post_id,user_id' })
+          .upsert({ post_id: postId, user_id: user.id }, { onConflict: 'post_id,user_id' })
           .then(() => {});
       }
     });
-  }, [user]);
+  }, [user?.id]);
 
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 

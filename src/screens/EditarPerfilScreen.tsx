@@ -139,25 +139,37 @@ export default function EditarPerfilScreen({ navigation }: Props) {
 
     setSaving(true);
     try {
-      // Update users table
+      // Get auth user directly
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const userId = user?.id || authUser?.id;
+      if (!userId) throw new Error('Usuário não autenticado');
+
+      // Build update payload — only non-null fields
+      const payload: Record<string, any> = { name: name.trim() };
+      if (bio.trim()) payload.bio = bio.trim();
+      if (selectedUnit) payload.unit_id = selectedUnit;
+      if (avatarUri) payload.avatar_url = avatarUri;
+
       const { error } = await supabase
         .from('users')
-        .update({
-          name: name.trim(),
-          bio: bio.trim(),
-          unit_id: selectedUnit,
-          avatar_url: avatarUri,
-        })
-        .eq('id', user.id);
+        .update(payload)
+        .eq('id', userId);
 
       if (error) throw error;
 
       // Sync auth store
-      await updateProfile({ name: name.trim(), avatar_url: avatarUri });
+      try { await updateProfile({ name: name.trim(), avatar_url: avatarUri }); } catch {}
 
+      if (Platform.OS === 'web') {
+        window.alert('Perfil salvo!');
+      } else {
+        Alert.alert('Salvo!', 'Perfil atualizado com sucesso.');
+      }
       navigation.goBack();
     } catch (err: any) {
-      Alert.alert('Erro', err.message || 'Nao foi possivel salvar.');
+      const msg = err?.message || 'Não foi possível salvar.';
+      if (Platform.OS === 'web') window.alert('Erro: ' + msg);
+      else Alert.alert('Erro', msg);
     } finally {
       setSaving(false);
     }

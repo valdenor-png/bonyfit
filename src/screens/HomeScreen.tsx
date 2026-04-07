@@ -73,7 +73,7 @@ export default function HomeScreen({ navigation }: Props) {
     }
 
     loadData();
-  }, [user]);
+  }, [user?.id]);
 
   if (authLoading || !user) {
     return (
