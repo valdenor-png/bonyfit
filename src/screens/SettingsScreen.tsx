@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Toggle from '../components/Toggle';
+import { supabase } from '../services/supabase';
 
 interface Props {
   navigation: any;
@@ -40,6 +41,7 @@ const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
   {
     title: 'Privacidade',
     rows: [
+      { label: 'Mostrar que estou treinando', sub: 'Amigos mútuos podem ver quando você está na academia', type: 'toggle', key: 'mostrar_presenca' },
       { label: 'Perfil privado', sub: 'Ocultar seu perfil do ranking e feed', type: 'toggle', key: 'private_profile' },
       { label: 'Usuários bloqueados', type: 'nav', key: 'blocked_users' },
       { label: 'Dados e privacidade', type: 'nav', key: 'data_privacy' },
@@ -60,10 +62,20 @@ export default function SettingsScreen({ navigation }: Props) {
     notifications: true,
     biometric: false,
     private_profile: false,
+    mostrar_presenca: true,
   });
 
-  const handleToggle = (key: string) => {
+  const handleToggle = async (key: string) => {
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
+
+    if (key === 'mostrar_presenca') {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('users').update({ mostrar_presenca: !toggles[key] }).eq('id', user.id);
+        }
+      } catch {}
+    }
   };
 
   const handleSignOut = () => {

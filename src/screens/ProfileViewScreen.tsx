@@ -81,6 +81,13 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
             </View>
             <Text style={styles.streakText}>🔥 {user.streak} dias</Text>
           </View>
+
+          {/* TODO: Show presence indicator only for mutual friends */}
+          {/* {isMutualFriend && profileUser.mostrar_presenca && isTrainingNow && ( */}
+          {/*   <View style={styles.presenceBadge}> */}
+          {/*     <Text>🟢 Na academia agora</Text> */}
+          {/*   </View> */}
+          {/* )} */}
         </View>
 
         {/* Message button */}

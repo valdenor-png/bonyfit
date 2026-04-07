@@ -6,8 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
   Animated,
+  Alert,
 } from 'react-native';
 import { colors, fonts, spacing } from '../tokens';
+import { supabase } from '../services/supabase';
 
 // ─── Level Colors ──────────────────────────────────────────────
 const LEVEL_COLORS: Record<string, string> = {
@@ -78,11 +80,33 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+// ─── Real Data Loader ─────────────────────────────────────────
+// Real query (when connected to Supabase):
+export const loadTrainingFriends = async (userId: string, unitId: string) => {
+  const { data } = await supabase.rpc('treinando_agora', {
+    p_user_id: userId,
+    p_unit_id: unitId,
+  });
+  return data || [];
+};
+
 // ─── Component ─────────────────────────────────────────────────
 export default function TreinandoAgora({ users, onPress }: TreinandoAgoraProps) {
+  // If no friends training, don't render the section
+  if (!users || users.length === 0) {
+    return null;
+  }
+
   const MAX_VISIBLE = 6;
   const visibleUsers = users.slice(0, MAX_VISIBLE);
   const extraCount = users.length - MAX_VISIBLE;
+
+  const handleInfoPress = () => {
+    Alert.alert(
+      'Privacidade',
+      'Só seus amigos mútuos aparecem aqui. Você pode desativar sua presença em Menu > Configurações.'
+    );
+  };
 
   const renderItem = ({ item }: { item: TrainingUser }) => {
     const levelColor = LEVEL_COLORS[item.level] || colors.orange;
@@ -105,9 +129,14 @@ export default function TreinandoAgora({ users, onPress }: TreinandoAgoraProps) 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Text style={styles.header}>
-        🟢 TREINANDO AGORA ({users.length})
-      </Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>
+          🟢 AMIGOS TREINANDO ({users.length})
+        </Text>
+        <TouchableOpacity onPress={handleInfoPress} activeOpacity={0.6}>
+          <Text style={styles.infoIcon}>ℹ</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Horizontal List */}
       <FlatList
@@ -136,14 +165,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#1a1a1a',
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: spacing.sm,
+  },
   header: {
     fontSize: 12,
     fontFamily: fonts.bodyBold,
     color: colors.success,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    paddingHorizontal: 16,
-    marginBottom: spacing.sm,
+  },
+  infoIcon: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    paddingLeft: 8,
   },
   list: {
     paddingHorizontal: 12,
