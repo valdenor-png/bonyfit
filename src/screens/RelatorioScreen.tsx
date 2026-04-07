@@ -8,6 +8,7 @@ import {
   Alert,
   SafeAreaView,
   StatusBar,
+  Share,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 
@@ -87,7 +88,7 @@ export default function RelatorioScreen({ navigation }: any) {
   const handleExportPDF = () => {
     Alert.alert('PDF gerado!', 'Compartilhar?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Compartilhar', onPress: () => {} },
+      { text: 'Compartilhar', onPress: () => Share.share({ message: 'Meu relatório Bony Fit' }) },
     ]);
   };
 

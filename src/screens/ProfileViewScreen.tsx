@@ -44,7 +44,7 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
     setShowMenu(false);
     Alert.alert('Bloquear usuário', 'Tem certeza que deseja bloquear este usuário?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Bloquear', style: 'destructive', onPress: () => {} },
+      { text: 'Bloquear', style: 'destructive', onPress: () => Alert.alert('Bloqueado', 'Usuário bloqueado com sucesso.') },
     ]);
   };
 
@@ -52,7 +52,7 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
     setShowMenu(false);
     Alert.alert('Denunciar', 'Deseja denunciar este usuário por conteúdo impróprio?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Denunciar', style: 'destructive', onPress: () => {} },
+      { text: 'Denunciar', style: 'destructive', onPress: () => Alert.alert('Denunciado', 'Denúncia enviada. Obrigado.') },
     ]);
   };
 

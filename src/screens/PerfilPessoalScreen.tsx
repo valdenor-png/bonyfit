@@ -10,6 +10,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import Toggle from '../components/Toggle';
 import Skull from '../components/Skull';
+import { supabase } from '../services/supabase';
 
 interface Props {
   navigation: any;
@@ -41,7 +42,7 @@ export default function PerfilPessoalScreen({ navigation }: Props) {
   const handleSignOut = () => {
     Alert.alert('Sair da conta', 'Tem certeza que deseja sair?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: () => {} },
+      { text: 'Sair', style: 'destructive', onPress: () => { supabase.auth.signOut(); } },
     ]);
   };
 
@@ -76,13 +77,13 @@ export default function PerfilPessoalScreen({ navigation }: Props) {
           <InfoRow label="E-mail" value={MOCK_USER.email} />
           <InfoRow label="CPF" value={MOCK_USER.cpf} />
           <InfoRow label="Telefone" value={MOCK_USER.phone} />
-          <NavRow label="Editar dados" onPress={() => {}} />
+          <NavRow label="Editar dados" onPress={() => navigation.navigate('EditarPerfil')} />
         </Section>
 
         {/* Segurança */}
         <Section title="Segurança">
-          <NavRow label="Alterar senha" onPress={() => {}} />
-          <NavRow label="Atualizar facial" sub="Refazer captura para a catraca" onPress={() => {}} />
+          <NavRow label="Alterar senha" onPress={() => Alert.alert('Alterar senha', 'Funcionalidade em desenvolvimento.')} />
+          <NavRow label="Atualizar facial" sub="Refazer captura para a catraca" onPress={() => Alert.alert('Facial', 'Funcionalidade em desenvolvimento.')} />
           <ToggleRow label="Login biométrico" value={toggles.biometric} onToggle={() => handleToggle('biometric')} />
         </Section>
 
@@ -90,8 +91,8 @@ export default function PerfilPessoalScreen({ navigation }: Props) {
         <Section title="Privacidade">
           <ToggleRow label="Perfil privado" sub="Ocultar do ranking e feed" value={toggles.private_profile} onToggle={() => handleToggle('private_profile')} />
           <ToggleRow label="Notificações" value={toggles.notifications} onToggle={() => handleToggle('notifications')} />
-          <NavRow label="Usuários bloqueados" onPress={() => {}} />
-          <NavRow label="Dados e privacidade" onPress={() => {}} />
+          <NavRow label="Usuários bloqueados" onPress={() => Alert.alert('Bloqueados', 'Funcionalidade em desenvolvimento.')} />
+          <NavRow label="Dados e privacidade" onPress={() => navigation.navigate('LGPD')} />
         </Section>
 
         {/* Plano e pagamentos */}
@@ -99,7 +100,7 @@ export default function PerfilPessoalScreen({ navigation }: Props) {
           <InfoRow label="Plano atual" value={`${MOCK_USER.plan} — ${MOCK_USER.planPrice}`} />
           <InfoRow label="Unidade" value={MOCK_USER.unit} />
           <NavRow label="Histórico financeiro" onPress={() => navigation.navigate('HistoricoFinanceiro')} />
-          <NavRow label="Meu contrato" onPress={() => {}} />
+          <NavRow label="Meu contrato" onPress={() => Alert.alert('Contrato', 'Funcionalidade em desenvolvimento.')} />
         </Section>
 
         {/* Sair */}

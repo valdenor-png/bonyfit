@@ -10,6 +10,7 @@ import {
   StatusBar,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
@@ -217,7 +218,7 @@ export default function ExerciseSearchScreen({ navigation }: ExerciseSearchScree
       )}
 
       {/* Create custom exercise */}
-      <TouchableOpacity style={styles.createButton}>
+      <TouchableOpacity style={styles.createButton} onPress={() => Alert.alert('Criar exercício', 'Funcionalidade em desenvolvimento.')}>
         <Text style={styles.createButtonText}>Criar exercício personalizado</Text>
       </TouchableOpacity>
     </SafeAreaView>

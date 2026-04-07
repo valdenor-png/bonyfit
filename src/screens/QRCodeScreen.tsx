@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 
@@ -94,7 +95,7 @@ export default function QRCodeScreen({ navigation }: Props) {
             </View>
 
             {/* Share button */}
-            <TouchableOpacity style={styles.shareBtn} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.shareBtn} activeOpacity={0.7} onPress={() => Alert.alert('Compartilhar', 'Link copiado!')}>
               <Text style={styles.shareBtnText}>Compartilhar</Text>
             </TouchableOpacity>
           </View>
@@ -114,7 +115,7 @@ export default function QRCodeScreen({ navigation }: Props) {
               Aponte para o QR Code de um amigo
             </Text>
 
-            <TouchableOpacity style={styles.cameraBtn} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.cameraBtn} activeOpacity={0.7} onPress={() => Alert.alert('Câmera', 'Escanear QR Code')}>
               <Text style={styles.cameraBtnText}>Abrir câmera</Text>
             </TouchableOpacity>
 

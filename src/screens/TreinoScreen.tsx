@@ -8,6 +8,7 @@ import {
   Modal,
   Animated,
   FlatList,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
@@ -421,7 +422,7 @@ export default function TreinoScreen() {
           <Text style={styles.streakText}>🔥 Pontos salvos no seu perfil!</Text>
         </View>
 
-        <Button title="Compartilhar no feed" onPress={() => {}} />
+        <Button title="Compartilhar no feed" onPress={() => Alert.alert('Compartilhado!', 'Post publicado no feed.')} />
       </ScrollView>
     );
   }

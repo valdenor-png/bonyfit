@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 
@@ -272,12 +273,12 @@ export default function CalendarScreen({ navigation }: { navigation: any }) {
             </View>
           </View>
           {w.status === 'scheduled' && (
-            <TouchableOpacity style={styles.detailButton} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.detailButton} activeOpacity={0.8} onPress={() => Alert.alert('Iniciar', 'Iniciar treino deste dia.')}>
               <Text style={styles.detailButtonText}>Iniciar</Text>
             </TouchableOpacity>
           )}
           {w.status === 'completed' && (
-            <TouchableOpacity style={styles.detailButtonOutline} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.detailButtonOutline} activeOpacity={0.7} onPress={() => Alert.alert('Detalhes', 'Ver detalhes do treino.')}>
               <Text style={styles.detailButtonOutlineText}>Ver Detalhes</Text>
             </TouchableOpacity>
           )}

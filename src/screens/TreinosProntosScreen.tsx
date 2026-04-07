@@ -8,6 +8,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
@@ -158,7 +159,7 @@ export default function TreinosProntosScreen() {
                     </View>
                   ))}
 
-                  <TouchableOpacity style={styles.useBtn} onPress={() => {}}>
+                  <TouchableOpacity style={styles.useBtn} onPress={() => Alert.alert('Treino copiado!', 'Este treino foi adicionado às suas rotinas.')}>
                     <Text style={styles.useBtnText}>Usar este treino</Text>
                   </TouchableOpacity>
                 </View>

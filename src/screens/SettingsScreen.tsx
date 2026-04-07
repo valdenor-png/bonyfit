@@ -81,7 +81,7 @@ export default function SettingsScreen({ navigation }: Props) {
   const handleSignOut = () => {
     Alert.alert('Sair da conta', 'Tem certeza que deseja sair?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: () => {} },
+      { text: 'Sair', style: 'destructive', onPress: () => { supabase.auth.signOut(); } },
     ]);
   };
 

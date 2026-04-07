@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 
@@ -200,7 +201,7 @@ export default function AvaliacaoFisicaScreen({ navigation }: Props) {
               <Text style={styles.cameraIcon}>📷</Text>
             </View>
             <Text style={styles.photoLabel}>{pos.label}</Text>
-            <TouchableOpacity style={styles.photoButton}>
+            <TouchableOpacity style={styles.photoButton} onPress={() => Alert.alert('Foto', 'Tirar foto de progresso')}>
               <Text style={styles.photoButtonText}>Tirar foto</Text>
             </TouchableOpacity>
           </View>
@@ -226,7 +227,7 @@ export default function AvaliacaoFisicaScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.addPhotosButton}>
+      <TouchableOpacity style={styles.addPhotosButton} onPress={() => Alert.alert('Fotos', 'Adicionar fotos de progresso')}>
         <Text style={styles.addPhotosText}>Adicionar fotos</Text>
       </TouchableOpacity>
     </View>

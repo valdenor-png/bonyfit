@@ -548,20 +548,20 @@ export default function ActiveWorkoutScreen({
                     {exercise.equipment}
                   </Text>
                 </View>
-                <TouchableOpacity style={styles.menuButton}>
+                <TouchableOpacity style={styles.menuButton} onPress={() => Alert.alert('Opções', 'Substituir, notas, remover')}>
                   <Text style={styles.menuButtonText}>{'\u22EF'}</Text>
                 </TouchableOpacity>
               </View>
 
               {/* Notes */}
-              <TouchableOpacity style={styles.notesArea}>
+              <TouchableOpacity style={styles.notesArea} onPress={() => Alert.alert('Notas', 'Adicionar nota ao exercício')}>
                 <Text style={styles.notesPlaceholder}>
                   {exercise.note || 'Adicionar nota...'}
                 </Text>
               </TouchableOpacity>
 
               {/* Rest timer link */}
-              <TouchableOpacity style={styles.restTimerLink}>
+              <TouchableOpacity style={styles.restTimerLink} onPress={() => Alert.alert('Rest Timer', 'Configurar tempo de descanso')}>
                 <Text style={styles.restTimerLinkText}>
                   {'\u23F1'} Rest Timer: {formatRestDisplay(exercise.restSeconds)}
                 </Text>

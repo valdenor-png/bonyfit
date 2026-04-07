@@ -8,6 +8,7 @@ import {
   FlatList,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
@@ -227,7 +228,7 @@ export default function AulasOnlineScreen() {
           <View style={styles.expandedSection}>
             <Text style={styles.classDescription}>{item.description}</Text>
             <View style={{ marginTop: spacing.md }}>
-              <Button title="Iniciar aula" onPress={() => {}} />
+              <Button title="Iniciar aula" onPress={() => Alert.alert('Em breve', 'Aulas online em desenvolvimento.')} />
             </View>
           </View>
         )}
