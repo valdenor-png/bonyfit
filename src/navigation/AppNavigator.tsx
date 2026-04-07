@@ -55,6 +55,8 @@ import IndicarAmigosScreen from '../screens/indicacao/IndicarAmigosScreen';
 import HistoricoAvaliacoesScreen from '../screens/HistoricoAvaliacoesScreen';
 import ComentariosScreen from '../screens/ComentariosScreen';
 import CriarPostScreen from '../screens/CriarPostScreen';
+import MessagesListScreen from '../screens/MessagesListScreen';
+import ConversationScreen from '../screens/ConversationScreen';
 import CarrinhoScreen from '../screens/loja/CarrinhoScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
 import TrainingScreen from '../screens/TrainingScreen';
@@ -153,6 +155,8 @@ function FeedNavigator() {
       </FeedStack.Screen>
       <FeedStack.Screen name="Comentarios" component={ComentariosScreen} options={{ title: 'Comentários' }} />
       <FeedStack.Screen name="CriarPost" component={CriarPostScreen} options={{ title: 'Novo Post' }} />
+      <FeedStack.Screen name="MessagesList" component={MessagesListScreen} options={{ title: 'Mensagens', headerShown: false }} />
+      <FeedStack.Screen name="Conversation" component={ConversationScreen} options={{ title: '', headerShown: false }} />
     </FeedStack.Navigator>
   );
 }

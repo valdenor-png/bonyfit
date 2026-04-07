@@ -791,7 +791,7 @@ export default function FeedScreen({ navigation }: Props) {
     <View style={styles.container}>
       <FeedHeader
         onCreatePost={() => navigation.navigate('CriarPost')}
-        onChat={() => navigation.navigate('Chat')}
+        onChat={() => navigation.navigate('MessagesList')}
         unreadCount={unreadCount}
       />
 
