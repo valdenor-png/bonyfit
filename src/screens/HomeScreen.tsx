@@ -96,7 +96,7 @@ export default function HomeScreen({ navigation }: Props) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.avatarBtn}
-          onPress={() => navigation.navigate('PerfilPessoal')}
+          onPress={() => navigation.navigate('MeuPerfil')}
           activeOpacity={0.8}
         >
           <View style={styles.avatar}>

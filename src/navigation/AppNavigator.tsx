@@ -119,7 +119,8 @@ function HomeNavigator() {
   return (
     <HomeStack.Navigator screenOptions={stackOptions}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
-      <HomeStack.Screen name="PerfilPessoal" component={PerfilPessoalScreen} options={{ title: 'Meu Perfil' }} />
+      <HomeStack.Screen name="PerfilPessoal" component={PerfilPessoalScreen} options={{ title: 'Configurações' }} />
+      <HomeStack.Screen name="MeuPerfil" component={ProfileScreen} options={{ title: 'Meu Perfil' }} />
       <HomeStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} options={{ title: 'Financeiro' }} />
       <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
       <HomeStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
