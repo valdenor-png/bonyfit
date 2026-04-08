@@ -1,22 +1,31 @@
 import { supabase } from '../services/supabase';
 
-export async function checkRateLimit(action: string): Promise<boolean> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return false;
+interface RateLimitResult {
+  allowed: boolean;
+  remaining?: number;
+}
 
+/**
+ * Check rate limit for an action.
+ * Fail open: if the function is unreachable, allow the action.
+ */
+export async function checkRateLimit(action: string): Promise<RateLimitResult> {
   try {
     const { data, error } = await supabase.functions.invoke('rate-limiter', {
-      body: { user_id: user.id, action },
+      body: { action },
     });
 
     if (error) {
       console.warn('Rate limiter error:', error);
-      return true; // Allow on error to not block user
+      return { allowed: true };
     }
 
-    return data?.allowed !== false;
+    return {
+      allowed: data?.allowed !== false,
+      remaining: data?.remaining,
+    };
   } catch (err) {
     console.warn('Rate limiter unreachable:', err);
-    return true; // Allow on network error
+    return { allowed: true };
   }
 }

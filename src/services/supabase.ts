@@ -1,15 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 import 'react-native-url-polyfill/auto';
+import { secureStorage } from '../lib/secureStorage';
 
 const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://your-project.supabase.co';
 const supabaseAnonKey =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'your-anon-key';
+const appCheckSecret =
+  process.env.EXPO_PUBLIC_APP_CHECK_SECRET ?? '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
+    storage: secureStorage,
     autoRefreshToken: true,
+    persistSession: true,
     detectSessionInUrl: false,
+  },
+  global: {
+    headers: appCheckSecret
+      ? { 'X-App-Token': appCheckSecret }
+      : {},
   },
 });
