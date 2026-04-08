@@ -107,7 +107,7 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.name}>{firstName}</Text>
         </View>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Calendar')}
+          onPress={() => navigation.navigate('AcademyCalendar')}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={styles.calendarBtn}
         >
