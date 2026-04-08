@@ -51,8 +51,8 @@ export default function StoryAvatar({
   }
 
   const borderColor = hasStory ? '#F26522' : 'rgba(255,255,255,0.10)';
-  const borderWidth = hasStory ? 2.5 : 2;
-  const bgColor = hasStory ? '#1a1008' : '#141414';
+  const borderWidth = hasStory ? 3 : 2;
+  const bgColor = hasStory ? 'rgba(242,101,34,0.08)' : '#141414';
 
   return (
     <TouchableOpacity style={styles.wrapper} onPress={onPress} activeOpacity={0.7}>

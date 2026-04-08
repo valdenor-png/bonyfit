@@ -20,6 +20,7 @@ import SetTypeModal from '../components/workout/SetTypeModal';
 import DropSetPanel from '../components/workout/DropSetPanel';
 import RIRPanel from '../components/workout/RIRPanel';
 import { useUI } from '../hooks/useUI';
+import ConfettiBurst, { ConfettiBurstRef } from '../components/ui/ConfettiBurst';
 
 // ─── Types ────────────────────────────────────────────────────
 interface WorkoutSet {
@@ -90,6 +91,7 @@ function createInitialExercises(): WorkoutExercise[] {
 export default function ActiveWorkoutScreen() {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const confettiRef = React.useRef<ConfettiBurstRef>(null);
   const { confirm, toast } = useUI();
   const [errorSetId, setErrorSetId] = useState<string | null>(null);
   const [showTypeModal, setShowTypeModal] = useState(false);
@@ -383,6 +385,7 @@ export default function ActiveWorkoutScreen() {
     });
     if (shouldFinish) {
       if (Platform.OS !== 'web') { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); }
+            confettiRef.current?.fire();
       doFinish();
     }
   };
@@ -562,6 +565,7 @@ export default function ActiveWorkoutScreen() {
         onSelect={handleSetTypeChange}
         onClose={() => setShowTypeModal(false)}
       />
+      <ConfettiBurst ref={confettiRef} />
     </View>
   );
 }

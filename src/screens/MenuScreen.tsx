@@ -14,6 +14,7 @@ import { useModeStore } from '../stores/modeStore';
 import { useAuth } from '../hooks/useAuth';
 import { useVip } from '../hooks/useVip';
 import { useRoleStore } from '../stores/roleStore';
+import XPRing from '../components/ui/XPRing';
 
 interface Props {
   navigation: any;
@@ -107,6 +108,11 @@ export default function MenuScreen({ navigation }: Props) {
       <View style={styles.header}>
         <Skull size={28} color={colors.orange} />
         <Text style={styles.headerTitle}>Menu</Text>
+      </View>
+
+      {/* XP Ring */}
+      <View style={{ alignItems: 'center', marginVertical: 16 }}>
+        <XPRing points={user?.total_points ?? user?.points ?? 0} size={80} strokeWidth={5} />
       </View>
 
       {/* Mode badge */}

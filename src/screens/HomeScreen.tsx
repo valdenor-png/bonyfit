@@ -16,6 +16,7 @@ import Skull from '../components/Skull';
 import ScreenBackground from '../components/ScreenBackground';
 import BannerCarousel from '../components/home/BannerCarousel';
 import GlassCard from '../components/ui/GlassCard';
+import XPRing from '../components/ui/XPRing';
 import AnimatedNumber from '../components/ui/AnimatedNumber';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
@@ -121,6 +122,11 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
       </Animated.View>
 
+      {/* ── XP Ring ────────────────────────────────────── */}
+      <View style={{ alignItems: 'center', marginBottom: 20 }}>
+        <XPRing points={userPoints} size={100} strokeWidth={6} />
+      </View>
+
       {/* ── Stats Row (glassmorphism + animated numbers) ──── */}
       <View style={styles.statsRow}>
         <GlassCard style={styles.statCard}>
@@ -181,6 +187,21 @@ export default function HomeScreen({ navigation }: Props) {
 
       {/* ── Banner Carousel ────────────────────────────────── */}
       <BannerCarousel slides={[]} onScanQR={() => navigation.navigate('ScanQRAula')} />
+
+      {/* ── Desafios da Semana ──────────────────────────── */}
+      <View style={{ marginBottom: 20 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontFamily: 'PlusJakartaSans_700Bold', color: '#FFFFFF' }}>⚡ Desafios da Semana</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Desafios')}>
+            <Text style={{ fontSize: 12, fontFamily: 'PlusJakartaSans_500Medium', color: '#F26522' }}>Ver todos →</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
+          <ChallengeCard emoji="🏋️" title="5 treinos na semana" progress={0.6} xp={500} daysLeft={3} />
+          <ChallengeCard emoji="🔥" title="Streak de 7 dias" progress={0.85} xp={1000} daysLeft={2} />
+          <ChallengeCard emoji="💪" title="100 séries no mês" progress={0.4} xp={750} daysLeft={5} />
+        </ScrollView>
+      </View>
 
       {/* ── Acesso Rápido (colored icons + glassmorphism) ─── */}
       <Text style={styles.sectionTitle}>Acesso rápido</Text>
@@ -246,6 +267,33 @@ function QuickAction({
         <Text style={styles.quickLabel}>{label}</Text>
       </TouchableOpacity>
     </Animated.View>
+  );
+}
+
+function ChallengeCard({ emoji, title, progress, xp, daysLeft }: { emoji: string; title: string; progress: number; xp: number; daysLeft: number }) {
+  return (
+    <View style={{
+      width: 220,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.10)',
+      padding: 16,
+    }}>
+      <Text style={{ fontSize: 28, marginBottom: 8 }}>{emoji}</Text>
+      <Text style={{ fontSize: 14, fontFamily: 'PlusJakartaSans_700Bold', color: '#FFFFFF', marginBottom: 4 }}>{title}</Text>
+      <Text style={{ fontSize: 11, fontFamily: 'PlusJakartaSans_400Regular', color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>{daysLeft} dias restantes</Text>
+      {/* Progress bar */}
+      <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 3, marginBottom: 8 }}>
+        <LinearGradient
+          colors={['#F26522', '#FFD700']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ height: 6, borderRadius: 3, width: `${Math.round(progress * 100)}%` }}
+        />
+      </View>
+      <Text style={{ fontSize: 12, fontFamily: 'Sora_700Bold', color: '#F26522' }}>+{xp} XP</Text>
+    </View>
   );
 }
 
