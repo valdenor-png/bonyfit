@@ -15,6 +15,10 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
+import SetTypeBadge from '../components/workout/SetTypeBadge';
+import SetTypeModal from '../components/workout/SetTypeModal';
+import DropSetPanel from '../components/workout/DropSetPanel';
+import RIRPanel from '../components/workout/RIRPanel';
 
 // ─── Types ────────────────────────────────────────────────────
 interface WorkoutSet {
@@ -24,6 +28,9 @@ interface WorkoutSet {
   completed: boolean;
   prevWeight: number | null;
   prevReps: number | null;
+  type: string;
+  drops: Array<{ kg: string; reps: string }>;
+  rir: string;
 }
 
 interface WorkoutExercise {
@@ -60,19 +67,19 @@ function createInitialExercises(): WorkoutExercise[] {
       id: uid(), name: 'Supino Reto com Barra', equipment: 'Barra', muscleGroup: 'Peito',
       restSeconds: 90,
       sets: [
-        { id: uid(), weight: 60, reps: 12, completed: false, prevWeight: 60, prevReps: 12 },
-        { id: uid(), weight: 60, reps: 12, completed: false, prevWeight: 60, prevReps: 12 },
-        { id: uid(), weight: 55, reps: 10, completed: false, prevWeight: 55, prevReps: 10 },
-        { id: uid(), weight: 55, reps: 10, completed: false, prevWeight: 55, prevReps: 10 },
+        { id: uid(), weight: 60, reps: 12, completed: false, prevWeight: 60, prevReps: 12, type: 'normal', drops: [], rir: '' },
+        { id: uid(), weight: 60, reps: 12, completed: false, prevWeight: 60, prevReps: 12, type: 'normal', drops: [], rir: '' },
+        { id: uid(), weight: 55, reps: 10, completed: false, prevWeight: 55, prevReps: 10, type: 'normal', drops: [], rir: '' },
+        { id: uid(), weight: 55, reps: 10, completed: false, prevWeight: 55, prevReps: 10, type: 'normal', drops: [], rir: '' },
       ],
     },
     {
       id: uid(), name: 'Rosca Direta com Barra', equipment: 'Barra', muscleGroup: 'Bíceps',
       restSeconds: 90,
       sets: [
-        { id: uid(), weight: 30, reps: 12, completed: false, prevWeight: 30, prevReps: 12 },
-        { id: uid(), weight: 30, reps: 10, completed: false, prevWeight: 30, prevReps: 10 },
-        { id: uid(), weight: 25, reps: 10, completed: false, prevWeight: 25, prevReps: 10 },
+        { id: uid(), weight: 30, reps: 12, completed: false, prevWeight: 30, prevReps: 12, type: 'normal', drops: [], rir: '' },
+        { id: uid(), weight: 30, reps: 10, completed: false, prevWeight: 30, prevReps: 10, type: 'normal', drops: [], rir: '' },
+        { id: uid(), weight: 25, reps: 10, completed: false, prevWeight: 25, prevReps: 10, type: 'normal', drops: [], rir: '' },
       ],
     },
   ];
@@ -95,6 +102,8 @@ export default function ActiveWorkoutScreen() {
   const navigation = useNavigation();
   const { user } = useAuth();
   const [errorSetId, setErrorSetId] = useState<string | null>(null);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [selectedSetInfo, setSelectedSetInfo] = useState<{ exId: string; setIdx: number; currentType: string; setNum: number } | null>(null);
 
   // State
   const [workoutName] = useState('Treino A - Peito e Bíceps');
@@ -193,7 +202,71 @@ export default function ActiveWorkoutScreen() {
     setExercises((prev) =>
       prev.map((ex) =>
         ex.id === exId
-          ? { ...ex, sets: [...ex.sets, { id: uid(), weight: null, reps: null, completed: false, prevWeight: null, prevReps: null }] }
+          ? { ...ex, sets: [...ex.sets, { id: uid(), weight: null, reps: null, completed: false, prevWeight: null, prevReps: null, type: 'normal', drops: [], rir: '' }] }
+          : ex
+      )
+    );
+  };
+
+  const handleSetTypeChange = (type: string) => {
+    if (!selectedSetInfo) return;
+    setExercises((prev) =>
+      prev.map((ex) =>
+        ex.id === selectedSetInfo.exId
+          ? {
+              ...ex,
+              sets: ex.sets.map((s, i) =>
+                i === selectedSetInfo.setIdx
+                  ? { ...s, type, drops: type === 'drop' ? (s.drops.length ? s.drops : [{ kg: '', reps: '' }]) : s.drops }
+                  : s
+              ),
+            }
+          : ex
+      )
+    );
+    setShowTypeModal(false);
+  };
+
+  const handleUpdateDrop = (exId: string, setIdx: number, dropIdx: number, field: 'kg' | 'reps', value: string) => {
+    setExercises((prev) =>
+      prev.map((ex) =>
+        ex.id === exId
+          ? {
+              ...ex,
+              sets: ex.sets.map((s, i) =>
+                i === setIdx
+                  ? { ...s, drops: s.drops.map((d, di) => (di === dropIdx ? { ...d, [field]: value } : d)) }
+                  : s
+              ),
+            }
+          : ex
+      )
+    );
+  };
+
+  const handleAddDrop = (exId: string, setIdx: number) => {
+    setExercises((prev) =>
+      prev.map((ex) =>
+        ex.id === exId
+          ? {
+              ...ex,
+              sets: ex.sets.map((s, i) =>
+                i === setIdx ? { ...s, drops: [...s.drops, { kg: '', reps: '' }] } : s
+              ),
+            }
+          : ex
+      )
+    );
+  };
+
+  const handleUpdateRIR = (exId: string, setIdx: number, value: string) => {
+    setExercises((prev) =>
+      prev.map((ex) =>
+        ex.id === exId
+          ? {
+              ...ex,
+              sets: ex.sets.map((s, i) => (i === setIdx ? { ...s, rir: value } : s)),
+            }
           : ex
       )
     );
@@ -381,36 +454,58 @@ export default function ActiveWorkoutScreen() {
 
             {/* Set rows */}
             {ex.sets.map((set, si) => (
-              <View key={set.id} style={[styles.tableRow, set.completed && styles.rowDone]}>
-                <Text style={[styles.setNum, { width: 40 }]}>{si + 1}</Text>
-                <Text style={[styles.prevText, { flex: 1 }]}>
-                  {set.prevWeight && set.prevReps ? `${set.prevWeight}kg × ${set.prevReps}` : '—'}
-                </Text>
-                <TextInput
-                  style={[styles.input, { width: 60 }, set.completed && styles.inputDone, errorSetId === set.id && styles.inputError]}
-                  value={set.weight?.toString() ?? ''}
-                  onChangeText={(v) => updateWeight(ex.id, si, v)}
-                  keyboardType="decimal-pad"
-                  placeholder={set.prevWeight?.toString() ?? '0'}
-                  placeholderTextColor="#444"
-                  editable={!set.completed}
-                />
-                <TextInput
-                  style={[styles.input, { width: 56 }, set.completed && styles.inputDone, errorSetId === set.id && styles.inputError]}
-                  value={set.reps?.toString() ?? ''}
-                  onChangeText={(v) => updateReps(ex.id, si, v)}
-                  keyboardType="number-pad"
-                  placeholder={set.prevReps?.toString() ?? '0'}
-                  placeholderTextColor="#444"
-                  editable={!set.completed}
-                />
-                <TouchableOpacity
-                  style={[styles.checkBtn, set.completed && styles.checkDone]}
-                  onPress={() => toggleComplete(ex.id, si)}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  {set.completed && <Text style={styles.checkMark}>✓</Text>}
-                </TouchableOpacity>
+              <View key={set.id}>
+                <View style={[styles.tableRow, set.completed && styles.rowDone]}>
+                  <SetTypeBadge
+                    setNumber={si + 1}
+                    type={set.type}
+                    onPress={() => {
+                      setSelectedSetInfo({ exId: ex.id, setIdx: si, currentType: set.type, setNum: si + 1 });
+                      setShowTypeModal(true);
+                    }}
+                  />
+                  <Text style={[styles.prevText, { flex: 1 }]}>
+                    {set.prevWeight && set.prevReps ? `${set.prevWeight}kg × ${set.prevReps}` : '—'}
+                  </Text>
+                  <TextInput
+                    style={[styles.input, { width: 60 }, set.completed && styles.inputDone, errorSetId === set.id && styles.inputError]}
+                    value={set.weight?.toString() ?? ''}
+                    onChangeText={(v) => updateWeight(ex.id, si, v)}
+                    keyboardType="decimal-pad"
+                    placeholder={set.prevWeight?.toString() ?? '0'}
+                    placeholderTextColor="#444"
+                    editable={!set.completed}
+                  />
+                  <TextInput
+                    style={[styles.input, { width: 56 }, set.completed && styles.inputDone, errorSetId === set.id && styles.inputError]}
+                    value={set.reps?.toString() ?? ''}
+                    onChangeText={(v) => updateReps(ex.id, si, v)}
+                    keyboardType="number-pad"
+                    placeholder={set.prevReps?.toString() ?? '0'}
+                    placeholderTextColor="#444"
+                    editable={!set.completed}
+                  />
+                  <TouchableOpacity
+                    style={[styles.checkBtn, set.completed && styles.checkDone]}
+                    onPress={() => toggleComplete(ex.id, si)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    {set.completed && <Text style={styles.checkMark}>✓</Text>}
+                  </TouchableOpacity>
+                </View>
+                {set.type === 'drop' && (
+                  <DropSetPanel
+                    drops={set.drops}
+                    onUpdateDrop={(dropIdx, field, value) => handleUpdateDrop(ex.id, si, dropIdx, field, value)}
+                    onAddDrop={() => handleAddDrop(ex.id, si)}
+                  />
+                )}
+                {set.type === 'rir' && (
+                  <RIRPanel
+                    rir={set.rir}
+                    onUpdateRIR={(value) => handleUpdateRIR(ex.id, si, value)}
+                  />
+                )}
               </View>
             ))}
 
@@ -436,6 +531,14 @@ export default function ActiveWorkoutScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <SetTypeModal
+        visible={showTypeModal}
+        currentType={selectedSetInfo?.currentType || 'normal'}
+        setNumber={selectedSetInfo?.setNum || 1}
+        onSelect={handleSetTypeChange}
+        onClose={() => setShowTypeModal(false)}
+      />
     </View>
   );
 }
