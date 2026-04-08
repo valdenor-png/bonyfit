@@ -10,9 +10,9 @@ interface GlassCardProps {
 }
 
 /**
- * Glassmorphism card.
- * Uses semi-transparent background with subtle border.
- * Glow adds orange shadow (iOS only).
+ * Glassmorphism card — visible on dark backgrounds.
+ * Uses higher opacity bg + border for contrast on #0A0A0A.
+ * Glow adds orange shadow/border.
  */
 export default function GlassCard({ children, style, glow, padding = 18 }: GlassCardProps) {
   return (
@@ -27,17 +27,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   glow: {
+    borderColor: 'rgba(242,101,34,0.25)',
+    backgroundColor: 'rgba(242,101,34,0.06)',
     ...(Platform.OS === 'ios'
       ? {
           shadowColor: '#F26522',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.15,
-          shadowRadius: 20,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 16,
         }
-      : { elevation: 8 }),
+      : { elevation: 6 }),
   },
 });

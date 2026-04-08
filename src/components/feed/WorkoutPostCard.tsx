@@ -142,11 +142,11 @@ export default function WorkoutPostCard({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(255,255,255,0.07)',
     marginHorizontal: 4,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.10)',
   },
   // Header
   header: {

@@ -245,10 +245,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sectionCard: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.12)',
     overflow: 'hidden',
   },
   menuItem: {
