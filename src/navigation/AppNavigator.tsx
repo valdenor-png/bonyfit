@@ -72,6 +72,7 @@ import AgendarAvaliacaoScreen from '../screens/AgendarAvaliacaoScreen';
 import ProgressaoCargaScreen from '../screens/ProgressaoCargaScreen';
 import ExerciseDetailScreen from '../screens/ExerciseDetailScreen';
 import ExercisePickerScreen from '../screens/ExercisePickerScreen';
+import AcademyCalendarScreen from '../screens/AcademyCalendarScreen';
 import EditarPerfilScreen from '../screens/EditarPerfilScreen';
 import FollowersListScreen from '../screens/FollowersListScreen';
 
@@ -127,6 +128,7 @@ function HomeNavigator() {
       <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
       <HomeStack.Screen name="EditarPerfil" component={EditarPerfilScreen} options={{ title: 'Editar Perfil' }} />
       <HomeStack.Screen name="FollowersList" component={FollowersListScreen} options={{ title: '' }} />
+      <HomeStack.Screen name="AcademyCalendar" component={AcademyCalendarScreen} options={{ headerShown: false }} />
     </HomeStack.Navigator>
   );
 }
