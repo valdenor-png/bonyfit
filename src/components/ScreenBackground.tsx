@@ -2,7 +2,7 @@ import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 import { colors } from '../tokens';
 
-const bgImage = require('../../assets/images/bg-main.jpg');
+const bgImage = require('../../assets/images/Phoenix_10_Dark_seamless_background_texture_black_metal_diamon_3.jpg');
 
 interface Props {
   children: React.ReactNode;

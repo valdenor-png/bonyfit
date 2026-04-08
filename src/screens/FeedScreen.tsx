@@ -12,6 +12,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import { useQueryClient } from '@tanstack/react-query';
+import ScreenBackground from '../components/ScreenBackground';
 
 // ─── Feed Components ────────────────────────────────────────────
 import LiveFriendsBadge from '../components/feed/LiveFriendsBadge';
@@ -264,6 +265,7 @@ export default function FeedScreen({ navigation }: Props) {
   );
 
   return (
+    <ScreenBackground>
     <View style={styles.container}>
       <FlatList
         data={posts || []}
@@ -284,6 +286,7 @@ export default function FeedScreen({ navigation }: Props) {
         contentContainerStyle={styles.listContent}
       />
     </View>
+    </ScreenBackground>
   );
 }
 
@@ -291,7 +294,7 @@ export default function FeedScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: 'transparent',
   },
   listContent: {
     paddingBottom: 40,
