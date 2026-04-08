@@ -19,6 +19,7 @@ import AuthNavigator from './src/navigation/AuthNavigator';
 import AppNavigator from './src/navigation/AppNavigator';
 import { useAuth } from './src/hooks/useAuth';
 import { UIProvider } from './src/hooks/useUI';
+import { QueryProvider } from './src/providers/QueryProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -74,13 +75,15 @@ export default function App() {
           },
         }}
       >
-        <UIProvider>
-          {isAuthenticated ? (
-            <AppNavigator />
-          ) : (
-            <AuthNavigator onComplete={() => loadUser()} />
-          )}
-        </UIProvider>
+        <QueryProvider>
+          <UIProvider>
+            {isAuthenticated ? (
+              <AppNavigator />
+            ) : (
+              <AuthNavigator onComplete={() => loadUser()} />
+            )}
+          </UIProvider>
+        </QueryProvider>
       </NavigationContainer>
     </View>
   );
