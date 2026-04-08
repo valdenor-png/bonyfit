@@ -10,6 +10,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import Toggle from '../components/Toggle';
 import { supabase } from '../services/supabase';
+import { useConfirm } from '../hooks/useConfirm';
 
 interface Props {
   navigation: any;
@@ -58,6 +59,7 @@ const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
 ];
 
 export default function SettingsScreen({ navigation }: Props) {
+  const { confirm } = useConfirm();
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     notifications: true,
     biometric: false,
@@ -78,11 +80,15 @@ export default function SettingsScreen({ navigation }: Props) {
     }
   };
 
-  const handleSignOut = () => {
-    Alert.alert('Sair da conta', 'Tem certeza que deseja sair?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: () => { supabase.auth.signOut(); } },
-    ]);
+  const handleSignOut = async () => {
+    const logout = await confirm({
+      icon: 'logout',
+      title: 'Sair da conta',
+      message: 'Tem certeza que deseja sair?',
+      confirmLabel: 'Sair',
+      confirmVariant: 'danger',
+    });
+    if (logout) supabase.auth.signOut();
   };
 
   return (

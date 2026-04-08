@@ -19,6 +19,7 @@ import SetTypeBadge from '../components/workout/SetTypeBadge';
 import SetTypeModal from '../components/workout/SetTypeModal';
 import DropSetPanel from '../components/workout/DropSetPanel';
 import RIRPanel from '../components/workout/RIRPanel';
+import { useConfirm } from '../hooks/useConfirm';
 
 // ─── Types ────────────────────────────────────────────────────
 interface WorkoutSet {
@@ -85,22 +86,11 @@ function createInitialExercises(): WorkoutExercise[] {
   ];
 }
 
-// ─── Cross-platform confirm ───────────────────────────────────
-function confirmAction(title: string, message: string, onConfirm: () => void, destructive = false) {
-  if (Platform.OS === 'web') {
-    if (window.confirm(`${title}\n\n${message}`)) onConfirm();
-  } else {
-    Alert.alert(title, message, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: destructive ? 'Descartar' : 'OK', style: destructive ? 'destructive' : 'default', onPress: onConfirm },
-    ]);
-  }
-}
-
 // ─── Component ────────────────────────────────────────────────
 export default function ActiveWorkoutScreen() {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const { confirm } = useConfirm();
   const [errorSetId, setErrorSetId] = useState<string | null>(null);
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedSetInfo, setSelectedSetInfo] = useState<{ exId: string; setIdx: number; currentType: string; setNum: number } | null>(null);
@@ -272,17 +262,28 @@ export default function ActiveWorkoutScreen() {
     );
   };
 
-  const removeExercise = (exId: string) => {
-    confirmAction('Remover exercício?', '', () => {
-      setExercises((prev) => prev.filter((ex) => ex.id !== exId));
-    }, true);
+  const removeExercise = async (exId: string) => {
+    const remove = await confirm({
+      icon: 'trash',
+      title: 'Remover exercício?',
+      message: 'Este exercício será removido do treino.',
+      confirmLabel: 'Remover',
+      confirmVariant: 'danger',
+    });
+    if (remove) setExercises((prev) => prev.filter((ex) => ex.id !== exId));
   };
 
   // ─── Finish ─────────────────────────────────────────────────
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (seriesTotal === 0) {
-      if (Platform.OS === 'web') { window.alert('Complete pelo menos uma série.'); }
-      else { Alert.alert('Nenhuma série', 'Complete pelo menos uma série.'); }
+      await confirm({
+        icon: 'info',
+        title: 'Nenhuma série',
+        message: 'Complete pelo menos uma série.',
+        confirmLabel: 'OK',
+        cancelLabel: '',
+        confirmVariant: 'primary',
+      });
       return;
     }
 
@@ -370,20 +371,32 @@ export default function ActiveWorkoutScreen() {
             else Alert.alert('Treino finalizado! 💪', `+${points} pontos!`);
     };
 
-    confirmAction(
-      'Finalizar Treino?',
-      `${seriesTotal} séries · ${formatVolume(volumeTotal)} volume\n${exercisesCompleted} exercícios · +${points} pts`,
-      doFinish
-    );
+    const shouldFinish = await confirm({
+      icon: 'success',
+      title: 'Finalizar Treino?',
+      message: `${seriesTotal} séries \u00B7 ${formatVolume(volumeTotal)} volume\n${exercisesCompleted} exercícios \u00B7 +${points} pts`,
+      confirmLabel: 'Finalizar',
+      cancelLabel: 'Continuar',
+      confirmVariant: 'primary',
+    });
+    if (shouldFinish) doFinish();
   };
 
   // ─── Close/Discard ──────────────────────────────────────────
-  const handleClose = () => {
-    confirmAction('Descartar treino?', 'Seu progresso será perdido.', () => {
+  const handleClose = async () => {
+    const discard = await confirm({
+      icon: 'warning',
+      title: 'Descartar treino?',
+      message: 'Seu progresso não será salvo.',
+      confirmLabel: 'Descartar',
+      cancelLabel: 'Continuar',
+      confirmVariant: 'danger',
+    });
+    if (discard) {
       if (timerRef.current) clearInterval(timerRef.current);
       stopRest();
       navigation.goBack();
-    }, true);
+    }
   };
 
   // ─── Render ─────────────────────────────────────────────────
