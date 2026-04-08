@@ -78,21 +78,21 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
     <ImageBackground source={bgGym} style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.15 }} resizeMode="center" />
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* ── SECTION 1: Header + Progresso/Agenda buttons ─────────────── */}
+      {/* ── SECTION 1: Header + Calendário/Agenda buttons ────────────── */}
       <View style={styles.headerRow}>
         <Text style={styles.screenTitle}>Meus Treinos</Text>
 
         <View style={styles.headerButtons}>
-          {/* Progresso */}
+          {/* Calendário */}
           <TouchableOpacity
             style={styles.headerBtn}
-            onPress={() => navigation.navigate('Menu', { screen: 'ProgressaoCarga' })}
+            onPress={() => navigation.navigate('Home', { screen: 'AcademyCalendar' })}
             activeOpacity={0.7}
           >
             <View style={styles.headerBtnIcon}>
-              <Text style={{ fontSize: 20 }}>📊</Text>
+              <Text style={{ fontSize: 20 }}>🗓️</Text>
             </View>
-            <Text style={styles.headerBtnLabel}>Progresso</Text>
+            <Text style={styles.headerBtnLabel}>Calendário</Text>
           </TouchableOpacity>
 
           {/* Agenda */}
