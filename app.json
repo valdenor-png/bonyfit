@@ -27,10 +27,14 @@
     },
     "plugins": [
       "expo-font",
-      ["expo-image-picker", {
-        "photosPermission": "Acesso às fotos para enviar no chat",
-        "cameraPermission": "Acesso à câmera para tirar fotos"
-      }]
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Acesso às fotos para enviar no chat",
+          "cameraPermission": "Acesso à câmera para tirar fotos"
+        }
+      ],
+      "expo-secure-store"
     ]
   }
 }
