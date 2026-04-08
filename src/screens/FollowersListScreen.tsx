@@ -12,24 +12,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
-
-const LEVEL_COLORS: Record<string, string> = {
-  Bronze: '#CD7F32',
-  Prata: '#C0C0C0',
-  Ouro: '#FFD700',
-  Platina: '#3B82F6',
-  Diamante: '#A855F7',
-  Master: '#E74C3C',
-};
-
-const LEVEL_ICONS: Record<string, string> = {
-  Bronze: '\u{1F949}',
-  Prata: '\u{1F948}',
-  Ouro: '\u{1F947}',
-  Platina: '\u{1F4A0}',
-  Diamante: '\u{1F48E}',
-  Master: '\u{1F451}',
-};
+import { getLevelColor, getLevelIcon } from '../constants/levels';
 
 interface FollowUser {
   id: string;
@@ -201,8 +184,8 @@ export default function FollowersListScreen({ navigation, route }: Props) {
 
   // ── Render user row ─────────────────────────────────────────
   const renderUser = ({ item }: { item: FollowUser }) => {
-    const lvlColor = LEVEL_COLORS[item.level] || LEVEL_COLORS.Bronze;
-    const lvlIcon = LEVEL_ICONS[item.level] || LEVEL_ICONS.Bronze;
+    const lvlColor = getLevelColor(item.level);
+    const lvlIcon = getLevelIcon(item.level);
     const initials = item.name
       .split(' ')
       .map((n) => n[0])

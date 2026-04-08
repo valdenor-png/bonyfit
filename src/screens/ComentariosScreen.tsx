@@ -14,16 +14,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
-
-// ─── Level Colors ───────────────────────────────────────────────
-const LEVEL_COLORS: Record<string, string> = {
-  Bronze: '#CD7F32',
-  Prata: '#A0A0A0',
-  Ouro: '#DAA520',
-  Platina: '#6BB5C9',
-  Diamante: '#5B9BD5',
-  Master: '#9B59B6',
-};
+import { getLevelColor } from '../constants/levels';
 
 // ─── Types ──────────────────────────────────────────────────────
 interface Comment {
@@ -68,7 +59,7 @@ function CommentItem({
   isOwn: boolean;
   onDelete: () => void;
 }) {
-  const levelColor = LEVEL_COLORS[comment.user.level] || colors.orange;
+  const levelColor = getLevelColor(comment.user.level);
   const initials = getInitials(comment.user.name);
 
   return (

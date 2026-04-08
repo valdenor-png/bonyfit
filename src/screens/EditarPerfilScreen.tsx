@@ -17,15 +17,7 @@ import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import SocialLinksManager from '../components/profile/SocialLinksManager';
-
-const LEVEL_COLORS: Record<string, string> = {
-  Bronze: '#CD7F32',
-  Prata: '#C0C0C0',
-  Ouro: '#FFD700',
-  Platina: '#3B82F6',
-  Diamante: '#A855F7',
-  Master: '#E74C3C',
-};
+import { getLevelColor } from '../constants/levels';
 
 const UNITS = [
   { id: 'centro', name: 'Centro' },
@@ -54,7 +46,7 @@ export default function EditarPerfilScreen({ navigation }: Props) {
   const [showSocialManager, setShowSocialManager] = useState(false);
 
   const level = user?.level || 'Bronze';
-  const levelColor = LEVEL_COLORS[level] || LEVEL_COLORS.Bronze;
+  const levelColor = getLevelColor(level);
   const initials = name
     .split(' ')
     .map((n: string) => n[0])

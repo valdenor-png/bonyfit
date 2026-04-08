@@ -16,29 +16,11 @@ import ScreenBackground from '../components/ScreenBackground';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import SocialIconsBar from '../components/profile/SocialIconsBar';
+import { getLevelColor, getLevelIcon } from '../constants/levels';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_GAP = 2;
 const GRID_ITEM_SIZE = (SCREEN_WIDTH - GRID_GAP * 2) / 3;
-
-// ── Level config ──────────────────────────────────────────────
-const LEVEL_COLORS: Record<string, string> = {
-  Bronze: '#CD7F32',
-  Prata: '#C0C0C0',
-  Ouro: '#FFD700',
-  Platina: '#3B82F6',
-  Diamante: '#A855F7',
-  Master: '#E74C3C',
-};
-
-const LEVEL_ICONS: Record<string, string> = {
-  Bronze: '\u{1F949}',
-  Prata: '\u{1F948}',
-  Ouro: '\u{1F947}',
-  Platina: '\u{1F4A0}',
-  Diamante: '\u{1F48E}',
-  Master: '\u{1F451}',
-};
 
 // ── Mock data ─────────────────────────────────────────────────
 const MOCK_TREINO_POSTS = [
@@ -92,8 +74,8 @@ export default function ProfileScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
 
   const level = user?.level || 'Bronze';
-  const levelColor = LEVEL_COLORS[level] || LEVEL_COLORS.Bronze;
-  const levelIcon = LEVEL_ICONS[level] || LEVEL_ICONS.Bronze;
+  const levelColor = getLevelColor(level);
+  const levelIcon = getLevelIcon(level);
   const points = user?.points ?? 0;
   const name = user?.name || 'Usuario';
   const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();

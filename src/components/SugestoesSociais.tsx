@@ -1,16 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
-
-// ─── Level Colors ──────────────────────────────────────────────
-const LEVEL_COLORS: Record<string, string> = {
-  Bronze: '#CD7F32',
-  Prata: '#A0A0A0',
-  Ouro: '#DAA520',
-  Platina: '#6BB5C9',
-  Diamante: '#5B9BD5',
-  Master: '#9B59B6',
-};
+import { getLevelColor } from '../constants/levels';
 
 // ─── Types ─────────────────────────────────────────────────────
 interface Sugestao {
@@ -51,7 +42,7 @@ export default function SugestoesSociais({ sugestoes, onFollow }: SugestoesSocia
 
       {/* User Cards */}
       {data.map((user) => {
-        const levelColor = LEVEL_COLORS[user.level] || colors.orange;
+        const levelColor = getLevelColor(user.level);
         return (
           <View key={user.id} style={styles.userCard}>
             <View style={styles.userLeft}>

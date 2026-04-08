@@ -16,16 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { useMessagesStore } from '../stores/messagesStore';
-
-// ─── Level Colors ───────────────────────────────────────────────
-const LEVEL_COLORS: Record<string, string> = {
-  Bronze: '#CD7F32',
-  Prata: '#A0A0A0',
-  Ouro: '#DAA520',
-  Platina: '#6BB5C9',
-  Diamante: '#5B9BD5',
-  Master: '#9B59B6',
-};
+import { getLevelColor } from '../constants/levels';
 
 // ─── Helpers ────────────────────────────────────────────────────
 function getInitials(name: string): string {
@@ -225,7 +216,7 @@ export default function ConversationScreen({ route }: { route: any }) {
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
 
-        <View style={[styles.headerAvatar, { backgroundColor: LEVEL_COLORS[level] || '#CD7F32' }]}>
+        <View style={[styles.headerAvatar, { backgroundColor: getLevelColor(level) }]}>
           <Text style={styles.headerAvatarText}>{getInitials(userName)}</Text>
         </View>
 

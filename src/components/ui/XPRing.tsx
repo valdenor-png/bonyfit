@@ -2,24 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { fonts } from '../../tokens';
-
-// ── Level thresholds ─────────────────────────────────────────
-const LEVELS = [
-  { name: 'Bronze', min: 0, max: 2000, color: '#CD7F32' },
-  { name: 'Prata', min: 2000, max: 5000, color: '#C0C0C0' },
-  { name: 'Ouro', min: 5000, max: 10000, color: '#FFD700' },
-  { name: 'Platina', min: 10000, max: 25000, color: '#3B82F6' },
-  { name: 'Diamante', min: 25000, max: 50000, color: '#A855F7' },
-  { name: 'Master', min: 50000, max: 100000, color: '#E74C3C' },
-];
-
-function getLevelInfo(points: number) {
-  const level = LEVELS.find((l) => points >= l.min && points < l.max) || LEVELS[LEVELS.length - 1];
-  const progress = Math.min(1, (points - level.min) / (level.max - level.min));
-  const remaining = level.max - points;
-  const nextLevel = LEVELS[LEVELS.indexOf(level) + 1];
-  return { level, progress, remaining, nextLevel };
-}
+import { getLevelFromPoints } from '../../constants/levels';
 
 interface Props {
   points: number;
@@ -29,7 +12,7 @@ interface Props {
 }
 
 export default function XPRing({ points, size = 90, strokeWidth = 5, showLabel = true }: Props) {
-  const { level, progress, remaining, nextLevel } = getLevelInfo(points);
+  const { level, progress, remaining, nextLevel } = getLevelFromPoints(points);
   const animProgress = useRef(new Animated.Value(0)).current;
 
   const r = (size - strokeWidth) / 2;

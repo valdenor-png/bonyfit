@@ -15,16 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { useMessagesStore } from '../stores/messagesStore';
-
-// ─── Level Colors ───────────────────────────────────────────────
-const LEVEL_COLORS: Record<string, string> = {
-  Bronze: '#CD7F32',
-  Prata: '#A0A0A0',
-  Ouro: '#DAA520',
-  Platina: '#6BB5C9',
-  Diamante: '#5B9BD5',
-  Master: '#9B59B6',
-};
+import { getLevelColor } from '../constants/levels';
 
 // ─── Online status mock ─────────────────────────────────────────
 const ONLINE_USERS = new Set(['u1', 'u2']);
@@ -75,7 +66,7 @@ function ChatItem({ conversation, onPress }: ChatItemProps) {
     <TouchableOpacity style={styles.chatItem} onPress={onPress} activeOpacity={0.7}>
       {/* Avatar */}
       <View style={styles.avatarContainer}>
-        <View style={[styles.avatar, { backgroundColor: isOfficial ? colors.orange : (LEVEL_COLORS[level] || '#CD7F32') }]}>
+        <View style={[styles.avatar, { backgroundColor: isOfficial ? colors.orange : (getLevelColor(level)) }]}>
           <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
         </View>
         {isOnline && !isOfficial && <View style={styles.onlineDot} />}
