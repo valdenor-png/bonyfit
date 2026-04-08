@@ -249,8 +249,21 @@ export default function FeedScreen({ navigation }: Props) {
   const ListEmpty = useCallback(
     () =>
       isLoading ? (
-        <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color="#F26522" />
+        <View style={{ paddingHorizontal: 20, gap: 16 }}>
+          {[1,2,3].map(i => (
+            <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 16, gap: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+                <View style={{ gap: 4, flex: 1 }}>
+                  <View style={{ width: 120, height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+                  <View style={{ width: 60, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.04)' }} />
+                </View>
+              </View>
+              <View style={{ width: '100%', height: 10, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.04)' }} />
+              <View style={{ width: '70%', height: 10, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.04)' }} />
+              <View style={{ width: '100%', height: 80, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.04)' }} />
+            </View>
+          ))}
         </View>
       ) : (
         <View style={styles.emptyContainer}>

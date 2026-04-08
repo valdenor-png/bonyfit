@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
@@ -88,6 +89,11 @@ export default function MenuScreen({ navigation }: Props) {
   const { user, podeTrocarModo, cargoSlug } = useAuth();
   const { isVip } = useVip(user?.id);
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+  }, []);
+
   const VIP_ITEMS: MenuItem[] = [
     { icon: '\uD83D\uDC8E', label: 'Escolher Personal', sub: 'Seu personal exclusivo VIP', screen: 'EscolherPersonal' },
     { icon: '\uD83D\uDCCB', label: 'Agendar Avaliacao', sub: 'Solicitar avaliacao fisica', screen: 'AgendarAvaliacao' },
@@ -95,6 +101,7 @@ export default function MenuScreen({ navigation }: Props) {
 
   return (
     <ScreenBackground>
+    <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
@@ -123,7 +130,9 @@ export default function MenuScreen({ navigation }: Props) {
               }}
               activeOpacity={0.7}
             >
-              <Text style={styles.menuIcon}>{'\uD83D\uDD04'}</Text>
+              <View style={styles.menuIconWrapper}>
+                <Text style={styles.menuIcon}>{'\uD83D\uDD04'}</Text>
+              </View>
               <View style={styles.menuInfo}>
                 <Text style={styles.menuLabel}>Trocar cargo</Text>
                 <Text style={styles.menuSub}>Voltar à tela de seleção de cargo</Text>
@@ -149,7 +158,9 @@ export default function MenuScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate(item.screen)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.menuIcon}>{item.icon}</Text>
+                <View style={styles.menuIconWrapper}>
+                  <Text style={styles.menuIcon}>{item.icon}</Text>
+                </View>
                 <View style={styles.menuInfo}>
                   <Text style={styles.menuLabel}>{item.label}</Text>
                   {item.sub && <Text style={styles.menuSub}>{item.sub}</Text>}
@@ -175,7 +186,9 @@ export default function MenuScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate(item.screen)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.menuIcon}>{item.icon}</Text>
+                <View style={styles.menuIconWrapper}>
+                  <Text style={styles.menuIcon}>{item.icon}</Text>
+                </View>
                 <View style={styles.menuInfo}>
                   <Text style={styles.menuLabel}>{item.label}</Text>
                   {item.sub && <Text style={styles.menuSub}>{item.sub}</Text>}
@@ -189,6 +202,7 @@ export default function MenuScreen({ navigation }: Props) {
 
       <Text style={styles.version}>Bony Fit App v1.0.0</Text>
     </ScrollView>
+    </Animated.View>
     </ScreenBackground>
   );
 }
@@ -231,8 +245,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sectionCard: {
-    backgroundColor: colors.card,
-    borderRadius: radius.xl,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     overflow: 'hidden',
   },
   menuItem: {
@@ -246,11 +262,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: colors.elevated,
   },
-  menuIcon: { fontSize: 20, width: 28, textAlign: 'center' },
+  menuIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(242,101,34,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuIcon: { fontSize: 20, textAlign: 'center' },
   menuInfo: { flex: 1 },
   menuLabel: { fontSize: 14, fontFamily: fonts.bodyMedium, color: colors.text },
   menuSub: { fontSize: 11, fontFamily: fonts.body, color: colors.textMuted, marginTop: 1 },
-  chevron: { fontSize: 20, color: colors.textMuted },
+  chevron: { fontSize: 20, color: 'rgba(255,255,255,0.20)' },
   version: {
     fontSize: 11,
     fontFamily: fonts.body,

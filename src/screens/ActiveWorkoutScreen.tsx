@@ -10,6 +10,7 @@ import {
   Platform,
   Vibration,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
@@ -135,6 +136,8 @@ export default function ActiveWorkoutScreen() {
   const completedSets = exercises.flatMap((ex) => ex.sets.filter((s) => s.completed));
   const volumeTotal = completedSets.reduce((sum, s) => sum + (s.weight || 0) * (s.reps || 0), 0);
   const seriesTotal = completedSets.length;
+  const totalSetsCount = exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+  const progressPercentage = totalSetsCount > 0 ? Math.round((seriesTotal / totalSetsCount) * 100) : 0;
 
   // ─── Set actions ────────────────────────────────────────────
   const updateWeight = (exId: string, setIdx: number, val: string) => {
@@ -174,6 +177,7 @@ export default function ActiveWorkoutScreen() {
     const nowCompleted = !set.completed;
     if (nowCompleted) {
       try { Vibration.vibrate(100); } catch {}
+      if (Platform.OS !== 'web') { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
       Keyboard.dismiss();
       startRest(ex.restSeconds);
     }
@@ -377,7 +381,10 @@ export default function ActiveWorkoutScreen() {
       cancelLabel: 'Continuar',
       confirmVariant: 'primary',
     });
-    if (shouldFinish) doFinish();
+    if (shouldFinish) {
+      if (Platform.OS !== 'web') { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); }
+      doFinish();
+    }
   };
 
   // ─── Close/Discard ──────────────────────────────────────────
@@ -430,6 +437,11 @@ export default function ActiveWorkoutScreen() {
             <Text style={styles.statValue}>{seriesTotal}</Text>
           </View>
         </View>
+      </View>
+
+      {/* ═══ PROGRESS BAR ═══ */}
+      <View style={{ height: 3, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 2, marginHorizontal: 20, marginBottom: 8 }}>
+        <View style={{ height: 3, backgroundColor: '#F26522', borderRadius: 2, width: `${progressPercentage}%` }} />
       </View>
 
       {/* ═══ REST BANNER ═══ */}
@@ -570,7 +582,7 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   closeBtn: { padding: 8 },
   closeText: { color: colors.text, fontSize: 22 },
-  timerText: { color: colors.text, fontFamily: fonts.numbersExtraBold, fontSize: 26 },
+  timerText: { color: colors.text, fontFamily: fonts.numbersExtraBold, fontSize: 26, textShadowColor: 'rgba(242,101,34,0.5)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
   finishBtn: { backgroundColor: colors.orange, paddingHorizontal: 18, paddingVertical: 10, borderRadius: radius.sm },
   finishText: { color: '#fff', fontFamily: fonts.bodyBold, fontSize: 14 },
   workoutName: { color: colors.textSecondary, fontFamily: fonts.body, fontSize: 13, textAlign: 'center', marginTop: 4 },

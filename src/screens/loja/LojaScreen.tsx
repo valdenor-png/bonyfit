@@ -264,10 +264,10 @@ const styles = StyleSheet.create({
   },
   card: {
     width: 130,
-    backgroundColor: '#161616',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#222222',
+    borderColor: 'rgba(255,255,255,0.06)',
     overflow: 'hidden',
   },
   cardImage: {
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   cardPrice: {
     fontSize: 14,
-    fontFamily: fonts.numbersBold,
-    color: colors.orange,
+    fontFamily: 'Sora_700Bold',
+    color: '#F26522',
   },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import LevelBadge from './LevelBadge';
 import WorkoutCard from './WorkoutCard';
 
@@ -62,6 +62,16 @@ export default function WorkoutPostCard({
   onUserPress,
   onMenuPress,
 }: Props) {
+  const likeScale = React.useRef(new Animated.Value(1)).current;
+
+  const handleLikePress = () => {
+    Animated.sequence([
+      Animated.timing(likeScale, { toValue: 1.3, duration: 150, useNativeDriver: true }),
+      Animated.timing(likeScale, { toValue: 1.0, duration: 150, useNativeDriver: true }),
+    ]).start();
+    onLike();
+  };
+
   return (
     <View style={styles.container}>
       {/* ── Header ─────────────────────────────────────── */}
@@ -103,11 +113,13 @@ export default function WorkoutPostCard({
 
       {/* ── Actions ────────────────────────────────────── */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.actionBtn} onPress={onLike} activeOpacity={0.6}>
-          <Text style={[styles.actionIcon, isLiked && styles.actionLiked]}>💪</Text>
-          <Text style={[styles.actionCount, isLiked && styles.actionLiked]}>
-            {formatCount(likesCount)}
-          </Text>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleLikePress} activeOpacity={0.6}>
+          <Animated.View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, transform: [{ scale: likeScale }] }}>
+            <Text style={[styles.actionIcon, isLiked && styles.actionLiked]}>💪</Text>
+            <Text style={[styles.actionCount, isLiked && styles.actionLiked]}>
+              {formatCount(likesCount)}
+            </Text>
+          </Animated.View>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionBtn} onPress={onComment} activeOpacity={0.6}>
@@ -129,7 +141,12 @@ export default function WorkoutPostCard({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 16,
+    padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    marginHorizontal: 4,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   // Header
   header: {
