@@ -86,7 +86,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
           {/* Progresso */}
           <TouchableOpacity
             style={styles.headerBtn}
-            onPress={() => navigation.navigate('ProgressaoCarga')}
+            onPress={() => navigation.navigate('Menu', { screen: 'ProgressaoCarga' })}
             activeOpacity={0.7}
           >
             <View style={styles.headerBtnIcon}>

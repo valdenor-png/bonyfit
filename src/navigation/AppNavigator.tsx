@@ -171,7 +171,6 @@ function TreinoNavigator() {
       <TreinoStack.Screen name="ExercisePicker" component={ExercisePickerScreen} options={{ title: 'Escolher Exercício' }} />
       <TreinoStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
       <TreinoStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Agenda' }} />
-      <TreinoStack.Screen name="ProgressaoCarga" component={ProgressaoCargaScreen} options={{ title: 'Progressão de Carga' }} />
     </TreinoStack.Navigator>
   );
 }
@@ -224,6 +223,7 @@ function MenuNavigator() {
       <MenuStack.Screen name="EscolherPersonal" component={EscolherPersonalScreen} options={{ title: 'Escolher Personal' }} />
       <MenuStack.Screen name="ListaPersonais" component={ListaPersonaisScreen} options={{ title: 'Personais' }} />
       <MenuStack.Screen name="AgendarAvaliacao" component={AgendarAvaliacaoScreen} options={{ title: 'Avaliacao' }} />
+      <MenuStack.Screen name="ProgressaoCarga" component={ProgressaoCargaScreen} options={{ title: 'Progressão de Carga' }} />
       <MenuStack.Screen name="EditarPerfil" component={EditarPerfilScreen} options={{ title: 'Editar Perfil' }} />
       <MenuStack.Screen name="FollowersList" component={FollowersListScreen} options={{ title: '' }} />
     </MenuStack.Navigator>

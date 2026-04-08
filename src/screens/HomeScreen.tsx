@@ -125,7 +125,7 @@ export default function HomeScreen({ navigation }: Props) {
       <View style={styles.quickGrid}>
         <QuickAction icon="🏆" label="Ranking" onPress={() => navigation.navigate('Menu', { screen: 'Ranking' })} />
         <QuickAction icon="📊" label="Histórico" onPress={() => navigation.navigate('Menu', { screen: 'WorkoutHistory' })} />
-        <QuickAction icon="📈" label="Progresso" onPress={() => navigation.navigate('Treino', { screen: 'ProgressaoCarga' })} />
+        <QuickAction icon="📈" label="Progresso" onPress={() => navigation.navigate('Menu', { screen: 'ProgressaoCarga' })} />
         <QuickAction icon="👨‍🏫" label="Personais" onPress={() => navigation.navigate('Menu', { screen: 'Personal' })} />
         <QuickAction icon="🎯" label="Desafios" onPress={() => navigation.navigate('Menu', { screen: 'Desafios' })} />
         <QuickAction icon="🎁" label="Prêmios" onPress={() => navigation.navigate('Menu', { screen: 'Recompensas' })} />
