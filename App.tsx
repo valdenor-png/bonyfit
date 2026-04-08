@@ -18,7 +18,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import AppNavigator from './src/navigation/AppNavigator';
 import { useAuth } from './src/hooks/useAuth';
-import { ConfirmProvider } from './src/hooks/useConfirm';
+import { UIProvider } from './src/hooks/useUI';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -74,13 +74,13 @@ export default function App() {
           },
         }}
       >
-        <ConfirmProvider>
+        <UIProvider>
           {isAuthenticated ? (
             <AppNavigator />
           ) : (
             <AuthNavigator onComplete={() => loadUser()} />
           )}
-        </ConfirmProvider>
+        </UIProvider>
       </NavigationContainer>
     </View>
   );

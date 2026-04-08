@@ -10,7 +10,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import Toggle from '../components/Toggle';
 import { supabase } from '../services/supabase';
-import { useConfirm } from '../hooks/useConfirm';
+import { useUI } from '../hooks/useUI';
 
 interface Props {
   navigation: any;
@@ -59,7 +59,7 @@ const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
 ];
 
 export default function SettingsScreen({ navigation }: Props) {
-  const { confirm } = useConfirm();
+  const { confirm } = useUI();
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     notifications: true,
     biometric: false,

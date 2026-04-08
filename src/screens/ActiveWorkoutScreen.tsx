@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   Keyboard,
   Platform,
   Vibration,
@@ -19,7 +18,7 @@ import SetTypeBadge from '../components/workout/SetTypeBadge';
 import SetTypeModal from '../components/workout/SetTypeModal';
 import DropSetPanel from '../components/workout/DropSetPanel';
 import RIRPanel from '../components/workout/RIRPanel';
-import { useConfirm } from '../hooks/useConfirm';
+import { useUI } from '../hooks/useUI';
 
 // ─── Types ────────────────────────────────────────────────────
 interface WorkoutSet {
@@ -90,7 +89,7 @@ function createInitialExercises(): WorkoutExercise[] {
 export default function ActiveWorkoutScreen() {
   const navigation = useNavigation();
   const { user } = useAuth();
-  const { confirm } = useConfirm();
+  const { confirm, toast } = useUI();
   const [errorSetId, setErrorSetId] = useState<string | null>(null);
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedSetInfo, setSelectedSetInfo] = useState<{ exId: string; setIdx: number; currentType: string; setNum: number } | null>(null);
@@ -367,8 +366,7 @@ export default function ActiveWorkoutScreen() {
             if (timerRef.current) clearInterval(timerRef.current);
             stopRest();
             navigation.goBack();
-            if (Platform.OS === 'web') window.alert(`Treino finalizado! 💪 +${points} pontos!`);
-            else Alert.alert('Treino finalizado! 💪', `+${points} pontos!`);
+            toast({ type: 'success', title: 'Treino finalizado! 💪', message: `+${points} pontos` });
     };
 
     const shouldFinish = await confirm({
