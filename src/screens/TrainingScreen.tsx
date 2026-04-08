@@ -78,20 +78,35 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
     <ImageBackground source={bgGym} style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.15 }} resizeMode="center" />
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* ── SECTION 1: Header + Agenda button ───────────────────────────── */}
+      {/* ── SECTION 1: Header + Progresso/Agenda buttons ─────────────── */}
       <View style={styles.headerRow}>
         <Text style={styles.screenTitle}>Meus Treinos</Text>
 
-        <TouchableOpacity
-          style={styles.agendaCard}
-          onPress={() => navigation.navigate('Calendar')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.agendaIconCircle}>
-            <Text style={styles.agendaEmoji}>{'\uD83D\uDCC5'}</Text>
-          </View>
-          <Text style={styles.agendaLabel}>Agenda</Text>
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          {/* Progresso */}
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigation.navigate('Progresso')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.headerBtnIcon}>
+              <Text style={{ fontSize: 20 }}>🎯</Text>
+            </View>
+            <Text style={styles.headerBtnLabel}>Progresso</Text>
+          </TouchableOpacity>
+
+          {/* Agenda */}
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigation.navigate('Calendar')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.headerBtnIcon, styles.headerBtnIconActive]}>
+              <Text style={{ fontSize: 20 }}>📅</Text>
+            </View>
+            <Text style={styles.headerBtnLabel}>Agenda</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ── VIP Banner ──────────────────────────────────────────────────── */}
@@ -242,29 +257,30 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // Agenda button
-  agendaCard: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
-    padding: 12,
+  // Header buttons
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  headerBtn: {
     alignItems: 'center',
   },
-  agendaIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.orange + '26',
+  headerBtnIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#1A1A1A',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
   },
-  agendaEmoji: {
-    fontSize: 18,
+  headerBtnIconActive: {
+    backgroundColor: '#F26522',
   },
-  agendaLabel: {
-    fontSize: 12,
-    fontFamily: fonts.bodyMedium,
+  headerBtnLabel: {
+    fontSize: 11,
+    fontFamily: fonts.body,
     color: '#FFFFFF',
+    marginTop: 4,
   },
 
   // Card
