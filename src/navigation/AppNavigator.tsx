@@ -123,19 +123,8 @@ function HomeNavigator() {
   return (
     <HomeStack.Navigator screenOptions={stackOptions}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
-      <HomeStack.Screen name="PerfilPessoal" component={PerfilPessoalScreen} options={{ title: 'Configurações' }} />
       <HomeStack.Screen name="MeuPerfil" component={ProfileScreen} options={{ title: 'Meu Perfil' }} />
-      <HomeStack.Screen name="HistoricoFinanceiro" component={HistoricoFinanceiroScreen} options={{ title: 'Financeiro' }} />
       <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
-      <HomeStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
-      <HomeStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} options={{ title: 'Histórico' }} />
-      <HomeStack.Screen name="Personal" component={PersonalScreen} options={{ title: 'Personal Trainers' }} />
-      <HomeStack.Screen name="Desafios" component={DesafiosScreen} options={{ title: 'Desafios' }} />
-      <HomeStack.Screen name="Recompensas" component={RecompensasScreen} options={{ title: 'Recompensas' }} />
-      <HomeStack.Screen name="EscolherPersonal" component={EscolherPersonalScreen} options={{ title: 'Escolher Personal' }} />
-      <HomeStack.Screen name="ListaPersonais" component={ListaPersonaisScreen} options={{ title: 'Personais' }} />
-      <HomeStack.Screen name="AgendarAvaliacao" component={AgendarAvaliacaoScreen} options={{ title: 'Avaliacao' }} />
-      <HomeStack.Screen name="ProgressaoCarga" component={ProgressaoCargaScreen} options={{ title: 'Progressão de Carga' }} />
       <HomeStack.Screen name="EditarPerfil" component={EditarPerfilScreen} options={{ title: 'Editar Perfil' }} />
       <HomeStack.Screen name="FollowersList" component={FollowersListScreen} options={{ title: '' }} />
     </HomeStack.Navigator>
@@ -232,11 +221,9 @@ function MenuNavigator() {
       <MenuStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} options={{ title: 'Histórico de Treinos' }} />
       <MenuStack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} options={{ title: 'Progresso' }} />
       <MenuStack.Screen name="Measurements" component={MeasurementsScreen} options={{ title: 'Medidas Corporais' }} />
-      <MenuStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
       <MenuStack.Screen name="EscolherPersonal" component={EscolherPersonalScreen} options={{ title: 'Escolher Personal' }} />
       <MenuStack.Screen name="ListaPersonais" component={ListaPersonaisScreen} options={{ title: 'Personais' }} />
       <MenuStack.Screen name="AgendarAvaliacao" component={AgendarAvaliacaoScreen} options={{ title: 'Avaliacao' }} />
-      <MenuStack.Screen name="ProgressaoCarga" component={ProgressaoCargaScreen} options={{ title: 'Progressão de Carga' }} />
       <MenuStack.Screen name="EditarPerfil" component={EditarPerfilScreen} options={{ title: 'Editar Perfil' }} />
       <MenuStack.Screen name="FollowersList" component={FollowersListScreen} options={{ title: '' }} />
     </MenuStack.Navigator>
