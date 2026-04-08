@@ -9,6 +9,7 @@ import {
   FlatList,
   Dimensions,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import CrossPlatformModal from '../components/ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../tokens';
@@ -124,9 +125,11 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
     loadProfile();
   }, [loadProfile]);
 
+  const isOwnProfile = currentUser?.id === userId;
+
   // ── Follow/Unfollow ────────────────────────────────────────
   const handleFollow = async () => {
-    if (!currentUser?.id || followLoading) return;
+    if (!currentUser?.id || followLoading || isOwnProfile) return;
     setFollowLoading(true);
     try {
       if (isFollowing) {
@@ -183,6 +186,15 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
   const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
   const streak = profile.current_streak ?? profile.streak ?? 0;
   const totalWorkouts = profile.total_workouts ?? 0;
+
+  // ── Share handler ──────────────────────────────────────────
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Confira o perfil de ${name} no Bony Fit! Level ${level} com ${points.toLocaleString('pt-BR')} pontos`,
+      });
+    } catch {}
+  };
 
   // ── Render helpers ──────────────────────────────────────────
   const renderAvatar = () => {
@@ -263,25 +275,46 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
       {/* ── Social links ───────────────────────────────────── */}
       <SocialIconsBar userId={userId} editable={false} />
 
-      {/* ── C) Action buttons: Seguir + Mensagem ──────────── */}
+      {/* ── C) Action buttons ──────────────────────────────── */}
       <View style={styles.actionRow}>
-        <TouchableOpacity
-          style={[styles.followBtn, isFollowing && styles.followBtnActive]}
-          onPress={handleFollow}
-          activeOpacity={0.7}
-          disabled={followLoading}
-        >
-          <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
-            {isFollowing ? 'Seguindo' : 'Seguir'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.messageBtn}
-          onPress={() => navigation.navigate('Chat', { userId, userName: name })}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.messageBtnText}>Mensagem</Text>
-        </TouchableOpacity>
+        {isOwnProfile ? (
+          <>
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={() => navigation.navigate('EditarPerfil')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.editBtnText}>Editar perfil</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={handleShare}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.editBtnText}>Compartilhar</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <TouchableOpacity
+              style={[styles.followBtn, isFollowing && styles.followBtnActive]}
+              onPress={handleFollow}
+              activeOpacity={0.7}
+              disabled={followLoading}
+            >
+              <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
+                {isFollowing ? 'Seguindo' : 'Seguir'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.messageBtn}
+              onPress={() => navigation.navigate('Chat', { userId, userName: name })}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.messageBtnText}>Mensagem</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       {/* ── D) Training stats card ─────────────────────────── */}
@@ -468,22 +501,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   avatarRing: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     borderWidth: 2.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarImage: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
   },
   avatarFallback: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -508,7 +541,7 @@ const styles = StyleSheet.create({
   headerStatLabel: {
     fontSize: 12,
     fontFamily: fonts.body,
-    color: colors.textMuted,
+    color: '#888888',
     marginTop: 2,
   },
 
@@ -551,8 +584,21 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
+    gap: 12,
     marginBottom: spacing.xl,
+  },
+  editBtn: {
+    flex: 1,
+    height: 40,
+    backgroundColor: colors.elevated,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editBtnText: {
+    fontSize: 14,
+    fontFamily: fonts.bodyBold,
+    color: '#FFFFFF',
   },
   followBtn: {
     flex: 1,
@@ -568,7 +614,7 @@ const styles = StyleSheet.create({
     borderColor: '#F26522',
   },
   followBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: fonts.bodyBold,
     color: '#FFFFFF',
   },
@@ -584,7 +630,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   messageBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: fonts.bodyBold,
     color: '#FFFFFF',
   },
@@ -767,7 +813,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     fontFamily: fonts.body,
-    color: colors.textMuted,
+    color: '#666666',
   },
 
   /* Menu modal */
