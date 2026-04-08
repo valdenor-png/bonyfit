@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
+
+const DAY_CELL_WIDTH = 48;
+const DAY_GAP = 6;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 import { colors, fonts, spacing, radius } from '../tokens';
 import ScreenBackground from '../components/ScreenBackground';
 import { supabase } from '../services/supabase';
@@ -50,24 +55,32 @@ interface Props {
 
 export default function AcademyCalendarScreen({ navigation }: Props) {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [weekDays, setWeekDays] = useState<Date[]>([]);
+  const [calendarDays, setCalendarDays] = useState<Date[]>([]);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const dayScrollRef = useRef<ScrollView>(null);
   const [events, setEvents] = useState<ScheduleItem[]>([]);
   const [holidays, setHolidays] = useState<{ date: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ── Build week days ────────────────────────────────────────
+  // ── Build 60-day strip (30 past + 30 future) ────────────────
   useEffect(() => {
     const days: Date[] = [];
-    const start = new Date(selectedDate);
-    start.setDate(start.getDate() - start.getDay()); // start of week (Sunday)
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = -30; i <= 30; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
       days.push(d);
     }
-    setWeekDays(days);
-  }, [selectedDate]);
+    setCalendarDays(days);
+
+    // Scroll to today on mount
+    setTimeout(() => {
+      const todayIndex = 30; // center of the array
+      const offset = todayIndex * (DAY_CELL_WIDTH + DAY_GAP) - SCREEN_WIDTH / 2 + DAY_CELL_WIDTH / 2;
+      dayScrollRef.current?.scrollTo({ x: Math.max(0, offset), animated: false });
+    }, 100);
+  }, []);
 
   // ── Load data ──────────────────────────────────────────────
   const loadData = useCallback(async () => {
@@ -139,16 +152,29 @@ export default function AcademyCalendarScreen({ navigation }: Props) {
   }, [loadData]);
 
   // ── Navigation helpers ─────────────────────────────────────
+  const scrollToDate = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((date.getTime() - today.getTime()) / 86400000);
+    const index = 30 + diffDays; // 30 = center offset
+    if (index >= 0 && index < calendarDays.length) {
+      const offset = index * (DAY_CELL_WIDTH + DAY_GAP) - SCREEN_WIDTH / 2 + DAY_CELL_WIDTH / 2;
+      dayScrollRef.current?.scrollTo({ x: Math.max(0, offset), animated: true });
+    }
+  };
+
   const goToPrevWeek = () => {
     const d = new Date(selectedDate);
     d.setDate(d.getDate() - 7);
     setSelectedDate(d);
+    scrollToDate(d);
   };
 
   const goToNextWeek = () => {
     const d = new Date(selectedDate);
     d.setDate(d.getDate() + 7);
     setSelectedDate(d);
+    scrollToDate(d);
   };
 
   const isToday = (date: Date) => {
@@ -194,9 +220,15 @@ export default function AcademyCalendarScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Week strip */}
-        <View style={styles.weekStrip}>
-          {weekDays.map((day, idx) => {
+        {/* Scrollable day strip */}
+        <ScrollView
+          ref={dayScrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.dayStrip}
+          style={styles.dayStripScroll}
+        >
+          {calendarDays.map((day, idx) => {
             const sel = isSelected(day);
             const today = isToday(day);
             const hol = isHoliday(day);
@@ -221,7 +253,7 @@ export default function AcademyCalendarScreen({ navigation }: Props) {
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
 
         {/* Selected day label */}
         <Text style={styles.selectedDayLabel}>
@@ -335,15 +367,16 @@ const styles = StyleSheet.create({
   navArrow: { fontSize: 18, color: 'rgba(255,255,255,0.5)', paddingHorizontal: 8 },
   monthText: { fontSize: 16, fontFamily: fonts.numbersBold, color: colors.text },
 
-  // Week strip
-  weekStrip: {
-    flexDirection: 'row',
-    paddingHorizontal: 12,
+  // Day strip (scrollable)
+  dayStripScroll: {
     marginBottom: 16,
-    gap: 4,
+  },
+  dayStrip: {
+    paddingHorizontal: 16,
+    gap: DAY_GAP,
   },
   dayCell: {
-    flex: 1,
+    width: DAY_CELL_WIDTH,
     alignItems: 'center',
     paddingVertical: 10,
     borderRadius: 12,
