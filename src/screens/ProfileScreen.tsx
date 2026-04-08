@@ -299,8 +299,8 @@ export default function ProfileScreen({ navigation }: Props) {
         <Text style={styles.streakText}>{'\u{1F525}'} Streak: {streak} dias</Text>
       </View>
 
-      {/* ── B2) Social links ──────────────────────────────── */}
-      <SocialIconsBar userId={user?.id || ''} editable={true} />
+      {/* ── B2) Social links (view only — edit via EditarPerfil) */}
+      <SocialIconsBar userId={user?.id || ''} editable={false} />
 
       {/* ── C) Action buttons ───────────────────────────────── */}
       <View style={styles.actionRow}>
