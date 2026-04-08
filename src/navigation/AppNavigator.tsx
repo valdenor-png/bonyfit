@@ -132,8 +132,8 @@ function HomeNavigator() {
       <HomeStack.Screen name="ScanQRAula" component={ScanQRAulaScreen} options={{ title: 'Escanear QR' }} />
       <HomeStack.Screen name="EditarPerfil" component={EditarPerfilScreen} options={{ title: 'Editar Perfil' }} />
       <HomeStack.Screen name="FollowersList" component={FollowersListScreen} options={{ title: '' }} />
+      <HomeStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Agenda' }} />
       <HomeStack.Screen name="AcademyCalendar" component={AcademyCalendarScreen} options={{ headerShown: false }} />
-      {/* Quick action targets — push within HomeStack, don't switch tabs */}
       <HomeStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
       <HomeStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} options={{ title: 'Histórico' }} />
       <HomeStack.Screen name="Personal" component={PersonalScreen} options={{ title: 'Personal Trainers' }} />

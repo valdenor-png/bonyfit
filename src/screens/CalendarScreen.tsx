@@ -14,6 +14,9 @@ import { colors, fonts, spacing, radius } from '../tokens';
 interface WorkoutEntry {
   name: string;
   status: 'scheduled' | 'completed' | 'missed';
+  duration?: number;    // minutes
+  exercises?: number;
+  points?: number;
 }
 
 interface EventEntry {
@@ -35,15 +38,15 @@ interface DayData {
 // ─── Mock Data ──────────────────────────────────────────────────────────────────
 
 const MOCK_DATA: Record<string, DayData> = {
-  '2026-04-01': { workouts: [{ name: 'Treino A \u2014 Peito + Tríceps', status: 'completed' }] },
-  '2026-04-02': { workouts: [{ name: 'Treino B \u2014 Costas + Bíceps', status: 'completed' }] },
+  '2026-04-01': { workouts: [{ name: 'Treino A — Peito + Tríceps', status: 'completed', duration: 58, exercises: 6, points: 350 }] },
+  '2026-04-02': { workouts: [{ name: 'Treino B — Costas + Bíceps', status: 'completed', duration: 52, exercises: 5, points: 300 }] },
   '2026-04-03': {
-    workouts: [{ name: 'Treino C \u2014 Pernas', status: 'completed' }],
+    workouts: [{ name: 'Treino C — Pernas', status: 'completed', duration: 65, exercises: 7, points: 420 }],
     holiday: { name: 'Sexta-feira Santa' },
   },
-  '2026-04-06': { workouts: [{ name: 'Treino A \u2014 Peito + Tríceps', status: 'completed' }] },
-  '2026-04-08': { workouts: [{ name: 'Treino B \u2014 Costas + Bíceps', status: 'completed' }] },
-  '2026-04-10': { workouts: [{ name: 'Treino C \u2014 Pernas', status: 'missed' }] },
+  '2026-04-06': { workouts: [{ name: 'Treino A — Peito + Tríceps', status: 'completed', duration: 55, exercises: 6, points: 340 }] },
+  '2026-04-08': { workouts: [{ name: 'Treino B — Costas + Bíceps', status: 'completed', duration: 48, exercises: 5, points: 290 }] },
+  '2026-04-10': { workouts: [{ name: 'Treino C — Pernas', status: 'missed' }] },
   '2026-04-12': {
     workouts: [{ name: 'Treino A \u2014 Peito + Tríceps', status: 'scheduled' }],
     events: [{ title: 'Aula de Dança', startTime: '18:00', endTime: '19:00' }],
@@ -278,9 +281,16 @@ export default function CalendarScreen({ navigation }: { navigation: any }) {
             </TouchableOpacity>
           )}
           {w.status === 'completed' && (
-            <TouchableOpacity style={styles.detailButtonOutline} activeOpacity={0.7} onPress={() => Alert.alert('Detalhes', 'Ver detalhes do treino.')}>
-              <Text style={styles.detailButtonOutlineText}>Ver Detalhes</Text>
-            </TouchableOpacity>
+            <View>
+              <View style={styles.workoutStats}>
+                {w.duration != null && <Text style={styles.workoutStatText}>⏱ {w.duration}min</Text>}
+                {w.exercises != null && <Text style={styles.workoutStatText}>💪 {w.exercises} exerc.</Text>}
+                {w.points != null && <Text style={styles.workoutStatPts}>+{w.points} pts</Text>}
+              </View>
+              <TouchableOpacity style={styles.detailButtonOutline} activeOpacity={0.7} onPress={() => navigation.navigate('ActiveWorkout')}>
+                <Text style={styles.detailButtonOutlineText}>Ver Detalhes</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       ))}
@@ -562,6 +572,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.bodyMedium,
     color: '#FFFFFF',
+  },
+
+  // Workout stats
+  workoutStats: {
+    flexDirection: 'row',
+    gap: 14,
+    paddingLeft: 56,
+    marginTop: 6,
+    marginBottom: 8,
+  },
+  workoutStatText: {
+    fontSize: 12,
+    fontFamily: fonts.body,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  workoutStatPts: {
+    fontSize: 12,
+    fontFamily: fonts.numbersBold,
+    color: '#F26522',
   },
 
   // Events
