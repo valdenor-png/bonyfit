@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { fonts } from '../../tokens';
+import Skull from '../Skull';
 
 interface Props {
   splitLabel?: string;
@@ -22,46 +24,34 @@ export default function WorkoutCard({
     ? `${splitLabel} — ${splitName}`
     : splitName || 'Treino';
 
+  const volumeText = volume != null
+    ? (volume >= 1000 ? (volume / 1000).toFixed(1).replace('.0', '') + 'k' : String(volume)) + ' kg'
+    : null;
+
   return (
     <View style={styles.card}>
-      {/* Title row */}
+      {/* Title */}
       <View style={styles.titleRow}>
-        <View style={styles.trophyBox}>
-          <Text style={styles.trophyIcon}>🏆</Text>
-        </View>
-        <View style={styles.titleCol}>
-          <Text style={styles.completeLabel}>Treino completo</Text>
-          <Text style={styles.splitName}>{title}</Text>
-        </View>
+        <Skull size={16} color="#F26522" />
+        <Text style={styles.titleText}>Treino completo</Text>
       </View>
 
-      {/* Stats row */}
+      {/* Split name */}
+      <Text style={styles.splitName}>{title}</Text>
+
+      {/* Stats */}
       <View style={styles.statsRow}>
         {duration != null && (
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{duration}</Text>
-            <Text style={styles.statLabel}>min</Text>
-          </View>
+          <Text style={styles.statText}>{duration} min</Text>
         )}
-        {volume != null && (
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>
-              {volume >= 1000 ? (volume / 1000).toFixed(1).replace('.0', '') + 'k' : volume}
-            </Text>
-            <Text style={styles.statLabel}>kg</Text>
-          </View>
+        {volumeText && (
+          <Text style={styles.statText}>{volumeText}</Text>
         )}
         {exercises != null && (
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{exercises}</Text>
-            <Text style={styles.statLabel}>exercícios</Text>
-          </View>
+          <Text style={styles.statText}>{exercises} exerc.</Text>
         )}
         {sets != null && (
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{sets}</Text>
-            <Text style={styles.statLabel}>séries</Text>
-          </View>
+          <Text style={styles.statText}>{sets} séries</Text>
         )}
       </View>
     </View>
@@ -70,60 +60,39 @@ export default function WorkoutCard({
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 20,
     backgroundColor: '#141414',
     borderRadius: 16,
-    padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
+    borderLeftWidth: 3,
+    borderLeftColor: '#F26522',
+    padding: 14,
+    marginTop: 10,
+    gap: 6,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
   },
-  trophyBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: 'rgba(242,101,34,0.10)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trophyIcon: {
+  titleText: {
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
-  },
-  titleCol: {
-    flex: 1,
-  },
-  completeLabel: {
-    fontFamily: 'PlusJakartaSans_700Bold',
-    fontSize: 13,
-    color: '#F26522',
+    color: '#FFFFFF',
   },
   splitName: {
-    fontFamily: 'PlusJakartaSans_400Regular',
+    fontFamily: fonts.body,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.50)',
+    color: 'rgba(255,255,255,0.5)',
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 12,
+    marginTop: 2,
   },
-  stat: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
-  },
-  statValue: {
-    fontFamily: 'Sora_700Bold',
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.70)',
-  },
-  statLabel: {
-    fontFamily: 'Sora_400Regular',
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.40)',
+  statText: {
+    fontFamily: fonts.numbersBold,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
   },
 });
