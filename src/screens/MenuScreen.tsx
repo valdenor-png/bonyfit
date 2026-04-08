@@ -12,6 +12,7 @@ import ScreenBackground from '../components/ScreenBackground';
 import { useModeStore } from '../stores/modeStore';
 import { useAuth } from '../hooks/useAuth';
 import { useVip } from '../hooks/useVip';
+import { useRoleStore } from '../stores/roleStore';
 
 interface Props {
   navigation: any;
@@ -110,19 +111,22 @@ export default function MenuScreen({ navigation }: Props) {
         </View>
       </View>
 
-      {/* Switch mode - only show if user can switch modes */}
-      {podeTrocarModo && cargoSlug !== 'aluno' && (
+      {/* Switch role - show if user has multiple roles */}
+      {useRoleStore.getState().userRoles.length > 1 && (
         <View style={[styles.section, { marginTop: spacing.md }]}>
           <View style={styles.sectionCard}>
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={toggleMode}
+              onPress={() => {
+                useRoleStore.getState().reset();
+                navigation.reset({ index: 0, routes: [{ name: 'RoleSelect' as never }] });
+              }}
               activeOpacity={0.7}
             >
               <Text style={styles.menuIcon}>{'\uD83D\uDD04'}</Text>
               <View style={styles.menuInfo}>
-                <Text style={styles.menuLabel}>Trocar modo</Text>
-                <Text style={styles.menuSub}>Alternar entre modo aluno e profissional</Text>
+                <Text style={styles.menuLabel}>Trocar cargo</Text>
+                <Text style={styles.menuSub}>Voltar à tela de seleção de cargo</Text>
               </View>
               <Text style={styles.chevron}>{'\u203A'}</Text>
             </TouchableOpacity>

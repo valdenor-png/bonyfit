@@ -6,6 +6,8 @@ import { colors, fonts } from '../tokens';
 import Skull from '../components/Skull';
 import { useModeStore } from '../stores/modeStore';
 import { useAuth } from '../hooks/useAuth';
+import { useRoleStore } from '../stores/roleStore';
+import RoleSelectScreen from '../screens/auth/RoleSelectScreen';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -95,6 +97,8 @@ const FeedStack = createStackNavigator<any>();
 const TreinoStack = createStackNavigator<any>();
 const LojaStack = createStackNavigator<any>();
 const MenuStack = createStackNavigator<any>();
+
+const RootStack = createStackNavigator<any>();
 
 // Supervisor stacks
 const GestaoStack = createStackNavigator<any>();
@@ -421,15 +425,70 @@ function ProfessorTabs() {
   );
 }
 
-export default function AppNavigator() {
+function MainTabs() {
   const { currentMode } = useModeStore();
   const { cargoSlug } = useAuth();
+  const { currentRole } = useRoleStore();
 
-  if (currentMode === 'profissional') {
-    if (cargoSlug === 'supervisor') return <SupervisorTabs />;
-    if (cargoSlug === 'personal') return <PersonalTabs />;
-    return <ProfessorTabs />;
+  // Use role from roleStore if available, fallback to cargoSlug
+  const effectiveRole = currentRole || cargoSlug;
+
+  // Professional modes
+  if (currentMode === 'profissional' || ['supervisor', 'personal'].includes(effectiveRole)) {
+    if (effectiveRole === 'supervisor') return <SupervisorTabs />;
+    if (effectiveRole === 'personal') return <PersonalTabs />;
+    if (effectiveRole.startsWith('professor')) return <ProfessorTabs />;
   }
 
   return <AlunoTabs />;
+}
+
+export default function AppNavigator() {
+  const { user, cargoSlug, podeTrocarModo } = useAuth();
+  const { resolved, setCurrentRole, setUserRoles, loadLastRole } = useRoleStore();
+
+  React.useEffect(() => {
+    if (!user) return;
+
+    const resolve = async () => {
+      await loadLastRole();
+
+      // Build user roles list
+      const roles: string[] = ['aluno']; // everyone is at least aluno
+      if (cargoSlug && cargoSlug !== 'aluno' && !roles.includes(cargoSlug)) {
+        roles.push(cargoSlug);
+      }
+      if (podeTrocarModo && !roles.includes('personal') && cargoSlug === 'personal') {
+        roles.push('personal');
+      }
+      setUserRoles(roles);
+
+      // Single role → skip selection
+      if (roles.length === 1) {
+        setCurrentRole(roles[0]);
+      }
+      // If already resolved from last session, keep it
+      else if (useRoleStore.getState().lastUsedRole && roles.includes(useRoleStore.getState().lastUsedRole!)) {
+        setCurrentRole(useRoleStore.getState().lastUsedRole!);
+      }
+      // Multiple roles, no last used → show selection (resolved stays false)
+    };
+
+    resolve();
+  }, [user?.id]);
+
+  // Not resolved + multiple roles → show role select
+  if (user && !resolved) {
+    const roles = useRoleStore.getState().userRoles;
+    if (roles.length > 1) {
+      return (
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          <RootStack.Screen name="RoleSelect" component={RoleSelectScreen} />
+          <RootStack.Screen name="MainTabs" component={MainTabs} />
+        </RootStack.Navigator>
+      );
+    }
+  }
+
+  return <MainTabs />;
 }
