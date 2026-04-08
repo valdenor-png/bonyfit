@@ -21,16 +21,6 @@ import AnimatedNumber from '../components/ui/AnimatedNumber';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 
-// ── Quick action config ─────────────────────────────────────
-const QUICK_ACTIONS = [
-  { icon: '🏆', label: 'Ranking', screen: 'Ranking', tint: '#FFD700' },
-  { icon: '📊', label: 'Histórico', screen: 'WorkoutHistory', tint: '#4A90D9' },
-  { icon: '📅', label: 'Calendário', screen: 'AcademyCalendar', tint: '#F26522' },
-  { icon: '👨‍🏫', label: 'Personais', screen: 'Personal', tint: '#4CAF50' },
-  { icon: '🎯', label: 'Desafios', screen: 'Desafios', tint: '#FF4444' },
-  { icon: '🎁', label: 'Prêmios', screen: 'Recompensas', tint: '#9C27B0' },
-];
-
 interface Props {
   navigation: any;
 }
@@ -116,9 +106,17 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.greeting}>{greeting},</Text>
           <Text style={styles.name}>{firstName}</Text>
         </View>
-        <View style={styles.levelBadge}>
-          <Skull size={16} color={colors.orange} />
-          <Text style={styles.levelText}>{userLevel}</Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AcademyCalendar')}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.calendarIcon}>📅</Text>
+          </TouchableOpacity>
+          <View style={styles.levelBadge}>
+            <Skull size={16} color={colors.orange} />
+            <Text style={styles.levelText}>{userLevel}</Text>
+          </View>
         </View>
       </Animated.View>
 
@@ -203,70 +201,9 @@ export default function HomeScreen({ navigation }: Props) {
         </ScrollView>
       </View>
 
-      {/* ── Acesso Rápido (colored icons + glassmorphism) ─── */}
-      <Text style={styles.sectionTitle}>Acesso rápido</Text>
-      <View style={styles.quickGrid}>
-        {QUICK_ACTIONS.map((action, index) => (
-          <QuickAction
-            key={action.screen}
-            icon={action.icon}
-            label={action.label}
-            tint={action.tint}
-            delay={index * 80}
-            onPress={() => {
-              if (Platform.OS !== 'web') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }
-              navigation.navigate(action.screen);
-            }}
-          />
-        ))}
-      </View>
+      {/* Acesso Rápido removido — calendário está no header */}
     </ScrollView>
     </ScreenBackground>
-  );
-}
-
-// ── QuickAction with staggered entrance + colored icon ───────
-function QuickAction({
-  icon,
-  label,
-  tint,
-  delay,
-  onPress,
-}: {
-  icon: string;
-  label: string;
-  tint: string;
-  delay: number;
-  onPress: () => void;
-}) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(15)).current;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      Animated.parallel([
-        Animated.timing(opacity, { toValue: 1, duration: 350, useNativeDriver: true }),
-        Animated.timing(translateY, { toValue: 0, duration: 350, useNativeDriver: true }),
-      ]).start();
-    }, delay);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <Animated.View style={{ opacity, transform: [{ translateY }], width: '31%' }}>
-      <TouchableOpacity
-        style={styles.quickItem}
-        onPress={onPress}
-        activeOpacity={0.7}
-      >
-        <View style={[styles.quickIconBg, { backgroundColor: tint + '26', borderColor: tint + '40' }]}>
-          <Text style={styles.quickIcon}>{icon}</Text>
-        </View>
-        <Text style={styles.quickLabel}>{label}</Text>
-      </TouchableOpacity>
-    </Animated.View>
   );
 }
 
@@ -328,6 +265,14 @@ const styles = StyleSheet.create({
     color: colors.orange,
   },
   headerCenter: { flex: 1 },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  calendarIcon: {
+    fontSize: 24,
+  },
   greeting: { fontSize: 13, fontFamily: fonts.body, color: colors.textSecondary },
   name: { fontSize: 18, fontFamily: fonts.bodyBold, color: colors.text },
   levelBadge: {
@@ -433,43 +378,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // Section
-  sectionTitle: {
-    fontSize: 14,
-    fontFamily: fonts.bodyBold,
-    color: colors.text,
-    paddingHorizontal: spacing.xl,
-    marginBottom: spacing.md,
-  },
-
-  // Quick grid
-  quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
-  },
-  quickItem: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 16,
-    paddingVertical: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  quickIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quickIcon: { fontSize: 22 },
-  quickLabel: {
-    fontSize: 11,
-    fontFamily: fonts.bodyMedium,
-    color: 'rgba(255,255,255,0.55)',
-  },
+  // (Quick grid removed)
 });
