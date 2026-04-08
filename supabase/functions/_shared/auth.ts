@@ -5,13 +5,13 @@ import { SupabaseClient, createClient } from 'https://esm.sh/@supabase/supabase-
 export interface AuthUser {
   id: string
   email?: string
-  cargo: string
+  role: string
   unit_id?: string
 }
 
 /**
  * Extract JWT from Authorization header, validate with Supabase Auth,
- * fetch user profile with cargo for RBAC.
+ * fetch user profile with role for RBAC.
  */
 export async function requireAuth(
   req: Request,
@@ -27,26 +27,24 @@ export async function requireAuth(
     throw { status: 401, code: 'INVALID_TOKEN', message: 'Token inválido ou expirado' }
   }
 
-  // Fetch profile with cargo
-  const { data: perfil } = await supabase
+  // Fetch profile with role
+  const { data: profile } = await supabase
     .from('users')
-    .select('cargo_id, unit_id, cargos(slug)')
+    .select('role, unit_id')
     .eq('id', user.id)
     .single()
-
-  const cargoSlug = (perfil as any)?.cargos?.slug ?? 'aluno'
 
   return {
     id: user.id,
     email: user.email,
-    cargo: cargoSlug,
-    unit_id: perfil?.unit_id,
+    role: profile?.role ?? 'aluno',
+    unit_id: profile?.unit_id,
   }
 }
 
 /**
- * Require specific cargo(s) for RBAC.
- * Cargos: 'dono' | 'supervisor' | 'financeiro' | 'personal' | 'professor_*' | 'aluno'
+ * Require specific role(s) for RBAC.
+ * Roles: 'aluno' | 'personal' | 'professor' | 'financeiro' | 'dono'
  */
 export async function requireRole(
   req: Request,
@@ -55,11 +53,11 @@ export async function requireRole(
 ): Promise<AuthUser> {
   const user = await requireAuth(req, supabase)
 
-  if (!allowedRoles.includes(user.cargo)) {
+  if (!allowedRoles.includes(user.role)) {
     throw {
       status: 403,
       code: 'FORBIDDEN',
-      message: `Cargo '${user.cargo}' não tem permissão. Necessário: ${allowedRoles.join(', ')}`,
+      message: `Role '${user.role}' não tem permissão. Necessário: ${allowedRoles.join(', ')}`,
     }
   }
 
