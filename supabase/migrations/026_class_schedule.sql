@@ -32,7 +32,7 @@ CREATE POLICY "class_schedule_read" ON class_schedule
 
 CREATE POLICY "class_schedule_admin" ON class_schedule
   FOR ALL USING (
-    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('dono', 'supervisor'))
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND cargo_slug IN ('dono', 'supervisor'))
   );
 
 -- ── SEED: Grade da Bony Fit ─────────────────────────────────
