@@ -129,6 +129,12 @@ function HomeNavigator() {
       <HomeStack.Screen name="EditarPerfil" component={EditarPerfilScreen} options={{ title: 'Editar Perfil' }} />
       <HomeStack.Screen name="FollowersList" component={FollowersListScreen} options={{ title: '' }} />
       <HomeStack.Screen name="AcademyCalendar" component={AcademyCalendarScreen} options={{ headerShown: false }} />
+      {/* Quick action targets — push within HomeStack, don't switch tabs */}
+      <HomeStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
+      <HomeStack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} options={{ title: 'Histórico' }} />
+      <HomeStack.Screen name="Personal" component={PersonalScreen} options={{ title: 'Personal Trainers' }} />
+      <HomeStack.Screen name="Desafios" component={DesafiosScreen} options={{ title: 'Desafios' }} />
+      <HomeStack.Screen name="Recompensas" component={RecompensasScreen} options={{ title: 'Recompensas' }} />
     </HomeStack.Navigator>
   );
 }
@@ -173,6 +179,7 @@ function TreinoNavigator() {
       <TreinoStack.Screen name="ExercisePicker" component={ExercisePickerScreen} options={{ title: 'Escolher Exercício' }} />
       <TreinoStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
       <TreinoStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Agenda' }} />
+      <TreinoStack.Screen name="AcademyCalendar" component={AcademyCalendarScreen} options={{ headerShown: false }} />
     </TreinoStack.Navigator>
   );
 }

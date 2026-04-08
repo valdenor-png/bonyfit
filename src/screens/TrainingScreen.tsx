@@ -86,7 +86,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
           {/* Calendário */}
           <TouchableOpacity
             style={styles.headerBtn}
-            onPress={() => navigation.navigate('Home', { screen: 'AcademyCalendar' })}
+            onPress={() => navigation.navigate('AcademyCalendar')}
             activeOpacity={0.7}
           >
             <View style={styles.headerBtnIcon}>
