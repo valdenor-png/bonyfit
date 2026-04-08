@@ -106,18 +106,14 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.greeting}>{greeting},</Text>
           <Text style={styles.name}>{firstName}</Text>
         </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('AcademyCalendar')}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.calendarIcon}>📅</Text>
-          </TouchableOpacity>
-          <View style={styles.levelBadge}>
-            <Skull size={16} color={colors.orange} />
-            <Text style={styles.levelText}>{userLevel}</Text>
-          </View>
-        </View>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('AcademyCalendar')}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={styles.calendarBtn}
+        >
+          <View style={styles.calendarBar} />
+          <Text style={styles.calendarDay}>{new Date().getDate()}</Text>
+        </TouchableOpacity>
       </Animated.View>
 
       {/* ── XP Ring ────────────────────────────────────── */}
@@ -265,26 +261,32 @@ const styles = StyleSheet.create({
     color: colors.orange,
   },
   headerCenter: { flex: 1 },
-  headerRight: {
-    flexDirection: 'row',
+  calendarBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#F26522',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(242,101,34,0.1)',
   },
-  calendarIcon: {
-    fontSize: 24,
+  calendarBar: {
+    position: 'absolute',
+    top: 4,
+    width: 16,
+    height: 2,
+    backgroundColor: '#F26522',
+    borderRadius: 1,
+  },
+  calendarDay: {
+    fontFamily: fonts.numbersBold,
+    fontSize: 14,
+    color: '#F26522',
+    marginTop: 3,
   },
   greeting: { fontSize: 13, fontFamily: fonts.body, color: colors.textSecondary },
   name: { fontSize: 18, fontFamily: fonts.bodyBold, color: colors.text },
-  levelBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: 'rgba(242,101,34,0.15)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-  },
-  levelText: { fontSize: 12, fontFamily: fonts.bodyBold, color: colors.orange },
 
   // Stats row
   statsRow: {
