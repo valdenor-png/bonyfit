@@ -178,7 +178,7 @@ export async function sendMessage(
     .eq('blocked_id', senderId)
     .maybeSingle();
 
-  if (block) throw new Error('N\u00e3o \u00e9 poss\u00edvel enviar mensagem para este usu\u00e1rio');
+  if (block) throw new Error('Não é possível enviar mensagem para este usuário');
 
   const { data, error } = await supabase
     .from('messages')

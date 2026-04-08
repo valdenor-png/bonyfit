@@ -46,13 +46,13 @@ interface FreqExercise {
 // ---------------------------------------------------------------------------
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'calendario', label: '\uD83D\uDCC5 Calend\u00E1rio' },
+  { key: 'calendario', label: '\uD83D\uDCC5 Calendário' },
   { key: 'recentes', label: '\uD83D\uDCCB Recentes' },
-  { key: 'exercicio', label: '\uD83D\uDCAA Exerc\u00EDcio' },
+  { key: 'exercicio', label: '\uD83D\uDCAA Exercício' },
 ];
 
 const MONTHS_PT = [
-  'Janeiro', 'Fevereiro', 'Mar\u00E7o', 'Abril', 'Maio', 'Junho',
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
@@ -88,7 +88,7 @@ function mockExercises(): FreqExercise[] {
     { id: 'ex2', name: 'Agachamento', muscle_group: 'Perna', count: 15 },
     { id: 'ex3', name: 'Puxada Frontal', muscle_group: 'Costas', count: 14 },
     { id: 'ex4', name: 'Desenvolvimento', muscle_group: 'Ombro', count: 12 },
-    { id: 'ex5', name: 'Rosca Direta', muscle_group: 'B\u00EDceps', count: 11 },
+    { id: 'ex5', name: 'Rosca Direta', muscle_group: 'Bíceps', count: 11 },
     { id: 'ex6', name: 'Leg Press', muscle_group: 'Perna', count: 10 },
     { id: 'ex7', name: 'Remada Curvada', muscle_group: 'Costas', count: 9 },
     { id: 'ex8', name: 'Crucifixo', muscle_group: 'Peito', count: 8 },
@@ -227,7 +227,7 @@ function CalendarioView({ userId }: { userId?: string }) {
 
   const stats = [
     { icon: '\uD83C\uDFCB\uFE0F', value: statsMes.treinos, label: 'Treinos' },
-    { icon: '\uD83D\uDCC8', value: `${statsMes.frequencia}%`, label: 'Frequ\u00EAncia' },
+    { icon: '\uD83D\uDCC8', value: `${statsMes.frequencia}%`, label: 'Frequência' },
     { icon: '\uD83D\uDD25', value: streak, label: 'Streak' },
     { icon: '\uD83D\uDCAA', value: `${(statsMes.volume / 1000).toFixed(1)}t`, label: 'Volume' },
   ];
@@ -395,7 +395,7 @@ function RecentesView({ userId }: { userId?: string }) {
         </View>
         {expanded && (
           <View style={styles.expandedSection}>
-            <Text style={styles.expandedHint}>Detalhes do treino indispon\u00EDveis no modo offline</Text>
+            <Text style={styles.expandedHint}>Detalhes do treino indisponíveis no modo offline</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -476,7 +476,7 @@ function ExercicioView({ userId }: { userId?: string }) {
       {/* Exercise picker */}
       <TouchableOpacity style={styles.exercisePicker} onPress={() => setShowPicker(!showPicker)}>
         <View>
-          <Text style={styles.exercisePickerName}>{selectedExercise?.name || 'Selecionar exerc\u00EDcio'}</Text>
+          <Text style={styles.exercisePickerName}>{selectedExercise?.name || 'Selecionar exercício'}</Text>
           <Text style={styles.exercisePickerGroup}>{selectedExercise?.muscle_group || ''}</Text>
         </View>
         <Text style={styles.exercisePickerArrow}>{showPicker ? '\u25B2' : '\u25BC'}</Text>
@@ -486,7 +486,7 @@ function ExercicioView({ userId }: { userId?: string }) {
         <View style={styles.pickerDropdown}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar exerc\u00EDcio..."
+            placeholder="Buscar exercício..."
             placeholderTextColor="#666"
             value={search}
             onChangeText={setSearch}
@@ -524,17 +524,17 @@ function ExercicioView({ userId }: { userId?: string }) {
               <Text style={[styles.exStatValue, evolucaoPct >= 0 ? styles.textSuccess : styles.textDanger]}>
                 {evolucaoPct >= 0 ? '+' : ''}{evolucaoPct}%
               </Text>
-              <Text style={styles.exStatLabel}>Evolu\u00E7\u00E3o</Text>
+              <Text style={styles.exStatLabel}>Evolução</Text>
             </View>
             <View style={styles.exStatCard}>
               <Text style={styles.exStatBadge}>{'\uD83D\uDCAA'}</Text>
               <Text style={styles.exStatValue}>{ultimaCarga}kg</Text>
-              <Text style={styles.exStatLabel}>{'\u00DAltima carga'}</Text>
+              <Text style={styles.exStatLabel}>{'Última carga'}</Text>
             </View>
           </View>
 
           {/* Weight progression bars */}
-          <Text style={styles.sectionTitle}>Progress\u00E3o de Carga</Text>
+          <Text style={styles.sectionTitle}>Progressão de Carga</Text>
           <View style={styles.hBarContainer}>
             {last8.map((s, i) => {
               const widthPct = Math.max((s.maxCarga / maxBar) * 100, 8);
@@ -551,7 +551,7 @@ function ExercicioView({ userId }: { userId?: string }) {
           </View>
 
           {/* Session history table */}
-          <Text style={styles.sectionTitle}>Hist\u00F3rico de Sess\u00F5es</Text>
+          <Text style={styles.sectionTitle}>Histórico de Sessões</Text>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>Data</Text>
             <Text style={styles.tableHeaderCell}>Carga</Text>

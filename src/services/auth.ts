@@ -45,7 +45,7 @@ export async function updateProfile(
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  if (!authUser) throw new Error('Usu\u00e1rio n\u00e3o autenticado');
+  if (!authUser) throw new Error('Usuário não autenticado');
 
   const { error } = await supabase
     .from('users')

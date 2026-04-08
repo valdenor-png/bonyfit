@@ -212,7 +212,7 @@ export default function MinhasAulasScreen({ navigation }: Props) {
       if (error) throw error;
 
       // Navigate to AulaAtiva tab (Presenca tab) with session params
-      navigation?.navigate?.('Presen\u00E7a', {
+      navigation?.navigate?.('Presença', {
         screen: 'AulaAtivaMain',
         params: {
           sessionId: data.id,
@@ -229,7 +229,7 @@ export default function MinhasAulasScreen({ navigation }: Props) {
   };
 
   const handleVerAula = (cls: ClassItem) => {
-    navigation?.navigate?.('Presen\u00E7a', {
+    navigation?.navigate?.('Presença', {
       screen: 'AulaAtivaMain',
       params: {
         sessionId: cls.id,

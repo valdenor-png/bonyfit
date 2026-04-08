@@ -75,7 +75,7 @@ export async function createSubscription(
     .eq('id', planId)
     .single();
 
-  if (planError || !plan) throw new Error('Plano n\u00e3o encontrado');
+  if (planError || !plan) throw new Error('Plano não encontrado');
 
   const cycleMap: Record<string, string> = {
     mensal: 'MONTHLY',

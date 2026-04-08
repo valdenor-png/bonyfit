@@ -48,8 +48,8 @@ const PROGRAMS: Program[] = [
       { name: 'Remada Curvada', sets: 4, reps: 10, muscle_group: 'Costas', equipment: 'Barra' },
       { name: 'Agachamento Livre', sets: 4, reps: 8, muscle_group: 'Pernas', equipment: 'Barra' },
       { name: 'Desenvolvimento', sets: 3, reps: 10, muscle_group: 'Ombro', equipment: 'Halter' },
-      { name: 'Rosca Direta', sets: 3, reps: 12, muscle_group: 'B\u00edceps', equipment: 'Barra' },
-      { name: 'Tr\u00edceps Pulley', sets: 3, reps: 12, muscle_group: 'Tr\u00edceps', equipment: 'Cabo' },
+      { name: 'Rosca Direta', sets: 3, reps: 12, muscle_group: 'Bíceps', equipment: 'Barra' },
+      { name: 'Tríceps Pulley', sets: 3, reps: 12, muscle_group: 'Tríceps', equipment: 'Cabo' },
     ],
   },
   {
@@ -70,7 +70,7 @@ const PROGRAMS: Program[] = [
   {
     id: 'resistencia',
     icon: '\u26A1',
-    title: 'Resist\u00eancia',
+    title: 'Resistência',
     description: 'Melhore seu condicionamento',
     gradientColors: ['#3B82F6', '#2563EB'],
     durationMin: 45,
@@ -87,7 +87,7 @@ const PROGRAMS: Program[] = [
     id: 'funcional',
     icon: '\uD83C\uDFCB\uFE0F',
     title: 'Funcional',
-    description: 'Exerc\u00edcios funcionais e mobilidade',
+    description: 'Exercícios funcionais e mobilidade',
     gradientColors: ['#2ECC71', '#27AE60'],
     durationMin: 35,
     exercises: [
@@ -133,7 +133,7 @@ export default function TreinosProntosScreen() {
                     <Text style={styles.cardTitle}>{program.title}</Text>
                     <Text style={styles.cardDesc}>{program.description}</Text>
                     <Text style={styles.cardMeta}>
-                      {program.exercises.length} exerc\u00edcios \u2022 {program.durationMin} min
+                      {program.exercises.length} exercícios \u2022 {program.durationMin} min
                     </Text>
                   </View>
                   <Text style={styles.expandArrow}>{isExpanded ? '▲' : '▼'}</Text>

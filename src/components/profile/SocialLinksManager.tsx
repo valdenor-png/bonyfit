@@ -162,7 +162,7 @@ export default function SocialLinksManager({ visible, onClose, userId }: Props) 
                   style={styles.removeBtn}
                   onPress={() => handleRemove(link)}
                 >
-                  <Text style={styles.removeBtnText}>{'\u00D7'}</Text>
+                  <Text style={styles.removeBtnText}>{'×'}</Text>
                 </TouchableOpacity>
               </View>
             );

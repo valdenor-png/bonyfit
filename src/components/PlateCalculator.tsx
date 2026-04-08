@@ -71,7 +71,7 @@ function formatBreakdown(plates: number[]): string {
     'Cada lado: ' +
     Object.entries(counts)
       .sort(([a], [b]) => Number(b) - Number(a))
-      .map(([weight, count]) => `${count}\u00D7${Number(weight) % 1 === 0 ? Number(weight) : Number(weight).toFixed(2)}kg`)
+      .map(([weight, count]) => `${count}×${Number(weight) % 1 === 0 ? Number(weight) : Number(weight).toFixed(2)}kg`)
       .join(' + ')
   );
 }

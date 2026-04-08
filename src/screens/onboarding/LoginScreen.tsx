@@ -44,7 +44,7 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
   const handleLogin = async () => {
     const cpfClean = cpf.replace(/\D/g, '');
     if (cpfClean.length !== 11) {
-      Alert.alert('Erro', 'CPF inv\u00e1lido.');
+      Alert.alert('Erro', 'CPF inválido.');
       return;
     }
     if (!senha) {
@@ -61,7 +61,7 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
         .single();
 
       if (lookupError || !userData) {
-        Alert.alert('Erro', 'CPF n\u00e3o encontrado.');
+        Alert.alert('Erro', 'CPF não encontrado.');
         setLoading(false);
         return;
       }

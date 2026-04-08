@@ -35,21 +35,21 @@ interface DayData {
 // ─── Mock Data ──────────────────────────────────────────────────────────────────
 
 const MOCK_DATA: Record<string, DayData> = {
-  '2026-04-01': { workouts: [{ name: 'Treino A \u2014 Peito + Tr\u00edceps', status: 'completed' }] },
-  '2026-04-02': { workouts: [{ name: 'Treino B \u2014 Costas + B\u00edceps', status: 'completed' }] },
+  '2026-04-01': { workouts: [{ name: 'Treino A \u2014 Peito + Tríceps', status: 'completed' }] },
+  '2026-04-02': { workouts: [{ name: 'Treino B \u2014 Costas + Bíceps', status: 'completed' }] },
   '2026-04-03': {
     workouts: [{ name: 'Treino C \u2014 Pernas', status: 'completed' }],
     holiday: { name: 'Sexta-feira Santa' },
   },
-  '2026-04-06': { workouts: [{ name: 'Treino A \u2014 Peito + Tr\u00edceps', status: 'completed' }] },
-  '2026-04-08': { workouts: [{ name: 'Treino B \u2014 Costas + B\u00edceps', status: 'completed' }] },
+  '2026-04-06': { workouts: [{ name: 'Treino A \u2014 Peito + Tríceps', status: 'completed' }] },
+  '2026-04-08': { workouts: [{ name: 'Treino B \u2014 Costas + Bíceps', status: 'completed' }] },
   '2026-04-10': { workouts: [{ name: 'Treino C \u2014 Pernas', status: 'missed' }] },
   '2026-04-12': {
-    workouts: [{ name: 'Treino A \u2014 Peito + Tr\u00edceps', status: 'scheduled' }],
-    events: [{ title: 'Aula de Dan\u00e7a', startTime: '18:00', endTime: '19:00' }],
+    workouts: [{ name: 'Treino A \u2014 Peito + Tríceps', status: 'scheduled' }],
+    events: [{ title: 'Aula de Dança', startTime: '18:00', endTime: '19:00' }],
   },
   '2026-04-15': {
-    workouts: [{ name: 'Treino B \u2014 Costas + B\u00edceps', status: 'scheduled' }],
+    workouts: [{ name: 'Treino B \u2014 Costas + Bíceps', status: 'scheduled' }],
     events: [{ title: 'Aula de Yoga', startTime: '07:00', endTime: '08:00' }],
   },
   '2026-04-21': {
@@ -59,11 +59,11 @@ const MOCK_DATA: Record<string, DayData> = {
 };
 
 const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Mar\u00e7o', 'Abril', 'Maio', 'Junho',
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
-const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S\u00e1b'];
+const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 const TODAY = new Date(2026, 3, 5);
 
@@ -156,7 +156,7 @@ export default function CalendarScreen({ navigation }: { navigation: any }) {
 
   const statusLabels: Record<string, string> = {
     scheduled: 'Agendado',
-    completed: 'Conclu\u00eddo',
+    completed: 'Concluído',
     missed: 'Perdido',
   };
 
@@ -306,7 +306,7 @@ export default function CalendarScreen({ navigation }: { navigation: any }) {
             <Text style={styles.detailEmoji}>{'\u23F0'}</Text>
           </View>
           <View style={styles.detailInfo}>
-            <Text style={styles.detailLabel}>Hor\u00e1rio de funcionamento</Text>
+            <Text style={styles.detailLabel}>Horário de funcionamento</Text>
             {gymHours ? (
               <Text style={styles.detailName}>
                 {gymHours.opens} \u2014 {gymHours.closes}
@@ -332,7 +332,7 @@ export default function CalendarScreen({ navigation }: { navigation: any }) {
           {selectedData.events.map((ev, i) => (
             <View key={`event-${i}`} style={styles.eventItem}>
               <Text style={styles.eventText}>
-                {ev.title} \u2014 {ev.startTime} \u00e0s {ev.endTime}
+                {ev.title} \u2014 {ev.startTime} às {ev.endTime}
               </Text>
             </View>
           ))}
