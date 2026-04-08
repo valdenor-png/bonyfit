@@ -78,35 +78,20 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
     <ImageBackground source={bgGym} style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.15 }} resizeMode="center" />
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* ── SECTION 1: Header + Calendário/Agenda buttons ────────────── */}
+      {/* ── SECTION 1: Header + Agenda button ──────────────────────── */}
       <View style={styles.headerRow}>
         <Text style={styles.screenTitle}>Meus Treinos</Text>
 
-        <View style={styles.headerButtons}>
-          {/* Calendário */}
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={() => navigation.navigate('AcademyCalendar')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.headerBtnIcon}>
-              <Text style={{ fontSize: 20 }}>🗓️</Text>
-            </View>
-            <Text style={styles.headerBtnLabel}>Calendário</Text>
-          </TouchableOpacity>
-
-          {/* Agenda */}
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={() => navigation.navigate('Calendar')}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.headerBtnIcon, styles.headerBtnIconActive]}>
-              <Text style={{ fontSize: 20 }}>📅</Text>
-            </View>
-            <Text style={styles.headerBtnLabel}>Agenda</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.headerBtn}
+          onPress={() => navigation.navigate('Calendar')}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.headerBtnIcon, styles.headerBtnIconActive]}>
+            <Text style={{ fontSize: 20 }}>📅</Text>
+          </View>
+          <Text style={styles.headerBtnLabel}>Agenda</Text>
+        </TouchableOpacity>
       </View>
 
       {/* ── VIP Banner ──────────────────────────────────────────────────── */}
