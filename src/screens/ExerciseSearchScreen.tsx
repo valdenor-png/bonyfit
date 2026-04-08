@@ -10,81 +10,57 @@ import {
   StatusBar,
   ActivityIndicator,
   ScrollView,
-  Alert,
+  Image,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+// ─── Types ──────────────────────────────────────────────────────
 
 interface ExerciseItem {
   id: string;
   name: string;
+  name_pt: string | null;
   muscle_group: string;
   equipment: string;
-  secondary_muscles: string | null;
+  equipment_pt: string | null;
+  image_url: string | null;
+  body_part_pt: string | null;
+  target_muscle_pt: string | null;
 }
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
+// ─── Muscle group filters ───────────────────────────────────────
 
 const MUSCLE_GROUPS = [
-  'Todos',
-  'Peito',
-  'Costas',
-  'Ombro',
-  'Bíceps',
-  'Tríceps',
-  'Perna',
-  'Glúteo',
-  'Abdômen',
-  'Cardio',
+  { key: 'all', label: 'Todos' },
+  { key: 'Peito', label: 'Peito' },
+  { key: 'Costas', label: 'Costas' },
+  { key: 'Dorsal', label: 'Dorsal' },
+  { key: 'Ombros', label: 'Ombros' },
+  { key: 'Bíceps', label: 'Bíceps' },
+  { key: 'Tríceps', label: 'Tríceps' },
+  { key: 'Quadríceps', label: 'Quadríceps' },
+  { key: 'Posterior de Coxa', label: 'Posterior' },
+  { key: 'Glúteos', label: 'Glúteos' },
+  { key: 'Panturrilha', label: 'Panturrilha' },
+  { key: 'Abdômen', label: 'Abdômen' },
+  { key: 'Antebraço', label: 'Antebraço' },
+  { key: 'Trapézio', label: 'Trapézio' },
 ];
 
-// ---------------------------------------------------------------------------
-// Mock exercises (fallback when Supabase is unavailable)
-// ---------------------------------------------------------------------------
+// ─── Component ──────────────────────────────────────────────────
 
-const MOCK_EXERCISES: ExerciseItem[] = [
-  { id: '1', name: 'Supino Reto', muscle_group: 'Peito', equipment: 'Barra', secondary_muscles: 'Tríceps, Ombro' },
-  { id: '2', name: 'Supino Inclinado', muscle_group: 'Peito', equipment: 'Halter', secondary_muscles: 'Ombro' },
-  { id: '3', name: 'Crucifixo', muscle_group: 'Peito', equipment: 'Halter', secondary_muscles: null },
-  { id: '4', name: 'Puxada Frontal', muscle_group: 'Costas', equipment: 'Cabo', secondary_muscles: 'Bíceps' },
-  { id: '5', name: 'Remada Curvada', muscle_group: 'Costas', equipment: 'Barra', secondary_muscles: 'Bíceps' },
-  { id: '6', name: 'Remada Unilateral', muscle_group: 'Costas', equipment: 'Halter', secondary_muscles: null },
-  { id: '7', name: 'Desenvolvimento', muscle_group: 'Ombro', equipment: 'Halter', secondary_muscles: 'Tríceps' },
-  { id: '8', name: 'Elevação Lateral', muscle_group: 'Ombro', equipment: 'Halter', secondary_muscles: null },
-  { id: '9', name: 'Rosca Direta', muscle_group: 'Bíceps', equipment: 'Barra', secondary_muscles: null },
-  { id: '10', name: 'Rosca Martelo', muscle_group: 'Bíceps', equipment: 'Halter', secondary_muscles: null },
-  { id: '11', name: 'Tríceps Pulley', muscle_group: 'Tríceps', equipment: 'Cabo', secondary_muscles: null },
-  { id: '12', name: 'Tríceps Francês', muscle_group: 'Tríceps', equipment: 'Halter', secondary_muscles: null },
-  { id: '13', name: 'Agachamento', muscle_group: 'Perna', equipment: 'Barra', secondary_muscles: 'Glúteo' },
-  { id: '14', name: 'Leg Press', muscle_group: 'Perna', equipment: 'Máquina', secondary_muscles: 'Glúteo' },
-  { id: '15', name: 'Cadeira Extensora', muscle_group: 'Perna', equipment: 'Máquina', secondary_muscles: null },
-  { id: '16', name: 'Hip Thrust', muscle_group: 'Glúteo', equipment: 'Barra', secondary_muscles: 'Perna' },
-  { id: '17', name: 'Abdominal Crunch', muscle_group: 'Abdômen', equipment: 'Peso corporal', secondary_muscles: null },
-  { id: '18', name: 'Esteira', muscle_group: 'Cardio', equipment: 'Máquina', secondary_muscles: null },
-];
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
-interface ExerciseSearchScreenProps {
+interface Props {
   navigation?: any;
   route?: any;
 }
 
-export default function ExerciseSearchScreen({ navigation }: ExerciseSearchScreenProps) {
+export default function ExerciseSearchScreen({ navigation }: Props) {
   const [searchText, setSearchText] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState('Todos');
+  const [selectedGroup, setSelectedGroup] = useState('all');
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ---- load exercises ----
   useEffect(() => {
     loadExercises();
   }, []);
@@ -94,74 +70,110 @@ export default function ExerciseSearchScreen({ navigation }: ExerciseSearchScree
     try {
       const { data, error } = await supabase
         .from('exercises')
-        .select('id, name, muscle_group, equipment, secondary_muscles')
+        .select('id, name, name_pt, muscle_group, equipment, equipment_pt, image_url, body_part_pt, target_muscle_pt')
         .order('name');
 
-      if (error || !data || data.length === 0) {
-        setExercises(MOCK_EXERCISES);
-      } else {
+      if (!error && data && data.length > 0) {
         setExercises(data as ExerciseItem[]);
       }
     } catch {
-      setExercises(MOCK_EXERCISES);
+      // keep empty
     } finally {
       setLoading(false);
     }
   };
 
-  // ---- filtering ----
+  // ── Filtering ──────────────────────────────────────────────────
   const filteredExercises = exercises.filter((ex) => {
+    const displayName = ex.name_pt || ex.name;
     const matchesSearch =
       searchText.length === 0 ||
+      displayName.toLowerCase().includes(searchText.toLowerCase()) ||
       ex.name.toLowerCase().includes(searchText.toLowerCase());
     const matchesGroup =
-      selectedGroup === 'Todos' || ex.muscle_group === selectedGroup;
+      selectedGroup === 'all' ||
+      ex.muscle_group === selectedGroup ||
+      ex.body_part_pt === selectedGroup ||
+      ex.target_muscle_pt === selectedGroup;
     return matchesSearch && matchesGroup;
   });
 
-  // ---- handlers ----
+  // ── Handlers ───────────────────────────────────────────────────
   const handleSelectExercise = (exercise: ExerciseItem) => {
-    // If we came from ActiveWorkout, pass exercise back
     if (navigation) {
       navigation.navigate('ActiveWorkout', { addedExercise: exercise });
     }
   };
 
-  const handleBack = () => {
-    if (navigation) navigation.goBack();
+  const handleViewDetail = (exerciseId: string) => {
+    if (navigation) {
+      navigation.navigate('ExerciseDetail', { exerciseId });
+    }
   };
 
-  // ---- render item ----
+  // ── Render item ────────────────────────────────────────────────
   const renderExerciseItem = useCallback(
-    ({ item }: { item: ExerciseItem }) => (
-      <TouchableOpacity style={styles.exerciseItem} onPress={() => handleSelectExercise(item)}>
-        <Text style={styles.exerciseName}>{item.name}</Text>
-        <View style={styles.exerciseMeta}>
-          <Text style={styles.exerciseMuscle}>{item.muscle_group}</Text>
-          <Text style={styles.exerciseEquipment}>{item.equipment}</Text>
-        </View>
-      </TouchableOpacity>
-    ),
+    ({ item }: { item: ExerciseItem }) => {
+      const displayName = item.name_pt || item.name;
+      const musclePt = item.target_muscle_pt || item.body_part_pt || item.muscle_group;
+      const equipPt = item.equipment_pt || item.equipment;
+
+      return (
+        <TouchableOpacity
+          style={styles.exerciseCard}
+          onPress={() => handleSelectExercise(item)}
+          activeOpacity={0.7}
+        >
+          {/* Image */}
+          {item.image_url ? (
+            <Image source={{ uri: item.image_url }} style={styles.exerciseImage} resizeMode="cover" />
+          ) : (
+            <View style={styles.exercisePlaceholder}>
+              <Text style={styles.exercisePlaceholderText}>{'\u{1F3CB}\u{FE0F}'}</Text>
+            </View>
+          )}
+
+          {/* Info */}
+          <View style={styles.exerciseInfo}>
+            <Text style={styles.exerciseName} numberOfLines={2}>{displayName}</Text>
+            <View style={styles.exerciseTags}>
+              {musclePt ? (
+                <View style={styles.tag}>
+                  <Text style={styles.tagText}>{musclePt}</Text>
+                </View>
+              ) : null}
+              {equipPt ? (
+                <View style={styles.tagSecondary}>
+                  <Text style={styles.tagSecondaryText}>{equipPt}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+
+          {/* Info button */}
+          <TouchableOpacity
+            style={styles.infoBtn}
+            onPress={() => handleViewDetail(item.id)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.infoBtnText}>{'\u{2139}\u{FE0F}'}</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      );
+    },
     [],
   );
 
-  const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>Nenhum exercício encontrado</Text>
-    </View>
-  );
-
-  // ---- main render ----
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Text style={styles.backText}>← Voltar</Text>
+        <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backButton}>
+          <Text style={styles.backText}>{'\u2190'}</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Buscar Exercício</Text>
+        <Text style={styles.headerTitle}>Exercícios</Text>
         <View style={styles.backButton} />
       </View>
 
@@ -171,8 +183,8 @@ export default function ExerciseSearchScreen({ navigation }: ExerciseSearchScree
           style={styles.searchInput}
           value={searchText}
           onChangeText={setSearchText}
-          placeholder="🔍 Buscar exercício..."
-          placeholderTextColor={colors.textMuted}
+          placeholder="Buscar exercício..."
+          placeholderTextColor="#666666"
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -186,20 +198,25 @@ export default function ExerciseSearchScreen({ navigation }: ExerciseSearchScree
         contentContainerStyle={styles.chipsContent}
       >
         {MUSCLE_GROUPS.map((group) => {
-          const isSelected = selectedGroup === group;
+          const isSelected = selectedGroup === group.key;
           return (
             <TouchableOpacity
-              key={group}
+              key={group.key}
               style={[styles.chip, isSelected && styles.chipSelected]}
-              onPress={() => setSelectedGroup(group)}
+              onPress={() => setSelectedGroup(group.key)}
             >
               <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                {group}
+                {group.label}
               </Text>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
+
+      {/* Count */}
+      <Text style={styles.countText}>
+        {filteredExercises.length} exercício{filteredExercises.length !== 1 ? 's' : ''}
+      </Text>
 
       {/* Exercise list */}
       {loading ? (
@@ -211,23 +228,21 @@ export default function ExerciseSearchScreen({ navigation }: ExerciseSearchScree
           data={filteredExercises}
           keyExtractor={(item) => item.id}
           renderItem={renderExerciseItem}
-          ListEmptyComponent={renderEmpty}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyEmoji}>{'\u{1F50D}'}</Text>
+              <Text style={styles.emptyText}>Nenhum exercício encontrado</Text>
+            </View>
+          }
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
       )}
-
-      {/* Create custom exercise */}
-      <TouchableOpacity style={styles.createButton} onPress={() => Alert.alert('Criar exercício', 'Funcionalidade em desenvolvimento.')}>
-        <Text style={styles.createButtonText}>Criar exercício personalizado</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
+// ─── Styles ─────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {
@@ -235,23 +250,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
 
-  // ---- header ----
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   backButton: {
-    width: 70,
+    width: 40,
   },
   backText: {
-    color: colors.orange,
-    fontFamily: fonts.bodyBold,
-    fontSize: 14,
+    color: colors.text,
+    fontSize: 22,
   },
   headerTitle: {
     color: colors.text,
@@ -260,115 +274,161 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ---- search ----
+  // Search
   searchContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   searchInput: {
     backgroundColor: '#1A1A1A',
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     color: colors.text,
     fontFamily: fonts.body,
-    fontSize: 15,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
   },
 
-  // ---- chips ----
+  // Chips
   chipsScroll: {
     maxHeight: 48,
   },
   chipsContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-    gap: spacing.sm,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    gap: 6,
     flexDirection: 'row',
   },
   chip: {
     backgroundColor: '#1A1A1A',
     borderWidth: 1,
-    borderColor: '#333333',
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    marginRight: spacing.sm,
+    borderColor: '#2A2A2A',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   chipSelected: {
     backgroundColor: colors.orange,
     borderColor: colors.orange,
   },
   chipText: {
-    color: colors.textSecondary,
-    fontFamily: fonts.bodyBold,
+    color: '#999999',
+    fontFamily: fonts.bodyMedium,
     fontSize: 13,
   },
   chipTextSelected: {
-    color: colors.text,
+    color: '#FFFFFF',
   },
 
-  // ---- list ----
-  listContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: 80,
+  // Count
+  countText: {
+    color: '#666666',
+    fontFamily: fonts.body,
+    fontSize: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
   },
-  exerciseItem: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.04)',
+
+  // List
+  listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
+
+  // Exercise card
+  exerciseCard: {
+    flexDirection: 'row',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    marginBottom: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+    alignItems: 'center',
+  },
+  exerciseImage: {
+    width: 72,
+    height: 72,
+  },
+  exercisePlaceholder: {
+    width: 72,
+    height: 72,
+    backgroundColor: '#2A2A2A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  exercisePlaceholderText: {
+    fontSize: 24,
+  },
+  exerciseInfo: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
   },
   exerciseName: {
-    color: colors.text,
-    fontFamily: fonts.body,
+    color: '#FFFFFF',
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
+    marginBottom: 6,
   },
-  exerciseMeta: {
+  exerciseTags: {
     flexDirection: 'row',
-    marginTop: 4,
-    gap: spacing.md,
+    gap: 6,
+    flexWrap: 'wrap',
   },
-  exerciseMuscle: {
-    color: colors.textMuted,
-    fontFamily: fonts.body,
-    fontSize: 12,
+  tag: {
+    backgroundColor: 'rgba(242,101,34,0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  exerciseEquipment: {
-    color: colors.textSecondary,
-    fontFamily: fonts.body,
-    fontSize: 12,
+  tagText: {
+    color: colors.orange,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+  },
+  tagSecondary: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  tagSecondaryText: {
+    color: '#888888',
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+  },
+  infoBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  infoBtnText: {
+    fontSize: 18,
   },
 
-  // ---- empty ----
+  // Empty
   emptyContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
   },
+  emptyEmoji: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
   emptyText: {
-    color: colors.textMuted,
+    color: '#666666',
     fontFamily: fonts.body,
-    fontSize: 15,
+    fontSize: 14,
   },
 
-  // ---- loading ----
+  // Loading
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  // ---- create ----
-  createButton: {
-    paddingVertical: spacing.lg,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-  },
-  createButtonText: {
-    color: colors.orange,
-    fontFamily: fonts.bodyBold,
-    fontSize: 14,
   },
 });

@@ -70,6 +70,7 @@ import EscolherPersonalScreen from '../screens/EscolherPersonalScreen';
 import ListaPersonaisScreen from '../screens/ListaPersonaisScreen';
 import AgendarAvaliacaoScreen from '../screens/AgendarAvaliacaoScreen';
 import ProgressaoCargaScreen from '../screens/ProgressaoCargaScreen';
+import ExerciseDetailScreen from '../screens/ExerciseDetailScreen';
 import EditarPerfilScreen from '../screens/EditarPerfilScreen';
 import FollowersListScreen from '../screens/FollowersListScreen';
 
@@ -176,6 +177,7 @@ function TreinoNavigator() {
         }}
       />
       <TreinoStack.Screen name="ExerciseSearch" component={ExerciseSearchScreen} options={{ title: 'Exercícios' }} />
+      <TreinoStack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} options={{ headerShown: false }} />
       <TreinoStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
       <TreinoStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Agenda' }} />
       <TreinoStack.Screen name="ProgressaoCarga" component={ProgressaoCargaScreen} options={{ title: 'Progressão de Carga' }} />
