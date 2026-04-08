@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Modal,
   Pressable,
 } from 'react-native';
+import CrossPlatformModal from './ui/CrossPlatformModal';
 import { colors, fonts, spacing } from '../tokens';
 
 // ─── Reactions ─────────────────────────────────────────────────
@@ -72,7 +72,7 @@ export default function ReactionPicker({
   if (!visible) return null;
 
   return (
-    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+    <CrossPlatformModal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <View style={styles.container}>
           {REACTIONS.map((emoji, index) => (
@@ -86,7 +86,7 @@ export default function ReactionPicker({
           ))}
         </View>
       </Pressable>
-    </Modal>
+    </CrossPlatformModal>
   );
 }
 

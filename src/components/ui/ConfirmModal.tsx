@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Modal,
   Animated,
 } from 'react-native';
+import CrossPlatformModal from './CrossPlatformModal';
 import { fonts } from '../../tokens';
 
 // ─── Types ────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ export default function ConfirmModal({
   const showCancel = cancelLabel !== '';
 
   return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent>
+    <CrossPlatformModal visible={visible} transparent animationType="none" statusBarTranslucent>
       <TouchableWithoutFeedback onPress={handleCancel}>
         <Animated.View style={[styles.overlay, { opacity: overlayAnim }]}>
           <TouchableWithoutFeedback onPress={() => {}}>
@@ -163,7 +163,7 @@ export default function ConfirmModal({
           </TouchableWithoutFeedback>
         </Animated.View>
       </TouchableWithoutFeedback>
-    </Modal>
+    </CrossPlatformModal>
   );
 }
 

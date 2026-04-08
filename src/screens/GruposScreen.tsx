@@ -5,9 +5,9 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Modal,
   TextInput,
 } from 'react-native';
+import CrossPlatformModal from '../components/ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { Group } from '../types/social';
 
@@ -158,7 +158,7 @@ export default function GruposScreen({ navigation }: Props) {
       />
 
       {/* Create Group Modal */}
-      <Modal visible={showCreateModal} transparent animationType="slide">
+      <CrossPlatformModal visible={showCreateModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Criar grupo</Text>
@@ -219,7 +219,7 @@ export default function GruposScreen({ navigation }: Props) {
             </View>
           </View>
         </View>
-      </Modal>
+      </CrossPlatformModal>
     </View>
   );
 }

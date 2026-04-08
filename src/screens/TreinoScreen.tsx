@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Modal,
   Animated,
   FlatList,
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import CrossPlatformModal from '../components/ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
 import ProgressRing from '../components/ProgressRing';
@@ -543,7 +543,7 @@ export default function TreinoScreen() {
         </ScrollView>
 
         {/* Substitution Modal */}
-        <Modal visible={showSubstitutionModal} transparent animationType="slide">
+        <CrossPlatformModal visible={showSubstitutionModal} transparent animationType="slide">
           <View style={styles.modalOverlay}>
             <View style={styles.substitutionModalCard}>
               <Text style={styles.substitutionTitle}>Substituir exercício</Text>
@@ -573,7 +573,7 @@ export default function TreinoScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </Modal>
+        </CrossPlatformModal>
       </View>
     );
   }
@@ -638,7 +638,7 @@ export default function TreinoScreen() {
       </ScrollView>
 
       {/* End modal */}
-      <Modal visible={showEndModal} transparent animationType="fade">
+      <CrossPlatformModal visible={showEndModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Skull size={40} color={colors.orange} />
@@ -655,7 +655,7 @@ export default function TreinoScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      </CrossPlatformModal>
     </View>
   );
 }

@@ -5,11 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Modal,
   Animated,
   TextInput,
   KeyboardTypeOptions,
 } from 'react-native';
+import CrossPlatformModal from './CrossPlatformModal';
 import { fonts } from '../../tokens';
 
 // ─── Types ────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ export default function PromptModal({
   const handleConfirm = () => animateClose(() => onConfirm(value));
 
   return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent>
+    <CrossPlatformModal visible={visible} transparent animationType="none" statusBarTranslucent>
       <TouchableWithoutFeedback onPress={handleCancel}>
         <Animated.View style={[styles.overlay, { opacity: overlayAnim }]}>
           <TouchableWithoutFeedback onPress={() => {}}>
@@ -149,7 +149,7 @@ export default function PromptModal({
           </TouchableWithoutFeedback>
         </Animated.View>
       </TouchableWithoutFeedback>
-    </Modal>
+    </CrossPlatformModal>
   );
 }
 

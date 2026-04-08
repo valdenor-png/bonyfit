@@ -5,9 +5,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Modal,
   Alert,
 } from 'react-native';
+import CrossPlatformModal from '../components/ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Button from '../components/Button';
 import { getLevel } from '../types/user';
@@ -152,7 +152,7 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
       </ScrollView>
 
       {/* Menu Modal */}
-      <Modal visible={showMenu} transparent animationType="fade">
+      <CrossPlatformModal visible={showMenu} transparent animationType="fade">
         <TouchableOpacity
           style={styles.menuOverlay}
           activeOpacity={1}
@@ -173,7 +173,7 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
-      </Modal>
+      </CrossPlatformModal>
     </View>
   );
 }

@@ -4,13 +4,13 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  Modal,
   TextInput,
   ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import CrossPlatformModal from '../components/ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Button from '../components/Button';
 
@@ -300,7 +300,7 @@ export default function MeasurementsScreen() {
       />
 
       {/* Form Modal */}
-      <Modal
+      <CrossPlatformModal
         visible={modalVisible}
         animationType="slide"
         transparent
@@ -342,7 +342,7 @@ export default function MeasurementsScreen() {
             </ScrollView>
           </KeyboardAvoidingView>
         </View>
-      </Modal>
+      </CrossPlatformModal>
     </View>
   );
 }

@@ -2,11 +2,11 @@ import React from 'react';
 import {
   View,
   Text,
-  Modal,
   TouchableOpacity,
   StyleSheet,
   Pressable,
 } from 'react-native';
+import CrossPlatformModal from '../ui/CrossPlatformModal';
 import { fonts } from '../../tokens';
 
 interface SetTypeModalProps {
@@ -27,7 +27,7 @@ const TYPE_OPTIONS: Array<{ key: string; name: string; color: string }> = [
 
 export default function SetTypeModal({ visible, currentType, setNumber, onSelect, onClose }: SetTypeModalProps) {
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <CrossPlatformModal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <View />
       </Pressable>
@@ -55,7 +55,7 @@ export default function SetTypeModal({ visible, currentType, setNumber, onSelect
           <Text style={styles.cancelText}>Cancelar</Text>
         </TouchableOpacity>
       </View>
-    </Modal>
+    </CrossPlatformModal>
   );
 }
 

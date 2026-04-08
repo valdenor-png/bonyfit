@@ -3,10 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native';
+import CrossPlatformModal from './ui/CrossPlatformModal';
 import { colors, fonts } from '../tokens';
 
 interface RepostModalProps {
@@ -44,7 +44,7 @@ export default function RepostModal({
   onShareExternal,
 }: RepostModalProps) {
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <CrossPlatformModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
@@ -79,7 +79,7 @@ export default function RepostModal({
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
-    </Modal>
+    </CrossPlatformModal>
   );
 }
 

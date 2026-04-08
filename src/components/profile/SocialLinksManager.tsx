@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
   TouchableOpacity,
   TextInput,
   ScrollView,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import CrossPlatformModal from '../ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../../tokens';
 import { supabase } from '../../services/supabase';
 import { SOCIAL_NETWORKS, SocialNetwork } from '../../constants/socialNetworks';
@@ -260,7 +260,7 @@ export default function SocialLinksManager({ visible, onClose, userId }: Props) 
   );
 
   return (
-    <Modal
+    <CrossPlatformModal
       visible={visible}
       animationType="slide"
       transparent
@@ -273,7 +273,7 @@ export default function SocialLinksManager({ visible, onClose, userId }: Props) 
           {step === 'input' && renderInput()}
         </View>
       </View>
-    </Modal>
+    </CrossPlatformModal>
   );
 }
 

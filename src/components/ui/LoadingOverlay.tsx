@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import CrossPlatformModal from './CrossPlatformModal';
 import { fonts } from '../../tokens';
 
 // ─── Types ────────────────────────────────────────────────────
@@ -40,12 +41,12 @@ export default function LoadingOverlay({ visible, message = 'Carregando...' }: L
   });
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
+    <CrossPlatformModal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <View style={styles.overlay}>
         <Animated.View style={[styles.spinner, { transform: [{ rotate: spin }] }]} />
         <Text style={styles.message}>{message}</Text>
       </View>
-    </Modal>
+    </CrossPlatformModal>
   );
 }
 

@@ -6,10 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Modal,
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import CrossPlatformModal from '../components/ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Button from '../components/Button';
 
@@ -237,7 +237,7 @@ export default function SuporteScreen() {
       </ScrollView>
 
       {/* Contact Form Modal */}
-      <Modal
+      <CrossPlatformModal
         visible={contactModalVisible}
         animationType="slide"
         transparent
@@ -282,7 +282,7 @@ export default function SuporteScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      </CrossPlatformModal>
     </SafeAreaView>
   );
 }

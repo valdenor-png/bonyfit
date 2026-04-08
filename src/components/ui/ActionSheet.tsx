@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Modal,
   Animated,
   Dimensions,
 } from 'react-native';
+import CrossPlatformModal from './CrossPlatformModal';
 import { fonts } from '../../tokens';
 
 // ─── Types ────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ export default function ActionSheet({ visible, options, onSelect, onCancel }: Ac
   };
 
   return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent>
+    <CrossPlatformModal visible={visible} transparent animationType="none" statusBarTranslucent>
       <TouchableWithoutFeedback onPress={handleCancel}>
         <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
           <TouchableWithoutFeedback onPress={() => {}}>
@@ -121,7 +121,7 @@ export default function ActionSheet({ visible, options, onSelect, onCancel }: Ac
           </TouchableWithoutFeedback>
         </Animated.View>
       </TouchableWithoutFeedback>
-    </Modal>
+    </CrossPlatformModal>
   );
 }
 

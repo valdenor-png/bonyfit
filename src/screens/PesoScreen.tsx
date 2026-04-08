@@ -5,9 +5,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Modal,
   TextInput,
 } from 'react-native';
+import CrossPlatformModal from '../components/ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../tokens';
 
 interface Props {
@@ -175,7 +175,7 @@ export default function PesoScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* Modal */}
-      <Modal
+      <CrossPlatformModal
         visible={modalVisible}
         transparent
         animationType="fade"
@@ -209,7 +209,7 @@ export default function PesoScreen({ navigation }: Props) {
             </View>
           </View>
         </View>
-      </Modal>
+      </CrossPlatformModal>
     </View>
   );
 }
