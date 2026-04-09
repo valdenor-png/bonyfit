@@ -42,7 +42,7 @@ export function useFeedPosts({ tab, unitId, userId }: UseFeedPostsOptions) {
           id, text, image_url, post_type, metadata,
           likes_count, comments_count, view_count,
           created_at, user_id,
-          users!posts_user_id_fkey (id, name, username, level, unit_id, avatar_url)
+          users (id, name, username, level, unit_id, avatar_url)
         `)
         .order('created_at', { ascending: false })
         .limit(30);
