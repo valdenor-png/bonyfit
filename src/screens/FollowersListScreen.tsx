@@ -70,13 +70,15 @@ export default function FollowersListScreen({ navigation, route }: Props) {
         query = supabase
           .from('follows')
           .select('follower_id, follower:follower_id(id, name, avatar_url, level)')
-          .eq('following_id', userId);
+          .eq('following_id', userId)
+          .limit(500);
       } else {
         // People userId follows
         query = supabase
           .from('follows')
           .select('following_id, following:following_id(id, name, avatar_url, level)')
-          .eq('follower_id', userId);
+          .eq('follower_id', userId)
+          .limit(500);
       }
 
       const { data, error } = await query;

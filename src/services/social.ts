@@ -132,7 +132,8 @@ export async function getComments(postId: string): Promise<PostComment[]> {
     .from('post_comments')
     .select('*')
     .eq('post_id', postId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .limit(200);
 
   if (error) throw error;
   return (data ?? []) as PostComment[];

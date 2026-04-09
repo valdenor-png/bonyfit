@@ -45,14 +45,17 @@ export default function HomeScreen({ navigation, route }: Props) {
     ]).start();
 
     // Streak pulse
+    let streakAnim: Animated.CompositeAnimation | null = null;
     if (user && (user.current_streak ?? user.streak ?? 0) > 0) {
-      Animated.loop(
+      streakAnim = Animated.loop(
         Animated.sequence([
           Animated.timing(streakScale, { toValue: 1.1, duration: 600, useNativeDriver: true }),
           Animated.timing(streakScale, { toValue: 1.0, duration: 600, useNativeDriver: true }),
         ])
-      ).start();
+      );
+      streakAnim.start();
     }
+    return () => streakAnim?.stop();
   }, [user?.id]);
 
   // ── Data ───────────────────────────────────────────────────

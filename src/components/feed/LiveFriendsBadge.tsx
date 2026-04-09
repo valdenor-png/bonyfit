@@ -9,22 +9,15 @@ export default function LiveFriendsBadge({ count }: Props) {
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (count > 0) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(opacity, {
-            toValue: 0.4,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(opacity, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
+    if (count <= 0) return;
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.4, duration: 1000, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 1000, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
   }, [count]);
 
   if (count === 0) return null;

@@ -52,12 +52,14 @@ export function useFeedPosts({ tab, unitId, userId }: UseFeedPostsOptions) {
         const { data: following } = await supabase
           .from('follows')
           .select('following_id')
-          .eq('follower_id', userId);
+          .eq('follower_id', userId)
+          .limit(1000);
 
         const { data: followers } = await supabase
           .from('follows')
           .select('follower_id')
-          .eq('following_id', userId);
+          .eq('following_id', userId)
+          .limit(1000);
 
         const followingIds = new Set((following || []).map((f) => f.following_id));
         const mutualIds = (followers || [])

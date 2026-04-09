@@ -44,7 +44,8 @@ export default function ChatScreen({ navigation, route }: Props) {
           .or(
             `and(sender_id.eq.${myId},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${myId})`
           )
-          .order('created_at', { ascending: true });
+          .order('created_at', { ascending: true })
+          .limit(100);
 
         if (error) {
           console.error('Error loading messages:', error);

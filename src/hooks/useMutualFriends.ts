@@ -25,7 +25,8 @@ export function useMutualFriends(userId?: string) {
       const { data: following, error: e1 } = await supabase
         .from('follows')
         .select('following_id')
-        .eq('follower_id', userId);
+        .eq('follower_id', userId)
+        .limit(1000);
       if (e1) throw e1;
 
       const followingIds = (following || []).map((f) => f.following_id);

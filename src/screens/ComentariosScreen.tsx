@@ -111,7 +111,8 @@ export default function ComentariosScreen({ navigation, route }: Props) {
         .from('post_comments')
         .select('id, text, created_at, user_id, users!user_id(id, name, level, avatar_url)')
         .eq('post_id', postId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .limit(200);
 
       if (error) throw error;
 

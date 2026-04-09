@@ -21,22 +21,15 @@ export default function StoryAvatar({
   const pulseOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (isTraining) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseOpacity, {
-            toValue: 0.4,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseOpacity, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
+    if (!isTraining) return;
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseOpacity, { toValue: 0.4, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseOpacity, { toValue: 1, duration: 1000, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
   }, [isTraining]);
 
   if (isAddStory) {

@@ -35,13 +35,13 @@ export function useLiveFriends(userId?: string) {
     };
   }, [userId, queryClient]);
 
-  // Derive count from mutual friends data
+  // Derive count from mutual friends data (re-check when query cache changes)
+  const mutualData = queryClient.getQueryData<any[]>(['mutual-friends', userId]);
+  const derivedCount = mutualData?.filter((f: any) => f.isTraining).length ?? 0;
+
   useEffect(() => {
-    const data = queryClient.getQueryData<any[]>(['mutual-friends', userId]);
-    if (data) {
-      setLiveCount(data.filter((f: any) => f.isTraining).length);
-    }
-  });
+    setLiveCount(derivedCount);
+  }, [derivedCount]);
 
   return liveCount;
 }

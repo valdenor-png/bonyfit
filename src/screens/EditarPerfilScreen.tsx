@@ -98,6 +98,12 @@ export default function EditarPerfilScreen({ navigation }: Props) {
       const response = await fetch(asset.uri);
       const blob = await response.blob();
 
+      if (blob.size > 5 * 1024 * 1024) {
+        Alert.alert('Arquivo muito grande', 'A imagem deve ter no máximo 5MB.');
+        setUploading(false);
+        return;
+      }
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, blob, {

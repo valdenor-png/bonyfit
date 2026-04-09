@@ -87,6 +87,12 @@ export default function CriarPostScreen({ navigation }: Props) {
         const response = await fetch(selectedImage);
         const blob = await response.blob();
 
+        if (blob.size > 10 * 1024 * 1024) {
+          Alert.alert('Arquivo muito grande', 'A imagem deve ter no máximo 10MB.');
+          setPublishing(false);
+          return;
+        }
+
         const { error: uploadError } = await supabase.storage
           .from('posts')
           .upload(fileName, blob, { contentType: 'image/jpeg' });
