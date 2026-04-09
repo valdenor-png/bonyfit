@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
 import Skull from '../components/Skull';
 import ScreenBackground from '../components/ScreenBackground';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 
@@ -56,9 +57,11 @@ export default function RankingScreen() {
   const [myPosition, setMyPosition] = useState(MOCK_MY_STATS.position);
   const [totalUsers, setTotalUsers] = useState(MOCK_MY_STATS.totalUsers);
 
-  useEffect(() => {
-    loadRanking();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadRanking();
+    }, [])
+  );
 
   async function loadRanking() {
     setLoading(true);

@@ -72,8 +72,13 @@ function Avatar({ uri, size = 40 }: { uri: string | null; size?: number }) {
 
 export default function GestaoSalaoScreen() {
   const navigation = useNavigation<any>();
-  const { user } = useAuth();
-  const { solicitacoesPendentes, avaliacoesPendentes, personaisDaUnidade, escolhasRecentes, loading, fetchAll } = useSupervisorStore();
+  const user = useAuth((s) => s.user);
+  const solicitacoesPendentes = useSupervisorStore((s) => s.solicitacoesPendentes);
+  const avaliacoesPendentes = useSupervisorStore((s) => s.avaliacoesPendentes);
+  const personaisDaUnidade = useSupervisorStore((s) => s.personaisDaUnidade);
+  const escolhasRecentes = useSupervisorStore((s) => s.escolhasRecentes);
+  const loading = useSupervisorStore((s) => s.loading);
+  const fetchAll = useSupervisorStore((s) => s.fetchAll);
 
   const unitId = (user as any)?.unit_id;
 

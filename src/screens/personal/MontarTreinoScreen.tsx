@@ -370,7 +370,7 @@ export default function MontarTreinoScreen({ route, navigation }: { route: any; 
                       updateExercise(activeSplitIndex, exIdx, 'repeticoes', val)
                     }
                     placeholderTextColor={colors.textMuted}
-                    keyboardType="default"
+                    keyboardType="number-pad"
                   />
                 </View>
 

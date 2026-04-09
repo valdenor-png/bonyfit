@@ -104,7 +104,8 @@ export default function HomeScreen({ navigation, route }: Props) {
     );
   }
 
-  const firstName = user.name?.split(' ')[0] ?? 'Aluno';
+  const rawFirst = user.name?.split(' ')[0] ?? 'Aluno';
+  const firstName = rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1).toLowerCase();
   const userPoints = user.total_points ?? user.points ?? 0;
   const userStreak = user.current_streak ?? user.streak ?? 0;
   const userLevel = user.level ?? 'Bronze';
@@ -146,7 +147,7 @@ export default function HomeScreen({ navigation, route }: Props) {
 
       {/* ── XP Ring ────────────────────────────────────── */}
       <View style={{ alignItems: 'center', marginBottom: 20 }}>
-        <XPRing points={userPoints} size={100} strokeWidth={6} />
+        <XPRing points={userPoints} size={120} strokeWidth={8} />
       </View>
 
       {/* ── Stats Row (glassmorphism + animated numbers) ──── */}
@@ -330,6 +331,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.md,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   statValue: {
     fontSize: 16,

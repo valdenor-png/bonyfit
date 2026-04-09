@@ -11,6 +11,7 @@ import {
   Share,
   ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import ScreenBackground from '../components/ScreenBackground';
 import { useAuth } from '../hooks/useAuth';
@@ -107,9 +108,11 @@ export default function ProfileScreen({ navigation }: Props) {
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    loadCounts();
-  }, [loadCounts]);
+  useFocusEffect(
+    useCallback(() => {
+      loadCounts();
+    }, [loadCounts])
+  );
 
   // ── Share handler ───────────────────────────────────────────
   const handleShare = async () => {

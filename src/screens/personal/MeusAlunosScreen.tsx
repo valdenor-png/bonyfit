@@ -87,8 +87,10 @@ function diasAtras(dateStr: string | null | undefined): string {
 // ─── Component ──────────────────────────────────────────────────────────────────
 
 export default function MeusAlunosScreen({ navigation }: { navigation: any }) {
-  const { user } = useAuth();
-  const { alunos, loading, fetchAlunos } = usePersonalStore();
+  const user = useAuth((s) => s.user);
+  const alunos = usePersonalStore((s) => s.alunos);
+  const loading = usePersonalStore((s) => s.loading);
+  const fetchAlunos = usePersonalStore((s) => s.fetchAlunos);
   const [search, setSearch] = useState('');
   const [useMock, setUseMock] = useState(false);
 

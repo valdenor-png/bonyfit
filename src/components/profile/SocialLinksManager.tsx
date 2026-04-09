@@ -104,11 +104,19 @@ export default function SocialLinksManager({ visible, onClose, userId }: Props) 
     setStep('input');
   };
 
+  const isValidUrl = (url: string) => {
+    try { new URL(url); return true; } catch { return false; }
+  };
+
   const handleSaveLink = async () => {
     if (!selectedNetwork) return;
     const trimmed = urlInput.trim();
     if (!trimmed) {
       Alert.alert('Erro', 'Insira a URL do seu perfil.');
+      return;
+    }
+    if (!isValidUrl(trimmed)) {
+      Alert.alert('URL inválida', 'Insira uma URL válida (ex: https://instagram.com/seu_perfil)');
       return;
     }
 

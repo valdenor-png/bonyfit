@@ -165,15 +165,16 @@ export default function AnamneseScreen({ navigation }: Props) {
               )}
             </View>
             <View style={styles.questionCard}>
-              <Text style={styles.questionLabel}>Observacoes</Text>
+              <Text style={styles.questionLabel}>Observações</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Descreva observacoes adicionais..."
+                placeholder="Descreva observações adicionais..."
                 placeholderTextColor={colors.textMuted}
                 multiline
                 numberOfLines={4}
                 value={observations}
                 onChangeText={setObservations}
+                maxLength={2000}
               />
             </View>
           </View>

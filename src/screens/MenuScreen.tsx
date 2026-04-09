@@ -85,8 +85,11 @@ const SECTIONS: { title: string; items: MenuItem[] }[] = [
 ];
 
 export default function MenuScreen({ navigation }: Props) {
-  const { currentMode, toggleMode } = useModeStore();
-  const { user, podeTrocarModo, cargoSlug } = useAuth();
+  const currentMode = useModeStore((s) => s.currentMode);
+  const toggleMode = useModeStore((s) => s.toggleMode);
+  const user = useAuth((s) => s.user);
+  const podeTrocarModo = useAuth((s) => s.podeTrocarModo);
+  const cargoSlug = useAuth((s) => s.cargoSlug);
   const { isVip } = useVip(user?.id);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;

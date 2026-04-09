@@ -69,7 +69,7 @@ export default function StoriesScreen({ navigation, route }: Props) {
       const p = Math.min(elapsed / STORY_DURATION, 1);
       setProgress(p);
       if (p >= 1) { clearTimer(); navigation.goBack(); }
-    }, 50);
+    }, 100);
 
     return clearTimer;
   }, [loading, paused, clearTimer]);
