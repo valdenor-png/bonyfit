@@ -182,7 +182,7 @@ DECLARE
   novo_codigo TEXT;
 BEGIN
   SELECT id INTO aluno_cargo_id FROM cargos WHERE slug = 'aluno' LIMIT 1;
-  novo_codigo := 'BONY-' || UPPER(SUBSTR(MD5(RANDOM()::TEXT), 1, 6));
+  novo_codigo := 'BONY-' || UPPER(SUBSTR(REPLACE(gen_random_uuid()::TEXT, '-', ''), 1, 8));
 
   INSERT INTO public.users (
     id, name, email, cpf, cargo_id, cargo_slug, level,

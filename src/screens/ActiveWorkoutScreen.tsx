@@ -144,20 +144,24 @@ export default function ActiveWorkoutScreen() {
 
   // ─── Set actions ────────────────────────────────────────────
   const updateWeight = (exId: string, setIdx: number, val: string) => {
+    const parsed = parseFloat(val);
+    const weight = isNaN(parsed) ? null : Math.min(Math.max(parsed, 0), 500);
     setExercises((prev) =>
       prev.map((ex) =>
         ex.id === exId
-          ? { ...ex, sets: ex.sets.map((s, i) => (i === setIdx ? { ...s, weight: parseFloat(val) || null } : s)) }
+          ? { ...ex, sets: ex.sets.map((s, i) => (i === setIdx ? { ...s, weight } : s)) }
           : ex
       )
     );
   };
 
   const updateReps = (exId: string, setIdx: number, val: string) => {
+    const parsed = parseInt(val);
+    const reps = isNaN(parsed) ? null : Math.min(Math.max(parsed, 0), 100);
     setExercises((prev) =>
       prev.map((ex) =>
         ex.id === exId
-          ? { ...ex, sets: ex.sets.map((s, i) => (i === setIdx ? { ...s, reps: parseInt(val) || null } : s)) }
+          ? { ...ex, sets: ex.sets.map((s, i) => (i === setIdx ? { ...s, reps } : s)) }
           : ex
       )
     );

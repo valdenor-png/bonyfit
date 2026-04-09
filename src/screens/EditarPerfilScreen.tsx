@@ -93,7 +93,9 @@ export default function EditarPerfilScreen({ navigation }: Props) {
     if (!user?.id) return;
     setUploading(true);
     try {
-      const ext = asset.uri.split('.').pop() || 'jpg';
+      const rawExt = (asset.uri.split('.').pop() || 'jpg').toLowerCase();
+      const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp'];
+      const ext = ALLOWED_EXTS.includes(rawExt) ? rawExt : 'jpg';
       const fileName = `${user.id}-${Date.now()}.${ext}`;
       const response = await fetch(asset.uri);
       const blob = await response.blob();
@@ -104,12 +106,13 @@ export default function EditarPerfilScreen({ navigation }: Props) {
         return;
       }
 
+      const MIME_MAP: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, blob, {
           cacheControl: '3600',
           upsert: true,
-          contentType: `image/${ext}`,
+          contentType: MIME_MAP[ext],
         });
 
       if (uploadError) throw uploadError;
@@ -230,6 +233,7 @@ export default function EditarPerfilScreen({ navigation }: Props) {
           placeholder="Seu nome"
           placeholderTextColor={colors.textMuted}
           autoCapitalize="words"
+          maxLength={80}
         />
 
         {/* ── Bio ─────────────────────────────────────────── */}

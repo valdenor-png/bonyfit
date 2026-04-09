@@ -170,13 +170,14 @@ export default function CriarPostScreen({ navigation }: Props) {
           {/* Text Input */}
           <TextInput
             style={styles.textInput}
-            placeholder="No que voce ta pensando?"
+            placeholder="No que você tá pensando?"
             placeholderTextColor={colors.textMuted}
             value={text}
             onChangeText={setText}
             multiline
             autoFocus
             textAlignVertical="top"
+            maxLength={2000}
           />
 
           {/* Image Preview */}

@@ -189,6 +189,7 @@ export default function ChatScreen({ navigation, route }: Props) {
             placeholderTextColor={colors.textMuted}
             returnKeyType="send"
             onSubmitEditing={handleSend}
+            maxLength={2000}
           />
           <TouchableOpacity
             style={[styles.sendBtn, !text.trim() && styles.sendBtnDisabled]}
