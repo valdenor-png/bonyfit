@@ -18,6 +18,7 @@ import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 import SocialIconsBar from '../components/profile/SocialIconsBar';
 import { getLevelColor, getLevelIcon } from '../constants/levels';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_GAP = 2;
@@ -214,7 +215,7 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
       {/* ── Header: back + username + menu ─────────────────── */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Text style={styles.backArrow}>{'\u2190'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>{username || name}</Text>
         <TouchableOpacity onPress={() => setShowMenu(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>

@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   navigation: any;
@@ -238,7 +239,7 @@ export default function AvaliacaoFisicaScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>{'<'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Avaliacao Fisica</Text>
         <View style={{ width: 32 }} />

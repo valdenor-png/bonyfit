@@ -16,6 +16,7 @@ import { colors, fonts, spacing, radius } from '../tokens';
 import { useAuth } from '../hooks/useAuth';
 import { useMessagesStore } from '../stores/messagesStore';
 import { getLevelColor } from '../constants/levels';
+import { Ionicons } from '@expo/vector-icons';
 
 // ─── Online status mock ─────────────────────────────────────────
 const ONLINE_USERS = new Set(['u1', 'u2']);
@@ -161,7 +162,7 @@ export default function MessagesListScreen() {
           style={styles.backBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mensagens</Text>
         <TouchableOpacity

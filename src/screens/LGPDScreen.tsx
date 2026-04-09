@@ -11,6 +11,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 
 // ─── TYPES ──────────────────────────────────────────────
 interface DataCategory {
@@ -111,7 +112,7 @@ export default function LGPDScreen({ navigation }: any) {
           style={styles.backButton}
           onPress={() => navigation?.goBack?.()}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Dados e Privacidade</Text>
         <View style={styles.backButton} />

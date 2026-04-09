@@ -12,6 +12,7 @@ import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useVip } from '../hooks/useVip';
+import { Ionicons } from '@expo/vector-icons';
 
 interface PersonalAtribuido {
   id: string;
@@ -117,7 +118,7 @@ export default function EscolherPersonalScreen({ navigation }: { navigation: any
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>{'< Voltar'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
 
         <View style={styles.headerRow}>
@@ -143,7 +144,7 @@ export default function EscolherPersonalScreen({ navigation }: { navigation: any
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>{'< Voltar'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
 
         <View style={styles.headerRow}>
@@ -181,7 +182,7 @@ export default function EscolherPersonalScreen({ navigation }: { navigation: any
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-        <Text style={styles.backText}>{'< Voltar'}</Text>
+        <Ionicons name="chevron-back" size={24} color={colors.orange} />
       </TouchableOpacity>
 
       <View style={styles.headerRow}>

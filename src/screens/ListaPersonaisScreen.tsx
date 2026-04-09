@@ -11,6 +11,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Personal {
   id: string;
@@ -153,7 +154,7 @@ export default function ListaPersonaisScreen({ navigation }: { navigation: any }
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>{'< Voltar'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Personais Disponiveis</Text>
       </View>

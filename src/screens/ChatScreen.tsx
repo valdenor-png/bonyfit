@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 import { Message } from '../types/social';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -149,7 +150,7 @@ export default function ChatScreen({ navigation, route }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <View style={styles.headerAvatar}>
           <Text style={styles.headerAvatarText}>{userName[0]}</Text>

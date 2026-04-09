@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { getLevelColor } from '../constants/levels';
@@ -228,7 +229,7 @@ export default function ComentariosScreen({ navigation, route }: Props) {
           activeOpacity={0.7}
           style={styles.backBtn}
         >
-          <Text style={styles.backText}>← Voltar</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Comentarios</Text>
         <View style={styles.headerSpacer} />

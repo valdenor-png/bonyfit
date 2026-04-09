@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 
 // --- HELPERS ---
 const WEEKDAY_SHORT = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
@@ -182,7 +183,7 @@ export default function AgendamentoPersonalScreen() {
 
         {step > 1 && (
           <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
-            <Text style={styles.backBtnText}>← Voltar</Text>
+            <Ionicons name="chevron-back" size={24} color={colors.orange} />
           </TouchableOpacity>
         )}
 

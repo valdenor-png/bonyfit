@@ -14,6 +14,7 @@ import { colors, fonts, spacing, radius } from '../tokens';
 import Button from '../components/Button';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { Ionicons } from '@expo/vector-icons';
 
 // --- TYPES ---
 
@@ -188,7 +189,7 @@ export default function ScanQRAulaScreen({ navigation }: Props) {
           style={styles.backBtn}
           onPress={() => navigation?.goBack?.()}
         >
-          <Text style={styles.backText}>{'<'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Escanear QR da Aula</Text>
         <View style={styles.backBtn} />

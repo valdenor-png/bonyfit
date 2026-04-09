@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import { useMessagesStore } from '../stores/messagesStore';
 import { getLevelColor } from '../constants/levels';
@@ -213,7 +214,7 @@ export default function ConversationScreen({ route }: { route: any }) {
           style={styles.backBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
 
         <View style={[styles.headerAvatar, { backgroundColor: getLevelColor(level) }]}>

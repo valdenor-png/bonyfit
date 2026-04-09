@@ -9,6 +9,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../../tokens';
 import Button from '../../components/Button';
+import { Ionicons } from '@expo/vector-icons';
 
 // --- MOCK DATA ---
 
@@ -59,7 +60,7 @@ export default function AulaFinalizadaScreen({ navigation }: Props) {
           style={styles.backBtn}
           onPress={() => navigation?.goBack?.()}
         >
-          <Text style={styles.backText}>{'<'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Aula Finalizada</Text>
         <View style={styles.backBtn} />

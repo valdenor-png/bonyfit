@@ -307,8 +307,8 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
 }
 
 const tabStyles = StyleSheet.create({
-  icon: { fontSize: 20, opacity: 0.5 },
-  iconActive: { opacity: 1 },
+  icon: { fontSize: 20, color: 'rgba(255,255,255,0.5)' },
+  iconActive: { color: colors.orange },
   centerBtn: {
     width: 48,
     height: 48,

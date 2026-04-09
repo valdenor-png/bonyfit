@@ -11,6 +11,7 @@ import {
   Share,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 
 // ─── TYPES ──────────────────────────────────────────────
 interface Measurement {
@@ -110,7 +111,7 @@ export default function RelatorioScreen({ navigation }: any) {
           style={styles.backButton}
           onPress={() => navigation?.goBack?.()}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Relatório Mensal</Text>
         <View style={styles.backButton} />

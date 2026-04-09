@@ -11,6 +11,7 @@ import { colors, fonts, spacing, radius } from '../tokens';
 import Toggle from '../components/Toggle';
 import { supabase } from '../services/supabase';
 import { useUI } from '../hooks/useUI';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   navigation: any;
@@ -96,7 +97,7 @@ export default function SettingsScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Voltar</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Configurações</Text>
         <View style={{ width: 60 }} />

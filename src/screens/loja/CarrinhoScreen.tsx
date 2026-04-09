@@ -11,6 +11,7 @@ import { colors, fonts, spacing, radius } from '../../tokens';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useLojaStore } from '../../stores/lojaStore';
+import { Ionicons } from '@expo/vector-icons';
 
 // ─── Helpers ────────────────────────────────────────────────────
 const formatPrice = (centavos: number) =>
@@ -140,7 +141,7 @@ export default function CarrinhoScreen({ navigation }: Props) {
           activeOpacity={0.7}
           style={styles.backBtn}
         >
-          <Text style={styles.backText}>← Voltar</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Carrinho</Text>

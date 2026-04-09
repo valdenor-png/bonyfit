@@ -9,6 +9,7 @@ import {
 import { colors, fonts, spacing } from '../../tokens';
 import { CATEGORIAS } from './LojaScreen';
 import type { Produto } from './LojaScreen';
+import { Ionicons } from '@expo/vector-icons';
 
 const formatPrice = (centavos: number) =>
   'R$ ' + (centavos / 100).toFixed(2).replace('.', ',');
@@ -53,7 +54,7 @@ export default function LojaCategoriaScreen({ navigation, route }: Props) {
           activeOpacity={0.7}
           style={styles.backBtn}
         >
-          <Text style={styles.backText}>← Voltar</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{categoriaNome}</Text>
         <View style={styles.headerSpacer} />

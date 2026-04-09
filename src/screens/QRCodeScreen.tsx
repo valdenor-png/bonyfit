@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 
 type TabKey = 'my_qr' | 'scan';
 
@@ -29,7 +30,7 @@ export default function QRCodeScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>{'<'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Meu QR Code</Text>
         <View style={styles.backBtn} />

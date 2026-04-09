@@ -13,6 +13,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -133,7 +134,7 @@ export default function CriarPostScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <Text style={styles.backText}>← Voltar</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Novo Post</Text>
         <View style={{ width: 60 }} />

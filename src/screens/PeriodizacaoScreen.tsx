@@ -9,6 +9,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 
 // ─── TYPES ──────────────────────────────────────────────
 type PhaseName = 'Volume' | 'Intensificação' | 'Deload' | 'Teste';
@@ -91,7 +92,7 @@ export default function PeriodizacaoScreen({ navigation }: Props) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Text style={styles.backText}>{'←'}</Text>
+            <Ionicons name="chevron-back" size={24} color={colors.orange} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Periodização</Text>
           <View style={styles.backBtn} />

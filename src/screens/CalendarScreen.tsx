@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -168,7 +169,7 @@ export default function CalendarScreen({ navigation }: { navigation: any }) {
       {/* ── Header ────────────────────────────────────────────────────── */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <Text style={styles.backText}>{'\u2190'} Voltar</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Agenda</Text>
         <View style={{ width: 60 }} />

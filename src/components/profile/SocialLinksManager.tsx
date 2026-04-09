@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import CrossPlatformModal from '../ui/CrossPlatformModal';
 import { colors, fonts, spacing, radius } from '../../tokens';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { SOCIAL_NETWORKS, SocialNetwork } from '../../constants/socialNetworks';
 
@@ -185,7 +186,7 @@ export default function SocialLinksManager({ visible, onClose, userId }: Props) 
     <>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setStep('list')}>
-          <Text style={styles.backBtn}>{'\u2190'} Voltar</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onClose}>
           <Text style={styles.closeBtn}>Fechar</Text>
@@ -215,7 +216,7 @@ export default function SocialLinksManager({ visible, onClose, userId }: Props) 
     <>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setStep('pick')}>
-          <Text style={styles.backBtn}>{'\u2190'} Voltar</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onClose}>
           <Text style={styles.closeBtn}>Fechar</Text>

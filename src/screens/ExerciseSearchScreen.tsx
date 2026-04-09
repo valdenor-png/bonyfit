@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
+import { Ionicons } from '@expo/vector-icons';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -171,7 +172,7 @@ export default function ExerciseSearchScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backButton}>
-          <Text style={styles.backText}>{'\u2190'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Exercícios</Text>
         <View style={styles.backButton} />

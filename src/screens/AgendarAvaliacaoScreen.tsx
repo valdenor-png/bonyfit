@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useVip } from '../hooks/useVip';
@@ -202,7 +203,7 @@ export default function AgendarAvaliacaoScreen({ navigation }: { navigation: any
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-        <Text style={styles.backText}>{'< Voltar'}</Text>
+        <Ionicons name="chevron-back" size={24} color={colors.orange} />
       </TouchableOpacity>
 
       <Text style={styles.headerTitle}>Solicitar Avaliacao</Text>

@@ -13,6 +13,7 @@ const DAY_CELL_WIDTH = 48;
 const DAY_GAP = 6;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 import { colors, fonts, spacing, radius } from '../tokens';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenBackground from '../components/ScreenBackground';
 import { supabase } from '../services/supabase';
 
@@ -201,7 +202,7 @@ export default function AcademyCalendarScreen({ navigation }: Props) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Text style={styles.backArrow}>{'\u2190'}</Text>
+            <Ionicons name="chevron-back" size={24} color={colors.orange} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Calendário da Academia</Text>
           <View style={{ width: 24 }} />
