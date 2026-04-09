@@ -7,94 +7,114 @@ import {
   TextInput,
   Dimensions,
   PanResponder,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { supabase } from '../services/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const STORY_DURATION = 5000;
 
-interface Story {
+// ── Gradient colors for stories without images ───────────────
+const GRADIENT_PALETTE: [string, string][] = [
+  ['#F26522', '#D4520F'],
+  ['#3B82F6', '#1D4ED8'],
+  ['#2ECC71', '#27AE60'],
+  ['#E74C3C', '#C0392B'],
+  ['#9B59B6', '#8E44AD'],
+  ['#F39C12', '#E67E22'],
+  ['#1ABC9C', '#16A085'],
+  ['#34495E', '#2C3E50'],
+];
+
+interface StoryData {
   id: string;
   gradientColors: [string, string];
   timestamp: string;
+  text?: string;
 }
 
 interface StoryUser {
   id: string;
   name: string;
   initials: string;
-  stories: Story[];
+  stories: StoryData[];
 }
-
-const MOCK_USERS: StoryUser[] = [
-  {
-    id: 'u1',
-    name: 'Maria S.',
-    initials: 'MS',
-    stories: [
-      { id: 's1', gradientColors: ['#F26522', '#D4520F'], timestamp: '2h' },
-      { id: 's2', gradientColors: ['#3B82F6', '#1D4ED8'], timestamp: '4h' },
-    ],
-  },
-  {
-    id: 'u2',
-    name: 'Rafael L.',
-    initials: 'RL',
-    stories: [
-      { id: 's3', gradientColors: ['#2ECC71', '#27AE60'], timestamp: '1h' },
-    ],
-  },
-  {
-    id: 'u3',
-    name: 'Ana M.',
-    initials: 'AM',
-    stories: [
-      { id: 's4', gradientColors: ['#E74C3C', '#C0392B'], timestamp: '3h' },
-      { id: 's5', gradientColors: ['#F39C12', '#E67E22'], timestamp: '5h' },
-      { id: 's6', gradientColors: ['#9B59B6', '#8E44AD'], timestamp: '6h' },
-    ],
-  },
-  {
-    id: 'u4',
-    name: 'Carlos P.',
-    initials: 'CP',
-    stories: [
-      { id: 's7', gradientColors: ['#1ABC9C', '#16A085'], timestamp: '30min' },
-      { id: 's8', gradientColors: ['#34495E', '#2C3E50'], timestamp: '2h' },
-    ],
-  },
-  {
-    id: 'u5',
-    name: 'Juliana F.',
-    initials: 'JF',
-    stories: [
-      { id: 's9', gradientColors: ['#F26522', '#9B59B6'], timestamp: '45min' },
-    ],
-  },
-];
 
 interface Props {
   navigation: any;
-  route: { params: { userId: string } };
+  route: { params: { userId?: string } };
 }
 
 export default function StoriesScreen({ navigation, route }: Props) {
-  const { userId } = route.params;
-
-  const userIndex = MOCK_USERS.findIndex((u) => u.id === userId);
-  const startUser = userIndex >= 0 ? userIndex : 0;
-
-  const [currentUserIdx, setCurrentUserIdx] = useState(startUser);
+  const targetUserId = route.params?.userId;
+  const { user: currentUser } = useAuth();
+  const [storyUsers, setStoryUsers] = useState<StoryUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUserIdx, setCurrentUserIdx] = useState(0);
   const [currentStoryIdx, setCurrentStoryIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const [replyText, setReplyText] = useState('');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(Date.now());
 
-  const user = MOCK_USERS[currentUserIdx];
-  const story = user?.stories[currentStoryIdx];
+  // ── Load stories from Supabase ─────────────────────────────
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        // For now, create a story entry for the target user
+        // In future: query 'stories' table
+        const userId = targetUserId || currentUser?.id;
+        if (!userId) {
+          navigation.goBack();
+          return;
+        }
 
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('users')
+          .select('id, name, avatar_url')
+          .eq('id', userId)
+          .single();
+
+        if (!profile) {
+          navigation.goBack();
+          return;
+        }
+
+        const name = profile.name || 'Usuário';
+        const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+
+        // Generate placeholder stories for this user
+        const gradientIdx = Math.abs(userId.charCodeAt(0)) % GRADIENT_PALETTE.length;
+        const userStories: StoryUser = {
+          id: profile.id,
+          name,
+          initials,
+          stories: [
+            {
+              id: `story-${profile.id}-1`,
+              gradientColors: GRADIENT_PALETTE[gradientIdx],
+              timestamp: 'agora',
+            },
+          ],
+        };
+
+        setStoryUsers([userStories]);
+        setCurrentUserIdx(0);
+        setCurrentStoryIdx(0);
+      } catch {
+        navigation.goBack();
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [targetUserId, currentUser?.id]);
+
+  // ── Timer ──────────────────────────────────────────────────
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -103,29 +123,32 @@ export default function StoriesScreen({ navigation, route }: Props) {
   }, []);
 
   const goNext = useCallback(() => {
-    const u = MOCK_USERS[currentUserIdx];
+    if (storyUsers.length === 0) return;
+    const u = storyUsers[currentUserIdx];
+    if (!u) { navigation.goBack(); return; }
+
     if (currentStoryIdx < u.stories.length - 1) {
       setCurrentStoryIdx((prev) => prev + 1);
-    } else if (currentUserIdx < MOCK_USERS.length - 1) {
+    } else if (currentUserIdx < storyUsers.length - 1) {
       setCurrentUserIdx((prev) => prev + 1);
       setCurrentStoryIdx(0);
     } else {
       navigation.goBack();
     }
-  }, [currentUserIdx, currentStoryIdx, navigation]);
+  }, [currentUserIdx, currentStoryIdx, storyUsers, navigation]);
 
   const goPrev = useCallback(() => {
     if (currentStoryIdx > 0) {
       setCurrentStoryIdx((prev) => prev - 1);
     } else if (currentUserIdx > 0) {
-      setCurrentUserIdx((prev) => prev + 1);
-      const prevUser = MOCK_USERS[currentUserIdx - 1];
-      setCurrentStoryIdx(prevUser.stories.length - 1);
+      const prevIdx = currentUserIdx - 1;
+      setCurrentUserIdx(prevIdx);
+      setCurrentStoryIdx(storyUsers[prevIdx].stories.length - 1);
     }
-  }, [currentUserIdx, currentStoryIdx]);
+  }, [currentUserIdx, currentStoryIdx, storyUsers]);
 
-  // Auto-advance timer
   useEffect(() => {
+    if (loading || storyUsers.length === 0) return;
     setProgress(0);
     startTimeRef.current = Date.now();
     clearTimer();
@@ -141,29 +164,29 @@ export default function StoriesScreen({ navigation, route }: Props) {
     }, 50);
 
     return clearTimer;
-  }, [currentUserIdx, currentStoryIdx, clearTimer, goNext]);
+  }, [currentUserIdx, currentStoryIdx, loading, storyUsers, clearTimer, goNext]);
 
-  // Swipe down to close
+  // ── Swipe down ─────────────────────────────────────────────
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) =>
-        gestureState.dy > 20 && Math.abs(gestureState.dx) < Math.abs(gestureState.dy),
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 100) {
-          navigation.goBack();
-        }
+      onMoveShouldSetPanResponder: (_, gs) => gs.dy > 20 && Math.abs(gs.dx) < Math.abs(gs.dy),
+      onPanResponderRelease: (_, gs) => {
+        if (gs.dy > 100) navigation.goBack();
       },
     })
   ).current;
 
-  const handleTap = (side: 'left' | 'right') => {
-    if (side === 'left') {
-      goPrev();
-    } else {
-      goNext();
-    }
-  };
+  // ── Loading / empty ────────────────────────────────────────
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator color={colors.orange} size="large" />
+      </View>
+    );
+  }
 
+  const user = storyUsers[currentUserIdx];
+  const story = user?.stories[currentStoryIdx];
   if (!user || !story) {
     navigation.goBack();
     return null;
@@ -171,7 +194,6 @@ export default function StoriesScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
-      {/* Story background */}
       <LinearGradient
         colors={story.gradientColors}
         style={styles.storyBg}
@@ -207,42 +229,29 @@ export default function StoriesScreen({ navigation, route }: Props) {
         </View>
         <Text style={styles.userName}>{user.name}</Text>
         <Text style={styles.timeAgo}>{story.timestamp}</Text>
-        <TouchableOpacity
-          style={styles.closeBtn}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.closeBtnText}>X</Text>
+        <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.closeBtnText}>✕</Text>
         </TouchableOpacity>
       </View>
 
       {/* Tap zones */}
       <View style={styles.tapZones}>
-        <TouchableOpacity
-          style={styles.tapLeft}
-          activeOpacity={1}
-          onPress={() => handleTap('left')}
-        />
-        <TouchableOpacity
-          style={styles.tapRight}
-          activeOpacity={1}
-          onPress={() => handleTap('right')}
-        />
+        <TouchableOpacity style={styles.tapLeft} activeOpacity={1} onPress={() => goPrev()} />
+        <TouchableOpacity style={styles.tapRight} activeOpacity={1} onPress={() => goNext()} />
       </View>
 
-      {/* Bottom reply */}
+      {/* Reply */}
       <View style={styles.replyContainer}>
         <TextInput
           style={styles.replyInput}
           placeholder="Responder..."
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor="rgba(255,255,255,0.5)"
           value={replyText}
           onChangeText={setReplyText}
         />
         <TouchableOpacity
           style={[styles.sendBtn, !replyText.trim() && styles.sendBtnDisabled]}
-          onPress={() => {
-            if (replyText.trim()) setReplyText('');
-          }}
+          onPress={() => { if (replyText.trim()) setReplyText(''); }}
         >
           <Text style={styles.sendBtnText}>Enviar</Text>
         </TouchableOpacity>
@@ -252,14 +261,8 @@ export default function StoriesScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  storyBg: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  // Progress bars
+  container: { flex: 1, backgroundColor: colors.bg },
+  storyBg: { ...StyleSheet.absoluteFillObject },
   progressContainer: {
     flexDirection: 'row',
     paddingHorizontal: spacing.sm,
@@ -273,12 +276,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     overflow: 'hidden',
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-  },
-  // User info
+  progressFill: { height: '100%', backgroundColor: '#FFFFFF', borderRadius: 2 },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -295,23 +293,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {
-    fontSize: 12,
-    fontFamily: fonts.bodyBold,
-    color: '#FFFFFF',
-  },
-  userName: {
-    fontSize: 14,
-    fontFamily: fonts.bodyBold,
-    color: '#FFFFFF',
-    marginLeft: spacing.sm,
-  },
-  timeAgo: {
-    fontSize: 12,
-    fontFamily: fonts.body,
-    color: 'rgba(255,255,255,0.7)',
-    marginLeft: spacing.sm,
-  },
+  avatarText: { fontSize: 12, fontFamily: fonts.bodyBold, color: '#FFFFFF' },
+  userName: { fontSize: 14, fontFamily: fonts.bodyBold, color: '#FFFFFF', marginLeft: spacing.sm },
+  timeAgo: { fontSize: 12, fontFamily: fonts.body, color: 'rgba(255,255,255,0.7)', marginLeft: spacing.sm },
   closeBtn: {
     marginLeft: 'auto',
     width: 30,
@@ -321,25 +305,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeBtnText: {
-    fontSize: 14,
-    fontFamily: fonts.bodyBold,
-    color: '#FFFFFF',
-  },
-  // Tap zones
-  tapZones: {
-    ...StyleSheet.absoluteFillObject,
-    flexDirection: 'row',
-    top: 120,
-    bottom: 80,
-  },
-  tapLeft: {
-    flex: 1,
-  },
-  tapRight: {
-    flex: 1,
-  },
-  // Reply
+  closeBtnText: { fontSize: 14, fontFamily: fonts.bodyBold, color: '#FFFFFF' },
+  tapZones: { ...StyleSheet.absoluteFillObject, flexDirection: 'row', top: 120, bottom: 80 },
+  tapLeft: { flex: 1 },
+  tapRight: { flex: 1 },
   replyContainer: {
     position: 'absolute',
     bottom: 0,
@@ -373,12 +342,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendBtnDisabled: {
-    opacity: 0.4,
-  },
-  sendBtnText: {
-    fontSize: 13,
-    fontFamily: fonts.bodyBold,
-    color: '#FFFFFF',
-  },
+  sendBtnDisabled: { opacity: 0.4 },
+  sendBtnText: { fontSize: 13, fontFamily: fonts.bodyBold, color: '#FFFFFF' },
 });
