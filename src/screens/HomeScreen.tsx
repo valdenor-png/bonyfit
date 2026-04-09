@@ -61,16 +61,8 @@ export default function HomeScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      try {
-        const { count } = await supabase
-          .from('workout_sessions')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-        setWorkoutCount(count ?? 0);
-      } catch {}
-    })();
-  }, [user?.id]);
+    setWorkoutCount(user.total_workouts ?? 0);
+  }, [user?.id, user?.total_workouts]);
 
   // ── Onboarding tour check ─────────────────────────────────
   useEffect(() => {

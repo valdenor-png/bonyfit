@@ -369,6 +369,9 @@ export default function ActiveWorkoutScreen() {
               console.warn('Erro ao salvar:', err);
             }
 
+            // Refresh user data so Home picks up updated total_workouts/points/streak
+            useAuth.getState().loadUser();
+
             if (timerRef.current) clearInterval(timerRef.current);
             stopRest();
             navigation.goBack();
