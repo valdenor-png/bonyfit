@@ -13,8 +13,7 @@ SELECT
   total_points, current_streak, longest_streak, last_workout_date,
   level, total_workouts,
   onboarding_completed, mostrar_presenca, is_private,
-  codigo_indicacao, indicado_por,
-  status_assinatura, username,
+  codigo_indicacao, indicado_por, username,
   created_at
 FROM users
 WHERE id = auth.uid();
