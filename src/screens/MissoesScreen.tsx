@@ -29,7 +29,17 @@ const MOCK_MISSIONS: Mission[] = [
   { id: 'm5', icon: '🦵', title: 'Faca um treino de perna', current: 0, goal: 1, reward: 150, completed: false },
 ];
 
-const WEEK_RANGE = '30 Mar - 05 Abr';
+const MONTHS_PT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+function getWeekRange(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - ((day + 6) % 7)); // segunda
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6); // domingo
+  return `${mon.getDate()} ${MONTHS_PT[mon.getMonth()]} - ${sun.getDate()} ${MONTHS_PT[sun.getMonth()]}`;
+}
+const WEEK_RANGE = getWeekRange();
 const POINTS_THIS_WEEK = 450;
 
 interface Props {
@@ -106,7 +116,7 @@ export default function MissoesScreen({ navigation }: Props) {
           <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Missoes da Semana</Text>
+          <Text style={styles.headerTitle}>Missões da Semana</Text>
           <Text style={styles.headerWeek}>{WEEK_RANGE}</Text>
         </View>
         <View style={styles.backBtn} />

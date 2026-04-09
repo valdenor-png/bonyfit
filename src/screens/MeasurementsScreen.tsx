@@ -289,7 +289,7 @@ export default function MeasurementsScreen() {
             {/* Weight chart */}
             {chartData.length > 1 && (
               <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>Evolucao do Peso</Text>
+                <Text style={styles.chartTitle}>Evolução do Peso</Text>
                 {chartData.map((entry, index) => renderChartBar(entry, index))}
               </View>
             )}

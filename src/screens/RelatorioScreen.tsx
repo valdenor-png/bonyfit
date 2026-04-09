@@ -158,7 +158,7 @@ export default function RelatorioScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Evolucao de Peso */}
+        {/* Evolução de Peso */}
         <View style={styles.reportSection}>
           <Text style={styles.reportSectionTitle}>Evolução de Peso</Text>
           <View style={styles.chartContainer}>

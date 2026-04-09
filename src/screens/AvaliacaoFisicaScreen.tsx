@@ -125,7 +125,7 @@ export default function AvaliacaoFisicaScreen({ navigation }: Props) {
 
   const renderMedidas = () => (
     <View>
-      <Text style={styles.lastDate}>Ultima medicao: {measurements.lastDate}</Text>
+      <Text style={styles.lastDate}>Última medição: {measurements.lastDate}</Text>
       <View style={styles.measureGrid}>
         {renderMeasureField('Peso', measurements.peso, 'kg', 'peso')}
         {renderMeasureField('Altura', measurements.altura, 'cm')}
@@ -141,7 +141,7 @@ export default function AvaliacaoFisicaScreen({ navigation }: Props) {
 
       {/* Evolution placeholder */}
       <View style={styles.evolutionCard}>
-        <Text style={styles.evolutionTitle}>Evolucao</Text>
+        <Text style={styles.evolutionTitle}>Evolução</Text>
         {Object.entries(MOCK_MEASUREMENTS.trends).map(([key, trend]) => (
           <View key={key} style={styles.evolutionRow}>
             <Text style={styles.evolutionLabel}>{key}</Text>
@@ -211,7 +211,7 @@ export default function AvaliacaoFisicaScreen({ navigation }: Props) {
 
       {/* Comparison placeholder */}
       <View style={styles.comparisonCard}>
-        <Text style={styles.comparisonTitle}>Comparacao</Text>
+        <Text style={styles.comparisonTitle}>Comparação</Text>
         <View style={styles.comparisonRow}>
           <View style={styles.comparisonSlot}>
             <View style={styles.comparisonPlaceholder}>
@@ -248,7 +248,7 @@ export default function AvaliacaoFisicaScreen({ navigation }: Props) {
       {/* Tabs */}
       <View style={styles.tabBar}>
         {renderTab('medidas', 'Medidas')}
-        {renderTab('composicao', 'Composicao')}
+        {renderTab('composicao', 'Composição')}
         {renderTab('fotos', 'Fotos')}
       </View>
 

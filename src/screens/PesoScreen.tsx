@@ -165,7 +165,7 @@ export default function PesoScreen({ navigation }: Props) {
             <Text style={styles.statValue}>{minWeight} kg</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Variacao</Text>
+            <Text style={styles.statLabel}>Variação</Text>
             <Text style={styles.statValue}>{variation.toFixed(1)} kg</Text>
           </View>
           <View style={styles.statCard}>
