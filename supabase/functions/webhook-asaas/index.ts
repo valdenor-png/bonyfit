@@ -3,23 +3,74 @@ import { z } from 'https://esm.sh/zod@3.23'
 import { createHandler } from '../_shared/handler.ts'
 import { parseBody } from '../_shared/validate.ts'
 import { logAudit } from '../_shared/audit.ts'
-import { success } from '../_shared/response.ts'
+import { success, error } from '../_shared/response.ts'
+
+// ─── Validação de origem ────────────────────────────────────
+function validateWebhookToken(req: Request): void {
+  const token = req.headers.get('asaas-access-token')
+  const expected = Deno.env.get('ASAAS_WEBHOOK_TOKEN')
+
+  // Se o secret não está configurado, rejeitar TUDO (fail-closed)
+  if (!expected) {
+    throw { status: 500, code: 'CONFIG_MISSING', message: 'ASAAS_WEBHOOK_TOKEN não configurado' }
+  }
+
+  if (!token || token !== expected) {
+    throw { status: 401, code: 'INVALID_WEBHOOK_TOKEN', message: 'Token de webhook inválido' }
+  }
+}
+
+// ─── Rate limit por IP (in-memory, resets por deploy) ───────
+const ipRequests = new Map<string, { count: number; resetAt: number }>()
+const MAX_REQUESTS_PER_MINUTE = 10
+
+function checkIpRateLimit(req: Request): void {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? req.headers.get('cf-connecting-ip')
+    ?? 'unknown'
+
+  const now = Date.now()
+  const entry = ipRequests.get(ip)
+
+  if (!entry || now > entry.resetAt) {
+    ipRequests.set(ip, { count: 1, resetAt: now + 60_000 })
+    return
+  }
+
+  entry.count++
+  if (entry.count > MAX_REQUESTS_PER_MINUTE) {
+    throw { status: 429, code: 'RATE_LIMITED', message: `IP ${ip} excedeu ${MAX_REQUESTS_PER_MINUTE} requests/minuto` }
+  }
+}
+
+// ─── Schema rígido do payload Asaas ─────────────────────────
+const VALID_EVENTS = [
+  'PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED', 'PAYMENT_OVERDUE',
+  'PAYMENT_DELETED', 'PAYMENT_REFUNDED', 'PAYMENT_CREATED',
+  'PAYMENT_UPDATED', 'PAYMENT_DUNNING_RECEIVED',
+] as const
 
 const bodySchema = z.object({
-  event: z.string().optional(),
-  payment: z.object({}).passthrough().optional(),
-}).passthrough()
+  event: z.enum(VALID_EVENTS),
+  payment: z.object({
+    id: z.string().min(1),
+    customer: z.string().min(1),
+    value: z.number(),
+    status: z.string(),
+    externalReference: z.string().nullish(),
+  }).passthrough(),
+})
 
 serve(createHandler(async (req, supabase) => {
-  // Webhook must ALWAYS return 200 — wrap everything in internal try/catch
+  // 1. Validar origem (token) e rate limit por IP
+  validateWebhookToken(req)
+  checkIpRateLimit(req)
+
+  // Webhook must ALWAYS return 200 after auth — wrap business logic in try/catch
   try {
     const body = await parseBody(req, bodySchema)
     const event = body.event
-    const payment = body.payment as Record<string, any> | undefined
-
-    if (!event || !payment) {
-      return success({ received: true })
-    }
+    const payment = body.payment
 
     console.log(`Webhook Asaas recebido: ${event}`, payment.id)
 
