@@ -233,59 +233,13 @@ export default function AulaAtivaScreen({ navigation, route }: Props) {
           onPress: async () => {
             if (!sessionId) return;
             try {
-              // 1. Update session status
-              const { error: sessError } = await supabase
-                .from('aula_sessoes')
-                .update({
-                  status: 'finalizada',
-                  horario_fim: new Date().toISOString(),
-                })
-                .eq('id', sessionId);
-              if (sessError) throw sessError;
+              // Finalizar aula via Edge Function (atualiza status, marca presenças, distribui pontos)
+              const { error: edgeFnError } = await supabase.functions.invoke('finalizar-aula', {
+                body: { sessao_id: sessionId },
+              });
+              if (edgeFnError) throw edgeFnError;
 
-              // 2. Mark all non-removed presencas as present + grant points
-              const { error: presError } = await supabase
-                .from('aula_presencas')
-                .update({
-                  presente_no_fim: true,
-                  pontos_concedidos: pontosAula,
-                })
-                .eq('sessao_id', sessionId)
-                .eq('removido', false);
-              if (presError) throw presError;
-
-              // 3. Add points to each present student
-              const presentStudents = attendees.filter((a) => !a.removido && a.aluno_id);
-              for (const student of presentStudents) {
-                try {
-                  // TODO: mover pra Edge Function — gamificação não deve rodar no client
-                  const { data: userData, error: userErr } = await supabase
-                    .from('public_user_profile')
-                    .select('total_points')
-                    .eq('id', student.aluno_id)
-                    .single();
-
-                  if (userErr) {
-                    console.warn('Error fetching user points:', userErr);
-                    continue;
-                  }
-
-                  const currentPoints = userData?.total_points ?? 0;
-                  // TODO: mover pra Edge Function — gamificação não deve rodar no client
-                  const { error: updateErr } = await supabase
-                    .from('users')
-                    .update({ total_points: currentPoints + pontosAula })
-                    .eq('id', student.aluno_id);
-
-                  if (updateErr) {
-                    console.warn('Error updating user points:', updateErr);
-                  }
-                } catch (innerErr) {
-                  console.warn('Error updating student points:', innerErr);
-                }
-              }
-
-              // 4. Navigate to summary
+              // 3. Navigate to summary
               Alert.alert(
                 'Aula Finalizada!',
                 `${presentCount} alunos receberam ${pontosAula} pontos cada.`,

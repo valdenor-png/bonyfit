@@ -329,42 +329,21 @@ export default function ActiveWorkoutScreen() {
                   }
                 }
 
-                // TODO: mover pra Edge Function — gamificação não deve rodar no client
-                const { data: userData } = await supabase
-                  .from('user_profile_safe')
-                  .select('total_points, current_streak, last_workout_date, total_workouts')
-                  .single();
-
-                if (userData) {
-                  const today = new Date().toISOString().split('T')[0];
-                  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-                  let streak = 1;
-                  if (userData.last_workout_date === today) streak = userData.current_streak || 1;
-                  else if (userData.last_workout_date === yesterday) streak = (userData.current_streak || 0) + 1;
-
-                  let mult = 1.0;
-                  if (streak >= 30) mult = 2.0;
-                  else if (streak >= 14) mult = 1.5;
-                  else if (streak >= 7) mult = 1.2;
-
-                  const finalPts = Math.round(points * mult);
-
-                  // TODO: mover pra Edge Function — gamificação não deve rodar no client
-                  await supabase.from('users').update({
-                    total_points: (userData.total_points || 0) + finalPts,
-                    current_streak: streak,
-                    last_workout_date: today,
-                    total_workouts: (userData.total_workouts || 0) + 1,
-                  }).eq('id', authUser.id);
-
-                  // Auto-post to feed
-                  await supabase.from('posts').insert({
-                    user_id: authUser.id,
-                    post_type: 'treino',
-                    text: `Completou ${workoutName}! 💪`,
-                    metadata: { duracao: Math.round(elapsed / 60), volume: volumeTotal, exercicios: exercisesCompleted, series: seriesTotal },
+                // Gamificação server-side via Edge Function
+                if (logData) {
+                  const { data: gamifResult, error: gamifError } = await supabase.functions.invoke('completar-treino', {
+                    body: { workout_log_id: logData.id },
                   });
+                  if (gamifError) console.warn('Gamificação falhou:', gamifError);
                 }
+
+                // Auto-post to feed
+                await supabase.from('posts').insert({
+                  user_id: authUser.id,
+                  post_type: 'treino',
+                  text: `Completou ${workoutName}! 💪`,
+                  metadata: { duracao: Math.round(elapsed / 60), volume: volumeTotal, exercicios: exercisesCompleted, series: seriesTotal },
+                });
               }
             } catch (err) {
               console.warn('Erro ao salvar:', err);
