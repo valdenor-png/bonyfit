@@ -50,6 +50,8 @@ function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function formatTime(s: number): string {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
@@ -326,7 +328,8 @@ export default function ActiveWorkoutScreen() {
                   const setsToInsert = exercises.flatMap((ex) =>
                     ex.sets.filter((s) => s.completed).map((s, i) => ({
                       workout_log_id: logData.id,
-                      exercise_id: ex.id,
+                      ...(UUID_RE.test(ex.id) ? { exercise_id: ex.id } : {}),
+                      exercise_name: ex.name,
                       set_index: i + 1,
                       weight_kg: s.weight,
                       reps: s.reps,
@@ -339,12 +342,15 @@ export default function ActiveWorkoutScreen() {
                   }
                 }
 
-                // Gamificação server-side via Edge Function
+                // Gamificação server-side via Edge Function (best-effort)
                 if (logData) {
-                  const { data: gamifResult, error: gamifError } = await supabase.functions.invoke('completar-treino', {
-                    body: { workout_log_id: logData.id },
-                  });
-                  if (gamifError) console.warn('Gamificação falhou:', gamifError);
+                  try {
+                    await supabase.functions.invoke('completar-treino', {
+                      body: { workout_log_id: logData.id },
+                    });
+                  } catch (e) {
+                    console.warn('Gamificação (Edge Function) indisponível:', e);
+                  }
                 }
 
                 // Auto-post to feed
