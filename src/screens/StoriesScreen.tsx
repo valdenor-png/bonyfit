@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   TextInput,
   Dimensions,
   PanResponder,
@@ -13,35 +14,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
+import Skull from '../components/Skull';
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const SCREEN_H = Dimensions.get('window').height;
 const STORY_DURATION = 5000;
-
-// ── Gradient colors for stories without images ───────────────
-const GRADIENT_PALETTE: [string, string][] = [
-  ['#F26522', '#D4520F'],
-  ['#3B82F6', '#1D4ED8'],
-  ['#2ECC71', '#27AE60'],
-  ['#E74C3C', '#C0392B'],
-  ['#9B59B6', '#8E44AD'],
-  ['#F39C12', '#E67E22'],
-  ['#1ABC9C', '#16A085'],
-  ['#34495E', '#2C3E50'],
-];
-
-interface StoryData {
-  id: string;
-  gradientColors: [string, string];
-  timestamp: string;
-  text?: string;
-}
-
-interface StoryUser {
-  id: string;
-  name: string;
-  initials: string;
-  stories: StoryData[];
-}
 
 interface Props {
   navigation: any;
@@ -51,104 +27,40 @@ interface Props {
 export default function StoriesScreen({ navigation, route }: Props) {
   const targetUserId = route.params?.userId;
   const { user: currentUser } = useAuth();
-  const [storyUsers, setStoryUsers] = useState<StoryUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUserIdx, setCurrentUserIdx] = useState(0);
-  const [currentStoryIdx, setCurrentStoryIdx] = useState(0);
+  const [profile, setProfile] = useState<any>(null);
   const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [replyText, setReplyText] = useState('');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(Date.now());
+  const pausedAtRef = useRef(0);
 
-  // ── Load stories from Supabase ─────────────────────────────
+  // ── Load profile ───────────────────────────────────────────
   useEffect(() => {
     (async () => {
-      setLoading(true);
-      try {
-        // For now, create a story entry for the target user
-        // In future: query 'stories' table
-        const userId = targetUserId || currentUser?.id;
-        if (!userId) {
-          navigation.goBack();
-          return;
-        }
+      const userId = targetUserId || currentUser?.id;
+      if (!userId) { navigation.goBack(); return; }
 
-        // Fetch user profile
-        const { data: profile } = await supabase
-          .from('users')
-          .select('id, name, avatar_url')
-          .eq('id', userId)
-          .single();
+      const { data } = await supabase
+        .from('users')
+        .select('id, name, avatar_url, total_points, current_streak, total_workouts')
+        .eq('id', userId)
+        .single();
 
-        if (!profile) {
-          navigation.goBack();
-          return;
-        }
-
-        const name = profile.name || 'Usuário';
-        const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-
-        // Generate placeholder stories for this user
-        const gradientIdx = Math.abs(userId.charCodeAt(0)) % GRADIENT_PALETTE.length;
-        const userStories: StoryUser = {
-          id: profile.id,
-          name,
-          initials,
-          stories: [
-            {
-              id: `story-${profile.id}-1`,
-              gradientColors: GRADIENT_PALETTE[gradientIdx],
-              timestamp: 'agora',
-            },
-          ],
-        };
-
-        setStoryUsers([userStories]);
-        setCurrentUserIdx(0);
-        setCurrentStoryIdx(0);
-      } catch {
-        navigation.goBack();
-      } finally {
-        setLoading(false);
-      }
+      if (!data) { navigation.goBack(); return; }
+      setProfile(data);
+      setLoading(false);
     })();
   }, [targetUserId, currentUser?.id]);
 
   // ── Timer ──────────────────────────────────────────────────
   const clearTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   }, []);
 
-  const goNext = useCallback(() => {
-    if (storyUsers.length === 0) return;
-    const u = storyUsers[currentUserIdx];
-    if (!u) { navigation.goBack(); return; }
-
-    if (currentStoryIdx < u.stories.length - 1) {
-      setCurrentStoryIdx((prev) => prev + 1);
-    } else if (currentUserIdx < storyUsers.length - 1) {
-      setCurrentUserIdx((prev) => prev + 1);
-      setCurrentStoryIdx(0);
-    } else {
-      navigation.goBack();
-    }
-  }, [currentUserIdx, currentStoryIdx, storyUsers, navigation]);
-
-  const goPrev = useCallback(() => {
-    if (currentStoryIdx > 0) {
-      setCurrentStoryIdx((prev) => prev - 1);
-    } else if (currentUserIdx > 0) {
-      const prevIdx = currentUserIdx - 1;
-      setCurrentUserIdx(prevIdx);
-      setCurrentStoryIdx(storyUsers[prevIdx].stories.length - 1);
-    }
-  }, [currentUserIdx, currentStoryIdx, storyUsers]);
-
   useEffect(() => {
-    if (loading || storyUsers.length === 0) return;
+    if (loading || paused) return;
     setProgress(0);
     startTimeRef.current = Date.now();
     clearTimer();
@@ -157,27 +69,45 @@ export default function StoriesScreen({ navigation, route }: Props) {
       const elapsed = Date.now() - startTimeRef.current;
       const p = Math.min(elapsed / STORY_DURATION, 1);
       setProgress(p);
-      if (p >= 1) {
-        clearTimer();
-        goNext();
-      }
+      if (p >= 1) { clearTimer(); navigation.goBack(); }
     }, 50);
 
     return clearTimer;
-  }, [currentUserIdx, currentStoryIdx, loading, storyUsers, clearTimer, goNext]);
+  }, [loading, paused, clearTimer]);
+
+  // ── Hold to pause ──────────────────────────────────────────
+  const handlePressIn = () => {
+    setPaused(true);
+    pausedAtRef.current = Date.now() - startTimeRef.current;
+    clearTimer();
+  };
+
+  const handlePressOut = () => {
+    startTimeRef.current = Date.now() - pausedAtRef.current;
+    setPaused(false);
+  };
 
   // ── Swipe down ─────────────────────────────────────────────
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gs) => gs.dy > 20 && Math.abs(gs.dx) < Math.abs(gs.dy),
-      onPanResponderRelease: (_, gs) => {
-        if (gs.dy > 100) navigation.goBack();
-      },
+      onPanResponderRelease: (_, gs) => { if (gs.dy > 100) navigation.goBack(); },
     })
   ).current;
 
-  // ── Loading / empty ────────────────────────────────────────
-  if (loading) {
+  // ── Tap zones ──────────────────────────────────────────────
+  const handleTap = (side: 'left' | 'right') => {
+    if (side === 'right') {
+      navigation.goBack(); // single story → close
+    }
+    // left = restart
+    if (side === 'left') {
+      setProgress(0);
+      startTimeRef.current = Date.now();
+    }
+  };
+
+  if (loading || !profile) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator color={colors.orange} size="large" />
@@ -185,67 +115,88 @@ export default function StoriesScreen({ navigation, route }: Props) {
     );
   }
 
-  const user = storyUsers[currentUserIdx];
-  const story = user?.stories[currentStoryIdx];
-  if (!user || !story) {
-    navigation.goBack();
-    return null;
-  }
+  const name = profile.name || 'Usuário';
+  const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+  const points = profile.total_points ?? 0;
+  const streak = profile.current_streak ?? 0;
+  const workouts = profile.total_workouts ?? 0;
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
+      {/* Background gradient */}
       <LinearGradient
-        colors={story.gradientColors}
-        style={styles.storyBg}
+        colors={['#1A1A1A', '#0A0A0A']}
+        style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        end={{ x: 0, y: 1 }}
       />
 
-      {/* Progress bars */}
-      <View style={styles.progressContainer}>
-        {user.stories.map((s, idx) => (
-          <View key={s.id} style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width:
-                    idx < currentStoryIdx
-                      ? '100%'
-                      : idx === currentStoryIdx
-                      ? `${progress * 100}%`
-                      : '0%',
-                },
-              ]}
-            />
+      {/* ── Header ─────────────────────────────────────────── */}
+      <View style={styles.header}>
+        {/* Progress bar */}
+        <View style={styles.progressBar}>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
           </View>
-        ))}
-      </View>
-
-      {/* User info */}
-      <View style={styles.userInfo}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user.initials}</Text>
         </View>
-        <Text style={styles.userName}>{user.name}</Text>
-        <Text style={styles.timeAgo}>{story.timestamp}</Text>
-        <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.closeBtnText}>✕</Text>
-        </TouchableOpacity>
+
+        {/* User row */}
+        <View style={styles.userRow}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+          <Text style={styles.username}>{name}</Text>
+          <Text style={styles.timestamp}>agora</Text>
+          <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()}>
+            <Text style={styles.closeBtnText}>✕</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Tap zones */}
-      <View style={styles.tapZones}>
-        <TouchableOpacity style={styles.tapLeft} activeOpacity={1} onPress={() => goPrev()} />
-        <TouchableOpacity style={styles.tapRight} activeOpacity={1} onPress={() => goNext()} />
-      </View>
+      {/* ── Content (workout story) ────────────────────────── */}
+      <TouchableWithoutFeedback
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <View style={styles.content}>
+          {/* Tap zones */}
+          <View style={styles.tapZones}>
+            <TouchableOpacity style={styles.tapLeft} activeOpacity={1} onPress={() => handleTap('left')} />
+            <TouchableOpacity style={styles.tapRight} activeOpacity={1} onPress={() => handleTap('right')} />
+          </View>
 
-      {/* Reply */}
-      <View style={styles.replyContainer}>
+          {/* Centered workout content */}
+          <View style={styles.workoutContent}>
+            <View style={styles.iconContainer}>
+              <Skull size={32} color="#F26522" />
+            </View>
+            <Text style={styles.workoutTitle}>Treino Completo!</Text>
+            <Text style={styles.workoutSubtitle}>{name} acabou de treinar</Text>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{workouts}</Text>
+                <Text style={styles.statLabel}>treinos</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{streak}</Text>
+                <Text style={styles.statLabel}>streak</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{points.toLocaleString('pt-BR')}</Text>
+                <Text style={styles.statLabel}>pontos</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+
+      {/* ── Footer (reply) ─────────────────────────────────── */}
+      <View style={styles.footer}>
         <TextInput
           style={styles.replyInput}
           placeholder="Responder..."
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          placeholderTextColor="rgba(255,255,255,0.4)"
           value={replyText}
           onChangeText={setReplyText}
         />
@@ -253,7 +204,7 @@ export default function StoriesScreen({ navigation, route }: Props) {
           style={[styles.sendBtn, !replyText.trim() && styles.sendBtnDisabled]}
           onPress={() => { if (replyText.trim()) setReplyText(''); }}
         >
-          <Text style={styles.sendBtnText}>Enviar</Text>
+          <Text style={styles.sendIcon}>➤</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -261,87 +212,155 @@ export default function StoriesScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  storyBg: { ...StyleSheet.absoluteFillObject },
-  progressContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.sm,
+  container: { flex: 1, backgroundColor: '#0A0A0A' },
+
+  // Header
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     paddingTop: 50,
-    gap: 3,
+    paddingHorizontal: 16,
+  },
+  progressBar: {
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: 12,
   },
   progressTrack: {
     flex: 1,
-    height: 2.5,
+    height: 2,
     backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 2,
+    borderRadius: 1,
     overflow: 'hidden',
   },
-  progressFill: { height: '100%', backgroundColor: '#FFFFFF', borderRadius: 2 },
-  userInfo: {
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+  },
+  userRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    gap: 10,
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(242,101,34,0.2)',
+    borderWidth: 1.5,
+    borderColor: '#F26522',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 12, fontFamily: fonts.bodyBold, color: '#FFFFFF' },
-  userName: { fontSize: 14, fontFamily: fonts.bodyBold, color: '#FFFFFF', marginLeft: spacing.sm },
-  timeAgo: { fontSize: 12, fontFamily: fonts.body, color: 'rgba(255,255,255,0.7)', marginLeft: spacing.sm },
+  avatarText: { fontSize: 11, fontFamily: fonts.bodyBold, color: '#F26522' },
+  username: { fontFamily: fonts.bodyBold, fontSize: 14, color: '#FFFFFF' },
+  timestamp: { fontFamily: fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.6)' },
   closeBtn: {
     marginLeft: 'auto',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeBtnText: { fontSize: 14, fontFamily: fonts.bodyBold, color: '#FFFFFF' },
-  tapZones: { ...StyleSheet.absoluteFillObject, flexDirection: 'row', top: 120, bottom: 80 },
+  closeBtnText: { fontSize: 16, color: '#FFFFFF' },
+
+  // Content
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tapZones: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'row',
+    zIndex: 5,
+  },
   tapLeft: { flex: 1 },
   tapRight: { flex: 1 },
-  replyContainer: {
+  workoutContent: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    zIndex: 1,
+  },
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: 'rgba(242,101,34,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  workoutTitle: {
+    fontFamily: fonts.numbersBold,
+    fontSize: 22,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  workoutSubtitle: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 32,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontFamily: fonts.numbersBold,
+    fontSize: 20,
+    color: '#F26522',
+  },
+  statLabel: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 4,
+  },
+
+  // Footer
+  footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    paddingBottom: 34,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    paddingBottom: 40,
-    gap: spacing.sm,
+    gap: 12,
   },
   replyInput: {
     flex: 1,
     height: 44,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: radius.pill,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: spacing.lg,
-    fontSize: 14,
+    paddingHorizontal: 16,
     fontFamily: fonts.body,
+    fontSize: 14,
     color: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   sendBtn: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.orange,
-    borderRadius: radius.pill,
+    width: 44,
     height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F26522',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
-  sendBtnText: { fontSize: 13, fontFamily: fonts.bodyBold, color: '#FFFFFF' },
+  sendIcon: { fontSize: 18, color: '#FFFFFF' },
 });

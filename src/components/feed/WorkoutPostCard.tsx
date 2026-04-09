@@ -48,7 +48,7 @@ function formatCount(n: number): string {
   return (n / 1000).toFixed(1).replace('.0', '') + 'k';
 }
 
-export default function WorkoutPostCard({
+function WorkoutPostCard({
   user,
   text,
   metadata,
@@ -233,3 +233,5 @@ const styles = StyleSheet.create({
     color: '#F26522',
   },
 });
+
+export default React.memo(WorkoutPostCard);

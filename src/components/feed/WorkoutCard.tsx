@@ -12,7 +12,7 @@ interface Props {
   sets?: number;
 }
 
-export default function WorkoutCard({
+function WorkoutCard({
   splitLabel,
   splitName,
   duration,
@@ -96,3 +96,5 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
   },
 });
+
+export default React.memo(WorkoutCard);
