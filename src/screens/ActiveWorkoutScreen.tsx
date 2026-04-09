@@ -305,9 +305,9 @@ export default function ActiveWorkoutScreen() {
               const authUser = user || (await supabase.auth.getUser()).data?.user;
               if (authUser) {
                 // Save workout log
-                const { data: logData } = await supabase.from('workout_logs_v2').insert({
+                const { data: logData, error: logError } = await supabase.from('workout_logs_v2').insert({
                   user_id: authUser.id,
-                  name: workoutName,
+                  name: workoutName || 'Treino',
                   started_at: new Date(Date.now() - elapsed * 1000).toISOString(),
                   finished_at: new Date().toISOString(),
                   duration_seconds: elapsed,
@@ -315,6 +315,11 @@ export default function ActiveWorkoutScreen() {
                   points_earned: points,
                   workout_date: new Date().toISOString().split('T')[0],
                 }).select('id').single();
+
+                if (logError) {
+                  console.error('Erro ao salvar treino:', logError);
+                  Alert.alert('Erro ao salvar', `Treino não foi registrado: ${logError.message}`);
+                }
 
                 // Save sets
                 if (logData) {
@@ -329,7 +334,8 @@ export default function ActiveWorkoutScreen() {
                     }))
                   );
                   if (setsToInsert.length > 0) {
-                    await supabase.from('workout_sets').insert(setsToInsert);
+                    const { error: setsError } = await supabase.from('workout_sets').insert(setsToInsert);
+                    if (setsError) console.error('Erro ao salvar séries:', setsError);
                   }
                 }
 
