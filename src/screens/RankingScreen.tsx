@@ -176,7 +176,7 @@ export default function RankingScreen() {
                 </View>
                 <View style={styles.rankInfo}>
                   <Text style={[styles.rankName, isMe && styles.rankNameMe]}>
-                    {isMe ? 'Voce' : item.name}
+                    {item.name}{isMe ? ' (você)' : ''}
                   </Text>
                   <Text style={styles.rankSub}>
                     {item.level} • 🔥 {item.streak}
