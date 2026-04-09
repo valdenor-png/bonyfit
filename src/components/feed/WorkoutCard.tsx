@@ -60,10 +60,10 @@ export default function WorkoutCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#141414',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.10)',
     borderLeftWidth: 3,
     borderLeftColor: '#F26522',
     padding: 14,

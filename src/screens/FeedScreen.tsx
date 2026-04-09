@@ -286,7 +286,6 @@ export default function FeedScreen({ navigation }: Props) {
         keyExtractor={(item) => item.id}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={ListEmpty}
-        ItemSeparatorComponent={renderDivider}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
