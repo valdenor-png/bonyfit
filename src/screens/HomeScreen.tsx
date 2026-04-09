@@ -20,14 +20,17 @@ import XPRing from '../components/ui/XPRing';
 import AnimatedNumber from '../components/ui/AnimatedNumber';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
+import OnboardingTour from '../components/ui/OnboardingTour';
 
 interface Props {
   navigation: any;
+  route?: any;
 }
 
-export default function HomeScreen({ navigation }: Props) {
+export default function HomeScreen({ navigation, route }: Props) {
   const { user, loading: authLoading } = useAuth();
   const [workoutCount, setWorkoutCount] = useState(0);
+  const [showTour, setShowTour] = useState(false);
 
   // ── Animations ─────────────────────────────────────────────
   const headerOpacity = useRef(new Animated.Value(0)).current;
@@ -69,6 +72,36 @@ export default function HomeScreen({ navigation }: Props) {
     })();
   }, [user?.id]);
 
+  // ── Onboarding tour check ─────────────────────────────────
+  useEffect(() => {
+    if (!user?.id) return;
+    const forceTour = route?.params?.forceTour;
+    (async () => {
+      if (forceTour) {
+        setShowTour(true);
+        return;
+      }
+      const { data } = await supabase
+        .from('users')
+        .select('onboarding_completed')
+        .eq('id', user.id)
+        .single();
+      if (data && !data.onboarding_completed) {
+        setTimeout(() => setShowTour(true), 800);
+      }
+    })();
+  }, [user?.id, route?.params?.forceTour]);
+
+  const handleTourFinish = async () => {
+    setShowTour(false);
+    if (user?.id) {
+      await supabase
+        .from('users')
+        .update({ onboarding_completed: true })
+        .eq('id', user.id);
+    }
+  };
+
   if (authLoading || !user) {
     return (
       <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
@@ -86,6 +119,7 @@ export default function HomeScreen({ navigation }: Props) {
     : '?';
 
   return (
+    <>
     <ScreenBackground>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* ── Header ─────────────────────────────────────────── */}
@@ -200,6 +234,8 @@ export default function HomeScreen({ navigation }: Props) {
       {/* Acesso Rápido removido — calendário está no header */}
     </ScrollView>
     </ScreenBackground>
+    <OnboardingTour visible={showTour} onFinish={handleTourFinish} />
+    </>
   );
 }
 

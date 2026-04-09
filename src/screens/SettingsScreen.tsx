@@ -138,6 +138,15 @@ export default function SettingsScreen({ navigation }: Props) {
           </View>
         ))}
 
+        {/* Rever tour */}
+        <TouchableOpacity
+          style={styles.tourBtn}
+          onPress={() => navigation.navigate('Home', { screen: 'HomeMain', params: { forceTour: true } })}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.tourBtnText}>🎓 Rever tour do app</Text>
+        </TouchableOpacity>
+
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
           <Text style={styles.signOutText}>Sair da conta</Text>
@@ -189,8 +198,22 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 14, fontFamily: fonts.bodyMedium, color: colors.text },
   rowSub: { fontSize: 11, fontFamily: fonts.body, color: colors.textMuted, marginTop: 2 },
   chevron: { fontSize: 22, color: colors.textMuted },
+  tourBtn: {
+    marginTop: spacing.xl,
+    backgroundColor: 'rgba(242,101,34,0.08)',
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(242,101,34,0.20)',
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  tourBtnText: {
+    fontSize: 14,
+    fontFamily: fonts.bodyMedium,
+    color: colors.orange,
+  },
   signOutBtn: {
-    marginTop: spacing.xxl,
+    marginTop: spacing.lg,
     backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: spacing.lg,
