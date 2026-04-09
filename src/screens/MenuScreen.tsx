@@ -100,7 +100,7 @@ export default function MenuScreen({ navigation }: Props) {
   ];
 
   return (
-    <ScreenBackground>
+    <ScreenBackground variant="menu">
     <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}

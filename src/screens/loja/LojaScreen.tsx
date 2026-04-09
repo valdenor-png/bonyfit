@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { colors, fonts, spacing } from '../../tokens';
+import ScreenBackground from '../../components/ScreenBackground';
 import { useLojaStore } from '../../stores/lojaStore';
 
 // --- HELPERS ---
@@ -148,7 +149,7 @@ export default function LojaScreen({ navigation }: Props) {
   const itemCount = useLojaStore((s) => s.getItemCount());
 
   return (
-    <View style={styles.container}>
+    <ScreenBackground variant="loja">
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Loja Bony</Text>
@@ -183,7 +184,7 @@ export default function LojaScreen({ navigation }: Props) {
           />
         ))}
       </ScrollView>
-    </View>
+    </ScreenBackground>
   );
 }
 

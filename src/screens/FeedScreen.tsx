@@ -278,7 +278,7 @@ export default function FeedScreen({ navigation }: Props) {
   );
 
   return (
-    <ScreenBackground>
+    <ScreenBackground variant="feed">
     <View style={styles.container}>
       <FlatList
         data={posts || []}

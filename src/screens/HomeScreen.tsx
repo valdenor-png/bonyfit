@@ -114,7 +114,7 @@ export default function HomeScreen({ navigation, route }: Props) {
 
   return (
     <>
-    <ScreenBackground>
+    <ScreenBackground variant="home">
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* ── Header ─────────────────────────────────────────── */}
       <Animated.View style={[styles.header, {
