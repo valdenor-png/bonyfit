@@ -62,18 +62,18 @@ const SUPLEMENTOS: Produto[] = [
 ];
 
 const ACAI: Produto[] = [
-  { id: 'a1', nome: 'Acai Puro', preco_centavos: 1890, descricao: 'Acai puro da Amazonia sem adicao de acucar.', emoji: '🍇', destaque: true, categoriaId: 'acai', variacoes: [{ nome: '300ml' }, { nome: '500ml', preco_centavos: 2490 }, { nome: '1L', preco_centavos: 3990 }] },
-  { id: 'a2', nome: 'Acai Premium', preco_centavos: 2490, descricao: 'Acai premium com guarana e banana, blend energetico.', emoji: '🫐', destaque: true, categoriaId: 'acai', variacoes: [{ nome: '500ml' }, { nome: '1L', preco_centavos: 3990 }] },
-  { id: 'a3', nome: 'Polpa Acai', preco_centavos: 2990, descricao: 'Polpa de acai congelada para preparo em casa.', emoji: '🟣', destaque: false, categoriaId: 'acai', variacoes: [{ nome: '400g' }, { nome: '1kg', preco_centavos: 5990 }] },
-  { id: 'a4', nome: 'Polpa Cupuacu', preco_centavos: 1990, descricao: 'Polpa natural de cupuacu rica em vitamina C.', emoji: '🟡', destaque: false, categoriaId: 'acai', variacoes: [{ nome: '400g' }] },
-  { id: 'a5', nome: 'Polpa Bacaba', preco_centavos: 2290, descricao: 'Polpa de bacaba, fruta amazonica rica em oleicos.', emoji: '🟤', destaque: false, categoriaId: 'acai', variacoes: [{ nome: '400g' }] },
-  { id: 'a6', nome: 'Mix Energia', preco_centavos: 1590, descricao: 'Mix energetico de polpas com guarana natural.', emoji: '🌿', destaque: false, categoriaId: 'acai', variacoes: [{ nome: '300ml' }, { nome: '500ml', preco_centavos: 2190 }] },
+  { id: 'a1', nome: 'Açaí Puro', preco_centavos: 1890, descricao: 'Açaí puro da Amazônia sem adição de açúcar.', emoji: '🍇', destaque: true, categoriaId: 'acai', variacoes: [{ nome: '300ml' }, { nome: '500ml', preco_centavos: 2490 }, { nome: '1L', preco_centavos: 3990 }] },
+  { id: 'a2', nome: 'Açaí Premium', preco_centavos: 2490, descricao: 'Açaí premium com guaraná e banana, blend energético.', emoji: '🫐', destaque: true, categoriaId: 'acai', variacoes: [{ nome: '500ml' }, { nome: '1L', preco_centavos: 3990 }] },
+  { id: 'a3', nome: 'Polpa Açaí', preco_centavos: 2990, descricao: 'Polpa de açaí congelada para preparo em casa.', emoji: '🟣', destaque: false, categoriaId: 'acai', variacoes: [{ nome: '400g' }, { nome: '1kg', preco_centavos: 5990 }] },
+  { id: 'a4', nome: 'Polpa Cupuaçu', preco_centavos: 1990, descricao: 'Polpa natural de cupuaçu rica em vitamina C.', emoji: '🟡', destaque: false, categoriaId: 'acai', variacoes: [{ nome: '400g' }] },
+  { id: 'a5', nome: 'Polpa Bacaba', preco_centavos: 2290, descricao: 'Polpa de bacaba, fruta amazônica rica em oleicos.', emoji: '🟤', destaque: false, categoriaId: 'acai', variacoes: [{ nome: '400g' }] },
+  { id: 'a6', nome: 'Mix Energia', preco_centavos: 1590, descricao: 'Mix energético de polpas com guaraná natural.', emoji: '🌿', destaque: false, categoriaId: 'acai', variacoes: [{ nome: '300ml' }, { nome: '500ml', preco_centavos: 2190 }] },
 ];
 
 export const CATEGORIAS: Categoria[] = [
   { id: 'roupas', nome: 'ROUPAS', emoji: '👕', produtos: ROUPAS },
   { id: 'suplementos', nome: 'SUPLEMENTOS', emoji: '💪', produtos: SUPLEMENTOS },
-  { id: 'acai', nome: 'ACAI BONE', emoji: '🍇', produtos: ACAI },
+  { id: 'acai', nome: 'AÇAÍ BONY', emoji: '🍇', produtos: ACAI },
 ];
 
 export const ALL_PRODUCTS: Produto[] = [...ROUPAS, ...SUPLEMENTOS, ...ACAI];

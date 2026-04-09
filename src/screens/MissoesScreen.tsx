@@ -23,7 +23,7 @@ interface Mission {
 
 const MOCK_MISSIONS: Mission[] = [
   { id: 'm1', icon: '🏋️', title: 'Treine 4x esta semana', current: 2, goal: 4, reward: 200, completed: false },
-  { id: 'm2', icon: '💧', title: 'Beba 2L de agua por 5 dias', current: 3, goal: 5, reward: 150, completed: false },
+  { id: 'm2', icon: '💧', title: 'Beba 2L de água por 5 dias', current: 3, goal: 5, reward: 150, completed: false },
   { id: 'm3', icon: '📸', title: 'Poste no feed', current: 0, goal: 1, reward: 100, completed: false },
   { id: 'm4', icon: '🏆', title: 'Complete um desafio', current: 1, goal: 1, reward: 250, completed: true },
   { id: 'm5', icon: '🦵', title: 'Faca um treino de perna', current: 0, goal: 1, reward: 150, completed: false },
@@ -151,7 +151,7 @@ export default function MissoesScreen({ navigation }: Props) {
             </Text>
           </ProgressRingLocal>
           <Text style={styles.overallText}>
-            {completedCount}/{totalMissions} missoes completas
+            {completedCount}/{totalMissions} missões completas
           </Text>
         </View>
 

@@ -154,7 +154,7 @@ export default function PesoScreen({ navigation }: Props) {
         </View>
 
         {/* Stats */}
-        <Text style={styles.sectionTitle}>Estatisticas</Text>
+        <Text style={styles.sectionTitle}>Estatísticas</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Maior peso</Text>
@@ -169,7 +169,7 @@ export default function PesoScreen({ navigation }: Props) {
             <Text style={styles.statValue}>{variation.toFixed(1)} kg</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Media</Text>
+            <Text style={styles.statLabel}>Média</Text>
             <Text style={styles.statValue}>{avgWeight.toFixed(1)} kg</Text>
           </View>
         </View>

@@ -133,7 +133,7 @@ export default function TreinosProntosScreen() {
                     <Text style={styles.cardTitle}>{program.title}</Text>
                     <Text style={styles.cardDesc}>{program.description}</Text>
                     <Text style={styles.cardMeta}>
-                      {program.exercises.length} exercícios \u2022 {program.durationMin} min
+                      {program.exercises.length} exercícios •{program.durationMin} min
                     </Text>
                   </View>
                   <Text style={styles.expandArrow}>{isExpanded ? '▲' : '▼'}</Text>
@@ -150,7 +150,7 @@ export default function TreinosProntosScreen() {
                       <View style={styles.exerciseInfo}>
                         <Text style={styles.exerciseName}>{ex.name}</Text>
                         <Text style={styles.exerciseDetail}>
-                          {ex.muscle_group} \u2022 {ex.equipment}
+                          {ex.muscle_group} •{ex.equipment}
                         </Text>
                       </View>
                       <Text style={styles.exerciseSets}>

@@ -77,7 +77,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const level = user?.level || 'Bronze';
   const levelColor = getLevelColor(level);
   const levelIcon = getLevelIcon(level);
-  const points = user?.points ?? 0;
+  const points = user?.total_points ?? user?.points ?? 0;
   const name = user?.name || 'Usuario';
   const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
   const streak = user?.current_streak ?? user?.streak ?? 0;

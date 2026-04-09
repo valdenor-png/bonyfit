@@ -52,10 +52,10 @@ const TABS: { key: TabKey; label: string }[] = [
 export default function RankingScreen() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKey>('geral');
-  const [ranking, setRanking] = useState<RankingEntry[]>(MOCK_RANKING);
+  const [ranking, setRanking] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [myPosition, setMyPosition] = useState(MOCK_MY_STATS.position);
-  const [totalUsers, setTotalUsers] = useState(MOCK_MY_STATS.totalUsers);
+  const [myPosition, setMyPosition] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -91,21 +91,17 @@ export default function RankingScreen() {
             setMyPosition(myIndex + 1);
           }
         }
-      } else {
-        setRanking(MOCK_RANKING);
-        setTotalUsers(MOCK_MY_STATS.totalUsers);
       }
     } catch (error) {
       console.error('Error loading ranking:', error);
-      setRanking(MOCK_RANKING);
     } finally {
       setLoading(false);
     }
   }
 
-  const userPoints = user?.total_points ?? user?.points ?? MOCK_MY_STATS.points;
-  const userStreak = user?.current_streak ?? user?.streak ?? MOCK_MY_STATS.streak;
-  const userLevel = user?.level ?? MOCK_MY_STATS.level;
+  const userPoints = user?.total_points ?? user?.points ?? 0;
+  const userStreak = user?.current_streak ?? user?.streak ?? 0;
+  const userLevel = user?.level ?? 'Bronze';
 
   return (
     <ScreenBackground>
