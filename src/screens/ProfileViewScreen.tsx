@@ -217,7 +217,7 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>{username || name}</Text>
+        <Text style={styles.topBarTitle}>{name || username}</Text>
         <TouchableOpacity onPress={() => setShowMenu(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Text style={styles.menuDots}>{'\u22EE'}</Text>
         </TouchableOpacity>

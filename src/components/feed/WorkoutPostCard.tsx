@@ -84,7 +84,7 @@ function WorkoutPostCard({
 
         <TouchableOpacity style={styles.headerInfo} onPress={onUserPress} activeOpacity={0.7}>
           <View style={styles.nameRow}>
-            <Text style={styles.userName}>{user.username || user.name}</Text>
+            <Text style={styles.userName}>{user.name || user.username}</Text>
             <LevelBadge level={user.level} />
             {user.unit && <Text style={styles.unitTag}>Un. {user.unit}</Text>}
           </View>
