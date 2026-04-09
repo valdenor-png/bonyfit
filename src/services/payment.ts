@@ -1,10 +1,12 @@
 import type { PaymentMethod, PaymentStatus } from '../types/payment';
 import { supabase } from './supabase';
 
-const ASAAS_BASE_URL =
-  process.env.EXPO_PUBLIC_ASAAS_BASE_URL ?? 'https://sandbox.asaas.com/api/v3';
-const ASAAS_API_KEY =
-  process.env.EXPO_PUBLIC_ASAAS_API_KEY ?? 'your-asaas-api-key';
+const ASAAS_BASE_URL = process.env.EXPO_PUBLIC_ASAAS_BASE_URL ?? 'https://sandbox.asaas.com/api/v3';
+const ASAAS_API_KEY = process.env.EXPO_PUBLIC_ASAAS_API_KEY;
+
+if (!ASAAS_API_KEY) {
+  throw new Error('EXPO_PUBLIC_ASAAS_API_KEY deve estar definido no .env');
+}
 
 const headers = {
   'Content-Type': 'application/json',
