@@ -129,7 +129,7 @@ export default function PesoScreen({ navigation }: Props) {
         </View>
 
         {/* Chart - horizontal bars */}
-        <Text style={styles.sectionTitle}>Historico</Text>
+        <Text style={styles.sectionTitle}>Histórico</Text>
         <View style={styles.chartCard}>
           {entries.map((entry, index) => {
             const barWidth = ((entry.weight - barMin) / barRange) * 100;

@@ -241,7 +241,7 @@ export default function AvaliacaoFisicaScreen({ navigation }: Props) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Avaliacao Fisica</Text>
+        <Text style={styles.headerTitle}>Avaliação Física</Text>
         <View style={{ width: 32 }} />
       </View>
 

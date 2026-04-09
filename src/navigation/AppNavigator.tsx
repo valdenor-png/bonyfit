@@ -280,8 +280,11 @@ function AgendaProfNavigator() {
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
   if (name === 'Treino') {
     return (
-      <View style={[tabStyles.centerBtn, focused && tabStyles.centerBtnActive]}>
-        <Skull size={22} color={focused ? '#FFFFFF' : colors.textMuted} />
+      <View style={tabStyles.centerWrap}>
+        <View style={[tabStyles.centerBtn, focused && tabStyles.centerBtnActive]}>
+          <Skull size={22} color={focused ? '#FFFFFF' : colors.textMuted} />
+        </View>
+        <Text style={[tabStyles.centerLabel, focused && tabStyles.centerLabelActive]}>Treino</Text>
       </View>
     );
   }
@@ -309,6 +312,10 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
 const tabStyles = StyleSheet.create({
   icon: { fontSize: 20, color: 'rgba(255,255,255,0.5)' },
   iconActive: { color: colors.orange },
+  centerWrap: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   centerBtn: {
     width: 48,
     height: 48,
@@ -316,10 +323,18 @@ const tabStyles = StyleSheet.create({
     backgroundColor: colors.elevated,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
   },
   centerBtnActive: {
     backgroundColor: colors.orange,
+  },
+  centerLabel: {
+    fontSize: 10,
+    fontFamily: fonts.bodyMedium,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  centerLabelActive: {
+    color: colors.orange,
   },
 });
 

@@ -95,7 +95,7 @@ export default function LojaProdutoDetalheScreen({ navigation, route }: Props) {
           </TouchableOpacity>
         </View>
         <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>Produto nao encontrado</Text>
+          <Text style={styles.notFoundText}>Produto não encontrado</Text>
         </View>
       </View>
     );
@@ -156,7 +156,7 @@ export default function LojaProdutoDetalheScreen({ navigation, route }: Props) {
         {/* Variations */}
         {produto.variacoes.length > 0 && (
           <View style={styles.variationsSection}>
-            <Text style={styles.variationsTitle}>OPCOES</Text>
+            <Text style={styles.variationsTitle}>OPÇÕES</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}

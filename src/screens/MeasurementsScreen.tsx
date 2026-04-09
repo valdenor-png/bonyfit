@@ -294,7 +294,7 @@ export default function MeasurementsScreen() {
               </View>
             )}
 
-            <Text style={styles.sectionTitle}>Historico</Text>
+            <Text style={styles.sectionTitle}>Histórico</Text>
           </>
         }
       />

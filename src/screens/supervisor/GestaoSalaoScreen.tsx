@@ -129,7 +129,7 @@ export default function GestaoSalaoScreen() {
       {/* Section 1: Solicitacoes VIP */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>🔔 SOLICITACOES VIP</Text>
+          <Text style={styles.sectionTitle}>🔔 SOLICITAÇÕES VIP</Text>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{solicitacoes.length}</Text>
           </View>
@@ -165,7 +165,7 @@ export default function GestaoSalaoScreen() {
       {/* Section 2: Avaliacoes Pendentes */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>📋 AVALIACOES PENDENTES</Text>
+          <Text style={styles.sectionTitle}>📋 AVALIAÇÕES PENDENTES</Text>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{avaliacoes.length}</Text>
           </View>

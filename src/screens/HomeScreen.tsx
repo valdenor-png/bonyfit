@@ -190,10 +190,10 @@ export default function HomeScreen({ navigation, route }: Props) {
           <View style={styles.workoutContent}>
             <View style={styles.workoutLeft}>
               <Text style={styles.workoutLabel}>TREINO DE HOJE</Text>
-              <Text style={styles.workoutName}>Peito + Tríceps + Ombro</Text>
-              <Text style={styles.workoutSub}>6 exercícios • ~50 min</Text>
+              <Text style={styles.workoutName}>Treino A — Peito + Tríceps</Text>
+              <Text style={styles.workoutSub}>6 exercícios • ~45 min</Text>
               <View style={styles.muscleChips}>
-                {['Peito', 'Tríceps', 'Ombro'].map((m) => (
+                {['Peito', 'Tríceps'].map((m) => (
                   <View key={m} style={styles.muscleChip}>
                     <Text style={styles.muscleChipText}>{m}</Text>
                   </View>

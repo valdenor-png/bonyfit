@@ -35,7 +35,7 @@ const LIMITATIONS = [
 export default function AnamneseScreen({ navigation }: Props) {
   const [step, setStep] = useState(0);
 
-  // Step 1 - Historico
+  // Step 1 - Histórico
   const [practicesActivity, setPracticesActivity] = useState<boolean | null>(null);
   const [hasInjuries, setHasInjuries] = useState<boolean | null>(null);
   const [medicalFollowup, setMedicalFollowup] = useState<boolean | null>(null);
@@ -126,7 +126,7 @@ export default function AnamneseScreen({ navigation }: Props) {
       case 0:
         return (
           <View>
-            <Text style={styles.stepTitle}>Historico</Text>
+            <Text style={styles.stepTitle}>Histórico</Text>
             {renderRadio('Pratica atividade fisica?', practicesActivity, setPracticesActivity)}
             {renderRadio('Tem lesoes?', hasInjuries, setHasInjuries)}
             {renderRadio('Faz acompanhamento medico?', medicalFollowup, setMedicalFollowup)}

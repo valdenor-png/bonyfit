@@ -299,7 +299,7 @@ export default function MinhasAulasScreen({ navigation }: Props) {
   const TABS: { key: TabKey; label: string }[] = [
     { key: 'hoje', label: 'Hoje' },
     { key: 'semana', label: 'Semana' },
-    { key: 'historico', label: 'Historico' },
+    { key: 'historico', label: 'Histórico' },
   ];
 
   return (
