@@ -164,7 +164,7 @@ export default function FeedScreen({ navigation }: Props) {
         timeAgo={formatTimeAgo(item.created_at)}
         onLike={() => handleLike(item.id, item.isLiked)}
         onComment={() =>
-          navigation.navigate('PostComments', { postId: item.id })
+          navigation.navigate('Comentarios', { postId: item.id })
         }
         onShare={() =>
           Share.share({ message: `Confira o treino no Bony Fit! 💪` })
@@ -192,7 +192,7 @@ export default function FeedScreen({ navigation }: Props) {
           <Text style={styles.logo}>Bony Fit</Text>
           <View style={styles.headerIcons}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('CreatePost')}
+              onPress={() => navigation.navigate('CriarPost')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Text style={styles.headerIcon}>+</Text>
@@ -212,7 +212,7 @@ export default function FeedScreen({ navigation }: Props) {
         {/* Stories */}
         <StoriesRow
           friends={storyFriends}
-          onAddStory={() => navigation.navigate('CreateStory')}
+          onAddStory={() => navigation.navigate('Stories')}
           onViewStory={(userId) =>
             navigation.navigate('Stories', { userId })
           }

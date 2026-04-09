@@ -69,7 +69,7 @@ const MONTH_NAMES = [
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-const TODAY = new Date(2026, 3, 5);
+const TODAY = new Date();
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 

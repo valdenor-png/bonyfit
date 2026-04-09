@@ -9,6 +9,7 @@ import {
   Keyboard,
   Platform,
   Vibration,
+  Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
@@ -367,6 +368,7 @@ export default function ActiveWorkoutScreen() {
               }
             } catch (err) {
               console.warn('Erro ao salvar:', err);
+              Alert.alert('Erro ao salvar', 'Seu treino não foi registrado. Verifique sua conexão e tente novamente.');
             }
 
             // Refresh user data so Home picks up updated total_workouts/points/streak

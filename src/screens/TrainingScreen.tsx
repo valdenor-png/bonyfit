@@ -17,7 +17,7 @@ import type { WorkoutPlan } from '../types/workout';
 
 // ─── Mock Data ──────────────────────────────────────────────────────────────────
 
-const TODAY = new Date(2026, 3, 5); // April 5, 2026
+const TODAY = new Date();
 
 interface TodayWorkout {
   name: string;

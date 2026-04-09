@@ -57,9 +57,9 @@ export async function fetchUltimosTreinos(alunoId: string, limit = 5) {
 
 export async function fetchAvaliacoes(alunoId: string, limit = 3) {
   const { data } = await supabase
-    .from('avaliacoes_fisicas')
-    .select('id, data, peso, gordura_corporal')
-    .eq('user_id', alunoId)
+    .from('avaliacoes')
+    .select('id, data, peso_kg, percentual_gordura')
+    .eq('aluno_id', alunoId)
     .order('data', { ascending: false })
     .limit(limit);
   return data || [];

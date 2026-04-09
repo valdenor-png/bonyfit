@@ -185,9 +185,9 @@ BEGIN
   novo_codigo := 'BONY-' || UPPER(SUBSTR(MD5(RANDOM()::TEXT), 1, 6));
 
   INSERT INTO public.users (
-    id, name, email, cpf, cargo_id, cargo_slug, nivel,
+    id, name, email, cpf, cargo_id, cargo_slug, level,
     total_points, current_streak, total_workouts,
-    codigo_indicacao, onboarding_completo, created_at
+    codigo_indicacao, onboarding_completed, created_at
   ) VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'name', 'Novo Aluno'),
