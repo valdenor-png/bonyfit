@@ -95,7 +95,11 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   loadUser: async () => {
-    set({ loading: true });
+    // Only show full loading spinner on initial load (not yet authenticated).
+    // Background refreshes keep the app mounted to avoid resetting navigation.
+    if (!get().isAuthenticated) {
+      set({ loading: true });
+    }
     try {
       const user = await authService.getCurrentUser();
       if (!user) {
@@ -158,10 +162,12 @@ export const useAuth = create<AuthState>((set, get) => ({
 }));
 
 // Listen for auth state changes on module load
-supabase.auth.onAuthStateChange((_event, session) => {
-  if (session?.user) {
-    useAuth.getState().loadUser();
-  } else {
+supabase.auth.onAuthStateChange((event, session) => {
+  // TOKEN_REFRESHED and USER_UPDATED should NOT trigger navigation changes.
+  // Only SIGNED_IN (real login) and SIGNED_OUT need action.
+  if (event === 'TOKEN_REFRESHED') return;
+
+  if (event === 'SIGNED_OUT' || !session?.user) {
     useAuth.setState({
       user: null,
       cargo: null,
@@ -170,5 +176,9 @@ supabase.auth.onAuthStateChange((_event, session) => {
       isAuthenticated: false,
       loading: false,
     });
+    return;
   }
+
+  // SIGNED_IN, INITIAL_SESSION, USER_UPDATED — refresh user data
+  useAuth.getState().loadUser();
 });
