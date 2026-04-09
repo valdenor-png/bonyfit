@@ -74,9 +74,8 @@ export default function HomeScreen({ navigation, route }: Props) {
         return;
       }
       const { data } = await supabase
-        .from('users')
+        .from('user_profile_safe')
         .select('onboarding_completed')
-        .eq('id', user.id)
         .single();
       if (data && !data.onboarding_completed) {
         setTimeout(() => setShowTour(true), 800);

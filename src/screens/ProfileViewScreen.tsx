@@ -51,7 +51,7 @@ export default function ProfileViewScreen({ navigation, route }: Props) {
     try {
       // Profile
       const { data: userData } = await supabase
-        .from('users')
+        .from('public_user_profile')
         .select('*')
         .eq('id', userId)
         .single();

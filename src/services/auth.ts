@@ -29,9 +29,8 @@ export async function getCurrentUser(): Promise<User | null> {
   if (!authUser) return null;
 
   const { data, error } = await supabase
-    .from('users')
+    .from('user_profile_safe')
     .select('*')
-    .eq('id', authUser.id)
     .single();
 
   if (error) throw error;

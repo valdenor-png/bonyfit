@@ -258,9 +258,9 @@ export default function AulaAtivaScreen({ navigation, route }: Props) {
               const presentStudents = attendees.filter((a) => !a.removido && a.aluno_id);
               for (const student of presentStudents) {
                 try {
-                  // Fetch current points
+                  // TODO: mover pra Edge Function — gamificação não deve rodar no client
                   const { data: userData, error: userErr } = await supabase
-                    .from('users')
+                    .from('public_user_profile')
                     .select('total_points')
                     .eq('id', student.aluno_id)
                     .single();
@@ -271,6 +271,7 @@ export default function AulaAtivaScreen({ navigation, route }: Props) {
                   }
 
                   const currentPoints = userData?.total_points ?? 0;
+                  // TODO: mover pra Edge Function — gamificação não deve rodar no client
                   const { error: updateErr } = await supabase
                     .from('users')
                     .update({ total_points: currentPoints + pontosAula })

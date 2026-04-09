@@ -42,7 +42,7 @@ export default function ListaPersonaisScreen({ navigation }: { navigation: any }
   const loadPersonais = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('public_user_profile')
         .select('id, name')
         .eq('cargo_slug', 'personal');
 

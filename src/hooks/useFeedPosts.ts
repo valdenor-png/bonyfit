@@ -71,7 +71,7 @@ export function useFeedPosts({ tab, unitId, userId }: UseFeedPostsOptions) {
       if (tab === 'unidade' && unitId) {
         // Filter by unit — need to join with users
         const { data: unitUsers } = await supabase
-          .from('users')
+          .from('public_user_profile')
           .select('id')
           .eq('unit_id', unitId);
 

@@ -27,9 +27,8 @@ export function useVip(userId: string | undefined): VipInfo {
     const load = async () => {
       try {
         const { data } = await supabase
-          .from('users')
+          .from('user_profile_safe')
           .select('plan_id')
-          .eq('id', userId)
           .single();
 
         if (!data?.plan_id) {

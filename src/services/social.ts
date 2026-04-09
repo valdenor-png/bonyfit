@@ -250,7 +250,7 @@ export async function getUserProfile(
   userId: string,
 ): Promise<User | null> {
   const { data, error } = await supabase
-    .from('users')
+    .from('public_user_profile')
     .select('*')
     .eq('id', userId)
     .single();

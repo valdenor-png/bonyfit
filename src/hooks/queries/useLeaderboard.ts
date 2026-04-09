@@ -6,7 +6,7 @@ export function useLeaderboard(period: 'weekly' | 'monthly' | 'all' = 'all') {
     queryKey: ['leaderboard', period],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('users')
+        .from('public_user_profile')
         .select('id, name, avatar_url, total_points, level, current_streak')
         .order('total_points', { ascending: false })
         .limit(50);

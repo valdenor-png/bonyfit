@@ -42,7 +42,7 @@ export default function StoriesScreen({ navigation, route }: Props) {
       if (!userId) { navigation.goBack(); return; }
 
       const { data } = await supabase
-        .from('users')
+        .from('public_user_profile')
         .select('id, name, avatar_url, total_points, current_streak, total_workouts')
         .eq('id', userId)
         .single();

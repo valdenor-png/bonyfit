@@ -47,7 +47,7 @@ export async function agendarAvaliacaoSupervisor(
 
 export async function fetchPersonaisUnidade(unitId: string) {
   const { data } = await supabase
-    .from('users')
+    .from('public_user_profile')
     .select('id, name, avatar_url, bio')
     .eq('unit_id', unitId)
     .in('cargo_slug', ['personal', 'supervisor']);

@@ -64,7 +64,7 @@ export default function RankingScreen() {
     setLoading(true);
     try {
       const { data, count } = await supabase
-        .from('users')
+        .from('public_user_profile')
         .select('id, name, level, total_points, current_streak, avatar_url', { count: 'exact' })
         .order('total_points', { ascending: false })
         .limit(50);

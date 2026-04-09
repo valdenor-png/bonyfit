@@ -78,7 +78,7 @@ export const useMessagesStore = create<MessagesStore>((set) => ({
         let other = { id: '', name: 'Usuário', level: 'Bronze' };
         if (otherParts?.[0]) {
           const { data: u } = await supabase
-            .from('users').select('id, name, level').eq('id', otherParts[0].user_id).single();
+            .from('public_user_profile').select('id, name, level').eq('id', otherParts[0].user_id).single();
           if (u) other = u;
         }
 

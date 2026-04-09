@@ -43,7 +43,7 @@ export function useMutualFriends(userId?: string) {
 
       // Get user profiles
       const { data: users, error: e3 } = await supabase
-        .from('users')
+        .from('public_user_profile')
         .select('id, name, username, level, avatar_url')
         .in('id', mutualIds);
       if (e3) throw e3;

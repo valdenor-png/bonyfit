@@ -329,11 +329,10 @@ export default function ActiveWorkoutScreen() {
                   }
                 }
 
-                // Update user points + streak
+                // TODO: mover pra Edge Function — gamificação não deve rodar no client
                 const { data: userData } = await supabase
-                  .from('users')
+                  .from('user_profile_safe')
                   .select('total_points, current_streak, last_workout_date, total_workouts')
-                  .eq('id', authUser.id)
                   .single();
 
                 if (userData) {
@@ -350,6 +349,7 @@ export default function ActiveWorkoutScreen() {
 
                   const finalPts = Math.round(points * mult);
 
+                  // TODO: mover pra Edge Function — gamificação não deve rodar no client
                   await supabase.from('users').update({
                     total_points: (userData.total_points || 0) + finalPts,
                     current_streak: streak,

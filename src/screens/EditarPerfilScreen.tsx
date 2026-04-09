@@ -59,9 +59,8 @@ export default function EditarPerfilScreen({ navigation }: Props) {
     if (!user?.id) return;
     (async () => {
       const { data } = await supabase
-        .from('users')
+        .from('user_profile_safe')
         .select('bio, unit_id')
-        .eq('id', user.id)
         .single();
       if (data) {
         if (data.bio) setBio(data.bio);
