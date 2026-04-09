@@ -5,6 +5,10 @@
 -- user_profile_safe  → perfil do próprio usuário (filtra por auth.uid())
 -- public_user_profile → dados públicos de qualquer usuário (ranking, feed, perfil)
 
+-- Dropar views anteriores (necessário se colunas mudaram)
+DROP VIEW IF EXISTS user_profile_safe;
+DROP VIEW IF EXISTS public_user_profile;
+
 -- ── View: perfil do próprio usuário ─────────────────────────────
 CREATE OR REPLACE VIEW user_profile_safe AS
 SELECT
