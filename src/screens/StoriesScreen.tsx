@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   TextInput,
   Dimensions,
   PanResponder,
@@ -154,19 +153,29 @@ export default function StoriesScreen({ navigation, route }: Props) {
       </View>
 
       {/* ── Content (workout story) ────────────────────────── */}
-      <TouchableWithoutFeedback
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <View style={styles.content}>
-          {/* Tap zones */}
-          <View style={styles.tapZones}>
-            <TouchableOpacity style={styles.tapLeft} activeOpacity={1} onPress={() => handleTap('left')} />
-            <TouchableOpacity style={styles.tapRight} activeOpacity={1} onPress={() => handleTap('right')} />
-          </View>
+      <View style={styles.content}>
+        {/* Tap zones — long press = pause, short tap = nav */}
+        <View style={styles.tapZones}>
+          <TouchableOpacity
+            style={styles.tapLeft}
+            activeOpacity={1}
+            onPress={() => handleTap('left')}
+            onLongPress={handlePressIn}
+            onPressOut={handlePressOut}
+            delayLongPress={200}
+          />
+          <TouchableOpacity
+            style={styles.tapRight}
+            activeOpacity={1}
+            onPress={() => handleTap('right')}
+            onLongPress={handlePressIn}
+            onPressOut={handlePressOut}
+            delayLongPress={200}
+          />
+        </View>
 
-          {/* Centered workout content */}
-          <View style={styles.workoutContent}>
+        {/* Centered workout content */}
+        <View style={styles.workoutContent}>
             <View style={styles.iconContainer}>
               <Skull size={32} color="#F26522" />
             </View>
@@ -189,7 +198,6 @@ export default function StoriesScreen({ navigation, route }: Props) {
             </View>
           </View>
         </View>
-      </TouchableWithoutFeedback>
 
       {/* ── Footer (reply) ─────────────────────────────────── */}
       <View style={styles.footer}>
