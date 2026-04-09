@@ -19,6 +19,7 @@ import Skull from '../../components/Skull';
 import ScreenBackground from '../../components/ScreenBackground';
 import Button from '../../components/Button';
 import { supabase } from '../../services/supabase';
+import { checkRateLimit } from '../../lib/rateLimiter';
 
 type Nav = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -35,33 +36,68 @@ function maskCPF(value: string): string {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 }
 
+function isValidCPF(cpf: string): boolean {
+  const digits = cpf.replace(/\D/g, '');
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false; // all same digit (000.000.000-00)
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i);
+  let check = 11 - (sum % 11);
+  if (check >= 10) check = 0;
+  if (parseInt(digits[9]) !== check) return false;
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i);
+  check = 11 - (sum % 11);
+  if (check >= 10) check = 0;
+  return parseInt(digits[10]) === check;
+}
+
 export default function LoginScreen({ onLoginSuccess }: Props) {
   const navigation = useNavigation<Nav>();
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [attempts, setAttempts] = useState(0);
+
   const handleLogin = async () => {
     const cpfClean = cpf.replace(/\D/g, '');
-    if (cpfClean.length !== 11) {
+    if (!isValidCPF(cpfClean)) {
       Alert.alert('Erro', 'CPF inválido.');
       return;
     }
-    if (!senha) {
-      Alert.alert('Erro', 'Digite sua senha.');
+    if (!senha || senha.length < 6) {
+      Alert.alert('Erro', 'Digite sua senha (mínimo 6 caracteres).');
+      return;
+    }
+
+    // Rate limit local (5 tentativas) + server-side
+    if (attempts >= 5) {
+      Alert.alert('Muitas tentativas', 'Aguarde alguns minutos antes de tentar novamente.');
       return;
     }
 
     setLoading(true);
     try {
-      const { data: userData, error: lookupError } = await supabase
+      const { allowed } = await checkRateLimit('login');
+      if (!allowed) {
+        Alert.alert('Muitas tentativas', 'Aguarde alguns minutos antes de tentar novamente.');
+        setLoading(false);
+        return;
+      }
+
+      // Mensagem genérica — não revela se CPF existe ou se senha está errada
+      const GENERIC_ERROR = 'CPF ou senha incorretos.';
+
+      const { data: userData } = await supabase
         .from('users')
         .select('email')
         .eq('cpf', cpfClean)
         .single();
 
-      if (lookupError || !userData) {
-        Alert.alert('Erro', 'CPF não encontrado.');
+      if (!userData) {
+        setAttempts((a) => a + 1);
+        Alert.alert('Erro', GENERIC_ERROR);
         setLoading(false);
         return;
       }
@@ -72,14 +108,17 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
       });
 
       if (authError) {
-        Alert.alert('Erro', 'Senha incorreta.');
+        setAttempts((a) => a + 1);
+        Alert.alert('Erro', GENERIC_ERROR);
         setLoading(false);
         return;
       }
 
+      setAttempts(0);
       onLoginSuccess();
     } catch (err: any) {
-      Alert.alert('Erro', err.message || 'Erro ao fazer login.');
+      setAttempts((a) => a + 1);
+      Alert.alert('Erro', 'Erro ao fazer login. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -140,18 +179,17 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
             Não tem conta? Procure a recepção da sua unidade.
           </Text>
           <TouchableOpacity onPress={async () => {
-            if (!cpf || cpf.replace(/\D/g, '').length < 11) {
-              Alert.alert('CPF necessário', 'Digite seu CPF primeiro para recuperar a senha.');
+            const cpfClean = cpf.replace(/\D/g, '');
+            if (!isValidCPF(cpfClean)) {
+              Alert.alert('CPF necessário', 'Digite um CPF válido para recuperar a senha.');
               return;
             }
-            const cpfClean = cpf.replace(/\D/g, '');
+            // Mensagem genérica — não revela se CPF existe
             const { data } = await supabase.from('users').select('email').eq('cpf', cpfClean).single();
             if (data?.email) {
               await supabase.auth.resetPasswordForEmail(data.email);
-              Alert.alert('E-mail enviado', 'Verifique seu e-mail para redefinir sua senha.');
-            } else {
-              Alert.alert('CPF não encontrado', 'Procure a recepção da sua unidade.');
             }
+            Alert.alert('Verifique seu e-mail', 'Se este CPF estiver cadastrado, você receberá um e-mail para redefinir sua senha.');
           }}>
             <Text style={styles.link}>Esqueci minha senha</Text>
           </TouchableOpacity>

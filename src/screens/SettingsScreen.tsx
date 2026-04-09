@@ -10,6 +10,7 @@ import {
 import { colors, fonts, spacing, radius } from '../tokens';
 import Toggle from '../components/Toggle';
 import { supabase } from '../services/supabase';
+import { useAuth } from '../hooks/useAuth';
 import { useUI } from '../hooks/useUI';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -89,7 +90,7 @@ export default function SettingsScreen({ navigation }: Props) {
       confirmLabel: 'Sair',
       confirmVariant: 'danger',
     });
-    if (logout) supabase.auth.signOut();
+    if (logout) useAuth.getState().signOut();
   };
 
   return (

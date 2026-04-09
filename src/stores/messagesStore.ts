@@ -34,6 +34,7 @@ interface MessagesStore {
   sendMessage: (myId: string, otherId: string, content: string, conversationId?: string) => Promise<void>;
   startConversation: (myId: string, targetId: string) => Promise<string | null>;
   markAsRead: (conversationId: string, userId: string) => Promise<void>;
+  reset: () => void;
 }
 
 export const useMessagesStore = create<MessagesStore>((set) => ({
@@ -198,4 +199,6 @@ export const useMessagesStore = create<MessagesStore>((set) => ({
         .eq('conversation_id', conversationId).eq('user_id', userId);
     } catch {}
   },
+
+  reset: () => set({ conversations: [], currentMessages: [], totalUnread: 0, loading: false }),
 }));

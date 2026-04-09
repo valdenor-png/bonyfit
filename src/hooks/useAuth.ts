@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import * as authService from '../services/auth';
+import { clearCache } from '../services/offline';
 import type { User } from '../types/user';
 import type { Cargo } from '../types/cargo';
 
@@ -80,6 +81,20 @@ export const useAuth = create<AuthState>((set, get) => ({
     set({ loading: true });
     try {
       await authService.signOut();
+
+      // Clear all cached data and stores
+      await clearCache().catch(() => {});
+
+      // Reset Zustand stores (lazy import to avoid circular deps)
+      const { useRoleStore } = await import('../stores/roleStore');
+      const { usePersonalStore } = await import('../stores/personalStore');
+      const { useSupervisorStore } = await import('../stores/supervisorStore');
+      const { useMessagesStore } = await import('../stores/messagesStore');
+      useRoleStore.getState().reset();
+      usePersonalStore.getState().reset();
+      useSupervisorStore.getState().reset();
+      useMessagesStore.getState().reset();
+
       set({
         user: null,
         cargo: null,
