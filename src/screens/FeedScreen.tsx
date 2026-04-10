@@ -21,11 +21,14 @@ import FeedFilters from '../components/feed/FeedFilters';
 import UnitSubFilter, { UnitOption } from '../components/feed/UnitSubFilter';
 import WorkoutPostCard from '../components/feed/WorkoutPostCard';
 
+import TrainingNowBar from '../components/feed/TrainingNowBar';
+
 // ─── Hooks & Stores ─────────────────────────────────────────────
 import { useMutualFriends } from '../hooks/useMutualFriends';
 import { useLiveFriends } from '../hooks/useLiveFriends';
 import { useFeedPosts, FeedPost } from '../hooks/useFeedPosts';
 import { useFeedStore } from '../stores/feedStore';
+import { useFriends, useFriendsTrainingNow } from '../hooks/useFriendships';
 
 // ─── Utils ──────────────────────────────────────────────────────
 function formatTimeAgo(dateString: string): string {
@@ -90,6 +93,9 @@ export default function FeedScreen({ navigation }: Props) {
   // ─── Data hooks ─────────────────────────────────────────────
   const { data: mutualFriends } = useMutualFriends(user?.id);
   const liveCount = useLiveFriends(user?.id);
+  const { friends } = useFriends();
+  const friendIds = friends.map(f => f.id);
+  const trainingNow = useFriendsTrainingNow(friendIds);
   const {
     data: posts,
     isLoading,
@@ -198,6 +204,12 @@ export default function FeedScreen({ navigation }: Props) {
               <Text style={styles.headerIcon}>+</Text>
             </TouchableOpacity>
             <TouchableOpacity
+              onPress={() => navigation.navigate('FriendRequests')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.headerIcon}>👥</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={() => navigation.navigate('MessagesList')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
@@ -216,6 +228,12 @@ export default function FeedScreen({ navigation }: Props) {
           onViewStory={(userId) =>
             navigation.navigate('Stories', { userId })
           }
+        />
+
+        {/* Training Now */}
+        <TrainingNowBar
+          users={trainingNow}
+          onUserPress={(userId) => navigation.navigate('ProfileView', { userId })}
         />
 
         {/* Filters */}
