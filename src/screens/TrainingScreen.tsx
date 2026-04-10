@@ -116,13 +116,13 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
 
           <TouchableOpacity
             style={styles.headerBtn}
-            onPress={() => navigation.navigate('Periodizacao')}
+            onPress={() => navigation.navigate('ProgressaoCarga')}
             activeOpacity={0.7}
           >
             <View style={[styles.headerBtnIcon, styles.headerBtnIconActive]}>
               <Text style={{ fontSize: 20 }}>📊</Text>
             </View>
-            <Text style={styles.headerBtnLabel}>Período</Text>
+            <Text style={styles.headerBtnLabel}>Carga</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

@@ -194,7 +194,7 @@ function TreinoNavigator() {
       <TreinoStack.Screen name="Templates" component={TemplatesScreen} options={{ title: 'Meus Treinos' }} />
       <TreinoStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Agenda' }} />
       <TreinoStack.Screen name="AcademyCalendar" component={AcademyCalendarScreen} options={{ headerShown: false }} />
-      <TreinoStack.Screen name="Periodizacao" component={PeriodizacaoScreen} options={{ title: 'Periodização' }} />
+      <TreinoStack.Screen name="ProgressaoCarga" component={ProgressaoCargaScreen} options={{ title: 'Progressão de Carga' }} />
       <TreinoStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
     </TreinoStack.Navigator>
   );
