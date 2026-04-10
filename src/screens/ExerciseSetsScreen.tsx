@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts } from '../tokens';
 import { useTreinoStore } from '../stores/treinoStore';
+import { useUI } from '../hooks/useUI';
 import SetTypePills from '../components/treino/SetTypePills';
 import TempoBox from '../components/treino/TempoBox';
 import SetRow from '../components/treino/SetRow';
@@ -13,13 +14,16 @@ import { useAuth } from '../hooks/useAuth';
 export default function ExerciseSetsScreen({ navigation, route }: any) {
   const { exerciseIdx: initialIdx } = route.params;
   const {
-    exercises, treinoIniciado, workoutName, inicioTimestamp,
+    exercises, treinoIniciado, workoutName, inicioTimestamp, workoutLogId,
     toggleSerie, updateSerieWeight, updateSerieReps,
-    getSeriesConcluidas, getSeriesTotais, getPontos,
+    getSeriesConcluidas, getSeriesTotais, getPontos, podeMarcarSerie,
+    setWorkoutLogId,
   } = useTreinoStore();
 
   const [currentIdx, setCurrentIdx] = useState(initialIdx);
+  const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
+  const { toast } = useUI();
 
   const exercise = exercises[currentIdx];
   if (!exercise) {
@@ -30,15 +34,16 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
   const prevEx = currentIdx > 0 ? exercises[currentIdx - 1] : null;
   const nextEx = currentIdx < exercises.length - 1 ? exercises[currentIdx + 1] : null;
   const isLast = currentIdx === exercises.length - 1;
-  const completedSets = exercise.sets.filter(s => s.completed).length;
 
-  // Rest timer state
+  // ── Rest timer ─────────────────────────────────────────────
   const [restActive, setRestActive] = useState(false);
   const [restRemaining, setRestRemaining] = useState(0);
   const restTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const DESCANSO: Record<string, number> = { normal: 90, dropset: 60, tempo: 120, failure: 90 };
+
   const startRestTimer = () => {
-    const restSec = exercise.setType === 'tempo' ? 120 : exercise.restSeconds || 90;
+    const restSec = DESCANSO[exercise.setType] ?? 90;
     setRestRemaining(restSec);
     setRestActive(true);
     if (restTimerRef.current) clearInterval(restTimerRef.current);
@@ -58,30 +63,107 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
     return () => { if (restTimerRef.current) clearInterval(restTimerRef.current); };
   }, []);
 
-  const podeMarcarSerie = useTreinoStore((s) => s.podeMarcarSerie);
+  // ── Ensure workout_log exists ──────────────────────────────
+  const ensureWorkoutLog = async (): Promise<string | null> => {
+    if (workoutLogId) return workoutLogId;
 
-  const handleToggle = (setIdx: number) => {
-    const set = exercise.sets[setIdx];
-    if (set.completed) {
-      toggleSerie(currentIdx, setIdx); // uncomplete
-      return;
+    const authUser = user || (await supabase.auth.getUser()).data?.user;
+    if (!authUser) return null;
+
+    const elapsed = inicioTimestamp ? Math.floor((Date.now() - inicioTimestamp) / 1000) : 0;
+    const { data, error } = await supabase.from('workout_logs_v2').insert({
+      user_id: authUser.id,
+      name: workoutName || 'Treino',
+      started_at: new Date(inicioTimestamp || Date.now()).toISOString(),
+      duration_seconds: elapsed,
+      volume_total: 0,
+      points_earned: 0,
+      workout_date: new Date().toISOString().split('T')[0],
+    }).select('id').single();
+
+    if (error || !data) {
+      Alert.alert('Erro', `Não foi possível iniciar o registro: ${error?.message}`);
+      return null;
     }
+
+    setWorkoutLogId(data.id);
+    return data.id;
+  };
+
+  // ── Complete set via Edge Function ─────────────────────────
+  const handleToggle = async (setIdx: number) => {
+    const set = exercise.sets[setIdx];
+
+    // Can't uncomplete — backend already registered
+    if (set.completed) return;
+
     if (!set.weight || !set.reps) {
       Alert.alert('Preencha', 'Insira peso e repetições antes de marcar.');
       return;
     }
+
+    // Client-side cooldown check (UX only — backend revalidates)
     const { pode, aguardar } = podeMarcarSerie(exercise.setType);
     if (!pode) {
-      Alert.alert('Aguarde', `Espere ${aguardar}s antes de completar a próxima série.`);
+      Alert.alert('Aguarde', `Espere ${aguardar}s antes da próxima série.`);
       return;
     }
-    toggleSerie(currentIdx, setIdx);
-    startRestTimer();
+
+    if (submitting) return;
+    setSubmitting(true);
+
+    try {
+      const logId = await ensureWorkoutLog();
+      if (!logId) { setSubmitting(false); return; }
+
+      // Call Edge Function — ALL validation happens server-side
+      const { data, error } = await supabase.functions.invoke('registrar-serie', {
+        body: {
+          workout_log_id: logId,
+          exercise_name: exercise.name,
+          exercise_db_id: exercise.dbId || undefined,
+          set_index: setIdx + 1,
+          kg_real: set.weight,
+          reps_real: set.reps,
+          set_type: exercise.setType,
+        },
+      });
+
+      if (error) {
+        // Parse error from Edge Function response
+        let msg = 'Erro ao registrar série';
+        try {
+          const body = typeof error === 'object' && error.message ? error.message : String(error);
+          msg = body;
+        } catch {}
+        Alert.alert('Bloqueado', msg);
+        setSubmitting(false);
+        return;
+      }
+
+      // Parse response
+      const result = data?.data ?? data;
+
+      // Server approved — update local store
+      toggleSerie(currentIdx, setIdx);
+      startRestTimer();
+
+      if (result?.exercicio_completo) {
+        toast({ type: 'success', title: 'Exercício completo!', message: `+${result.pontos_ganhos} pts` });
+      } else {
+        toast({ type: 'success', title: 'Série registrada', message: `+${result?.pontos_ganhos ?? 15} pts` });
+      }
+    } catch (err: any) {
+      Alert.alert('Erro', err.message || 'Falha ao registrar série.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  // ── Finish workout via Edge Function ───────────────────────
   const handleFinish = async () => {
     const allDone = exercises.every(ex => ex.sets.every(s => s.completed));
-    const confirm = allDone
+    const doFinish = allDone
       ? true
       : await new Promise<boolean>((resolve) => {
           Alert.alert(
@@ -89,77 +171,71 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
             `${getSeriesConcluidas()}/${getSeriesTotais()} séries concluídas. Deseja finalizar?`,
             [
               { text: 'Continuar', onPress: () => resolve(false) },
-              { text: 'Finalizar', onPress: () => resolve(true), style: 'default' },
+              { text: 'Finalizar', onPress: () => resolve(true) },
             ]
           );
         });
 
-    if (!confirm) return;
+    if (!doFinish) return;
 
+    const logId = workoutLogId;
+    if (!logId) {
+      Alert.alert('Erro', 'Treino não foi iniciado corretamente.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const authUser = user || (await supabase.auth.getUser()).data?.user;
-      if (!authUser) return;
+      const { data, error } = await supabase.functions.invoke('finalizar-treino', {
+        body: { workout_log_id: logId },
+      });
 
-      const elapsed = inicioTimestamp ? Math.floor((Date.now() - inicioTimestamp) / 1000) : 0;
-      const volumeTotal = exercises.reduce((sum, ex) =>
-        sum + ex.sets.filter(s => s.completed).reduce((s2, set) => s2 + (set.weight || 0) * (set.reps || 0), 0), 0);
+      const result = data?.data ?? data;
 
-      const { data: logData, error: logError } = await supabase.from('workout_logs_v2').insert({
-        user_id: authUser.id,
-        name: workoutName || 'Treino',
-        started_at: new Date(inicioTimestamp || Date.now()).toISOString(),
-        finished_at: new Date().toISOString(),
-        duration_seconds: elapsed,
-        volume_total: volumeTotal,
-        points_earned: getPontos(),
-        workout_date: new Date().toISOString().split('T')[0],
-      }).select('id').single();
-
-      if (logError) {
-        Alert.alert('Erro', `Treino não salvo: ${logError.message}`);
+      if (result?.status === 'invalidado') {
+        Alert.alert(
+          'Treino Invalidado',
+          'Seu treino foi invalidado por padrão suspeito. Os pontos foram removidos.',
+          [{ text: 'OK', onPress: () => { useTreinoStore.getState().resetTreino(); navigation.navigate('TreinoMain'); } }]
+        );
         return;
       }
 
-      // Save sets
-      if (logData) {
-        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        const setsToInsert = exercises.flatMap((ex) =>
-          ex.sets.filter(s => s.completed).map((s, i) => ({
-            workout_log_id: logData.id,
-            ...(ex.dbId && UUID_RE.test(ex.dbId) ? { exercise_id: ex.dbId } : {}),
-            exercise_name: ex.name,
-            set_index: i + 1,
-            weight_kg: s.weight,
-            reps: s.reps,
-            is_completed: true,
-          }))
-        );
-        if (setsToInsert.length > 0) {
-          await supabase.from('workout_sets').insert(setsToInsert);
-        }
+      // Auto-post to feed
+      const authUser = user || (await supabase.auth.getUser()).data?.user;
+      if (authUser) {
+        const exercisesCompleted = exercises.filter(ex => ex.sets.some(s => s.completed)).length;
+        const elapsed = inicioTimestamp ? Math.floor((Date.now() - inicioTimestamp) / 1000) : 0;
+        const volumeTotal = exercises.reduce((sum, ex) =>
+          sum + ex.sets.filter(s => s.completed).reduce((s2, set) => s2 + (set.weight || 0) * (set.reps || 0), 0), 0);
 
-        // Gamification (best-effort)
-        try {
-          await supabase.functions.invoke('completar-treino', {
-            body: { workout_log_id: logData.id },
-          });
-        } catch {}
+        await supabase.from('posts').insert({
+          user_id: authUser.id,
+          post_type: 'treino',
+          text: `Completou ${workoutName}! 💪`,
+          metadata: { duracao: Math.round(elapsed / 60), volume: volumeTotal, exercicios: exercisesCompleted, series: getSeriesConcluidas() },
+        }).catch(() => {});
       }
-
-      // Auto-post
-      const exercisesCompleted = exercises.filter(ex => ex.sets.some(s => s.completed)).length;
-      await supabase.from('posts').insert({
-        user_id: authUser.id,
-        post_type: 'treino',
-        text: `Completou ${workoutName}! 💪`,
-        metadata: { duracao: Math.round(elapsed / 60), volume: volumeTotal, exercicios: exercisesCompleted, series: getSeriesConcluidas() },
-      });
 
       useAuth.getState().loadUser();
       useTreinoStore.getState().resetTreino();
-      navigation.navigate('TreinoMain');
+
+      const status = result?.status ?? 'parcial';
+      const bonus = result?.pontos_bonus ?? 0;
+
+      if (status === 'completo') {
+        Alert.alert('Treino Completo! 🎉', `+${bonus} pontos bônus!`, [
+          { text: 'OK', onPress: () => navigation.navigate('TreinoMain') },
+        ]);
+      } else {
+        Alert.alert('Treino Finalizado', `${getSeriesConcluidas()} séries registradas.`, [
+          { text: 'OK', onPress: () => navigation.navigate('TreinoMain') },
+        ]);
+      }
     } catch (err: any) {
-      Alert.alert('Erro', 'Falha ao salvar treino.');
+      Alert.alert('Erro', 'Falha ao finalizar treino.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -179,7 +255,7 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Set type pills (read-only) */}
+        {/* Set type pills (read-only for aluno) */}
         <SetTypePills active={exercise.setType} />
 
         {/* Tempo box */}
@@ -187,11 +263,11 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
           <TempoBox seconds={exercise.tempoPerRep} />
         )}
 
-        {/* Rest timer */}
+        {/* Rest timer (obrigatório — sem botão pular) */}
         {restActive && (
           <View style={styles.restBox}>
             <Text style={styles.restTime}>{restRemaining}s</Text>
-            <Text style={styles.restLabel}>DESCANSO</Text>
+            <Text style={styles.restLabel}>DESCANSO OBRIGATÓRIO</Text>
           </View>
         )}
 
@@ -214,7 +290,7 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
             tempoSeconds={set.tempoSeconds}
             completed={set.completed}
             showTempo={exercise.setType === 'tempo'}
-            editable={treinoIniciado}
+            editable={treinoIniciado && !submitting}
             onToggle={() => handleToggle(si)}
             onWeightChange={(v) => updateSerieWeight(currentIdx, si, v)}
             onRepsChange={(v) => updateSerieReps(currentIdx, si, v)}
@@ -223,7 +299,7 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
 
         {/* Rest info */}
         <Text style={styles.restInfo}>
-          Descanso: {exercise.setType === 'tempo' ? '120s' : `${exercise.restSeconds || 90}s`} entre séries
+          Descanso: {DESCANSO[exercise.setType] ?? 90}s entre séries (obrigatório)
         </Text>
 
         {/* Exercise navigation */}
@@ -256,8 +332,8 @@ const styles = StyleSheet.create({
   content: { paddingTop: 8 },
   colHeader: { flexDirection: 'row', paddingHorizontal: 28, marginBottom: 8 },
   colText: { fontSize: 10, fontFamily: fonts.bodyMedium, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5 },
-  restBox: { backgroundColor: '#1A1A1A', borderRadius: 12, marginHorizontal: 16, marginBottom: 12, padding: 16, alignItems: 'center' },
-  restTime: { fontSize: 32, fontFamily: fonts.numbersBold, color: colors.orange },
-  restLabel: { fontSize: 10, fontFamily: fonts.bodyMedium, color: '#888', textTransform: 'uppercase', marginTop: 4 },
+  restBox: { backgroundColor: '#1A1A1A', borderRadius: 12, marginHorizontal: 16, marginBottom: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: colors.orange },
+  restTime: { fontSize: 36, fontFamily: fonts.numbersBold, color: colors.orange },
+  restLabel: { fontSize: 10, fontFamily: fonts.bodyBold, color: '#888', textTransform: 'uppercase', marginTop: 4, letterSpacing: 1 },
   restInfo: { textAlign: 'center', color: '#666', fontSize: 11, fontFamily: fonts.body, marginTop: 8, marginBottom: 12 },
 });
