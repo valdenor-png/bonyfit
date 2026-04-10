@@ -85,9 +85,9 @@ CREATE POLICY "poll_votes_insert" ON public.poll_votes
 
 -- 4. View: amigos treinando agora
 CREATE OR REPLACE VIEW public.friends_training_now AS
-SELECT ac.user_id, u.name, u.avatar_url, ac.created_at AS checked_in_at, u.unit_id
+SELECT ac.user_id, u.name, u.avatar_url, ac.checked_in_at, u.unit_id
 FROM active_checkins ac
 JOIN users u ON u.id = ac.user_id
-WHERE ac.expires_at > NOW();
+WHERE ac.expires_at > NOW() AND ac.status = 'active';
 
 GRANT SELECT ON public.friends_training_now TO authenticated;
