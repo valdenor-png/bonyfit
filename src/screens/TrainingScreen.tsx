@@ -11,6 +11,7 @@ import ScreenBackground from '../components/ScreenBackground';
 import { useAuth } from '../hooks/useAuth';
 import { useVip } from '../hooks/useVip';
 import { fetchPlanoAluno } from '../services/personal';
+import { useTreinoStore, TreinoExercise } from '../stores/treinoStore';
 import type { WorkoutPlan } from '../types/workout';
 
 // ─── Mock Data ──────────────────────────────────────────────────────────────────
@@ -36,6 +37,28 @@ const MOCK_TODAY_WORKOUT: TodayWorkout | null = {
 export default function TrainingScreen({ navigation }: { navigation: any }) {
   const todayWorkout = MOCK_TODAY_WORKOUT;
   const { user } = useAuth();
+  const carregarTreino = useTreinoStore((s) => s.carregarTreino);
+
+  const uid = () => Math.random().toString(36).slice(2, 10);
+
+  const handleVerTreino = () => {
+    // Load exercises into store, then navigate
+    const mockExercises: TreinoExercise[] = [
+      { id: uid(), dbId: null, name: 'Supino Reto com Barra', equipment: 'Barra', muscleGroup: 'Peito', setType: 'normal', restSeconds: 90, tempoPerRep: null, sets: Array.from({ length: 4 }, () => ({ id: uid(), weight: 60, reps: 12, tempoSeconds: null, completed: false, completedAt: null, prevWeight: 60, prevReps: 12 })) },
+      { id: uid(), dbId: null, name: 'Supino Inclinado Halter', equipment: 'Halter', muscleGroup: 'Peito', setType: 'normal', restSeconds: 90, tempoPerRep: null, sets: Array.from({ length: 3 }, () => ({ id: uid(), weight: 24, reps: 12, tempoSeconds: null, completed: false, completedAt: null, prevWeight: 24, prevReps: 12 })) },
+      { id: uid(), dbId: null, name: 'Crucifixo Máquina', equipment: 'Máquina', muscleGroup: 'Peito', setType: 'normal', restSeconds: 60, tempoPerRep: null, sets: Array.from({ length: 3 }, () => ({ id: uid(), weight: 40, reps: 15, tempoSeconds: null, completed: false, completedAt: null, prevWeight: 40, prevReps: 15 })) },
+      { id: uid(), dbId: null, name: 'Tríceps Corda', equipment: 'Polia', muscleGroup: 'Tríceps', setType: 'normal', restSeconds: 60, tempoPerRep: null, sets: Array.from({ length: 3 }, () => ({ id: uid(), weight: 25, reps: 15, tempoSeconds: null, completed: false, completedAt: null, prevWeight: 25, prevReps: 15 })) },
+      { id: uid(), dbId: null, name: 'Tríceps Testa', equipment: 'Barra EZ', muscleGroup: 'Tríceps', setType: 'normal', restSeconds: 60, tempoPerRep: null, sets: Array.from({ length: 3 }, () => ({ id: uid(), weight: 20, reps: 12, tempoSeconds: null, completed: false, completedAt: null, prevWeight: 20, prevReps: 12 })) },
+      { id: uid(), dbId: null, name: 'Mergulho no Banco', equipment: 'Corpo', muscleGroup: 'Tríceps', setType: 'failure', restSeconds: 60, tempoPerRep: null, sets: Array.from({ length: 3 }, () => ({ id: uid(), weight: null, reps: null, tempoSeconds: null, completed: false, completedAt: null, prevWeight: null, prevReps: null })) },
+    ];
+    carregarTreino(todayWorkout?.name || 'Treino', mockExercises);
+    navigation.navigate('WorkoutDetail');
+  };
+
+  const handleTreinoVazio = () => {
+    carregarTreino('Treino Livre', []);
+    navigation.navigate('ActiveWorkout');
+  };
   const { isVip } = useVip(user?.id);
   const [personalPlan, setPersonalPlan] = useState<WorkoutPlan | null>(null);
   const [hasPersonal, setHasPersonal] = useState(false);
@@ -131,7 +154,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
                 key={split.id}
                 style={styles.personalSplitCard}
                 activeOpacity={0.7}
-                onPress={() => navigation.navigate('ActiveWorkout')}
+                onPress={handleTreinoVazio}
               >
                 <View style={styles.personalSplitRow}>
                   <View style={styles.personalSplitBadge}>
@@ -145,7 +168,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
                   </View>
                   <TouchableOpacity
                     style={styles.personalStartBtn}
-                    onPress={() => navigation.navigate('ActiveWorkout')}
+                    onPress={handleTreinoVazio}
                     activeOpacity={0.8}
                   >
                     <Text style={styles.personalStartBtnText}>Iniciar</Text>
@@ -175,10 +198,10 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
               </View>
               <TouchableOpacity
                 style={styles.startButton}
-                onPress={() => navigation.navigate('ActiveWorkout')}
+                onPress={handleVerTreino}
                 activeOpacity={0.8}
               >
-                <Text style={styles.startButtonText}>Iniciar Treino</Text>
+                <Text style={styles.startButtonText}>Ver Treino</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -188,7 +211,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
               </Text>
               <TouchableOpacity
                 style={styles.outlineButton}
-                onPress={() => navigation.navigate('ActiveWorkout')}
+                onPress={handleTreinoVazio}
                 activeOpacity={0.7}
               >
                 <Text style={styles.outlineButtonText}>Iniciar Treino Vazio</Text>
@@ -201,7 +224,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
       {/* ── Empty workout card ──────────────────────────────────────────── */}
       <TouchableOpacity
         style={styles.emptyWorkoutBtn}
-        onPress={() => navigation.navigate('ActiveWorkout')}
+        onPress={handleTreinoVazio}
         activeOpacity={0.7}
       >
         <Text style={styles.emptyWorkoutPlus}>+</Text>

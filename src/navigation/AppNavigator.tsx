@@ -59,6 +59,8 @@ import MessagesListScreen from '../screens/MessagesListScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import CarrinhoScreen from '../screens/loja/CarrinhoScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
+import WorkoutDetailScreen from '../screens/WorkoutDetailScreen';
+import ExerciseSetsScreen from '../screens/ExerciseSetsScreen';
 import TrainingScreen from '../screens/TrainingScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import ExerciseSearchScreen from '../screens/ExerciseSearchScreen';
@@ -166,6 +168,16 @@ function TreinoNavigator() {
   return (
     <TreinoStack.Navigator screenOptions={{ ...stackOptions, headerMode: 'screen' as any }}>
       <TreinoStack.Screen name="TreinoMain" component={TrainingScreen} options={{ headerShown: false }} />
+      <TreinoStack.Screen
+        name="WorkoutDetail"
+        component={WorkoutDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <TreinoStack.Screen
+        name="ExerciseSets"
+        component={ExerciseSetsScreen}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
       <TreinoStack.Screen
         name="ActiveWorkout"
         component={ActiveWorkoutScreen}
