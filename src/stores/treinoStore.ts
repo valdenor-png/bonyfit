@@ -28,16 +28,20 @@ interface TreinoState {
   treinoIniciado: boolean;
   inicioTimestamp: number | null;
   workoutName: string;
+  workoutLogId: string | null;
   exercises: TreinoExercise[];
   exercicioAtual: number;
+  trustScore: number;
 
   // Ações
   carregarTreino: (name: string, exercises: TreinoExercise[]) => void;
   iniciarTreino: () => void;
+  setWorkoutLogId: (id: string) => void;
   toggleSerie: (exerciseIdx: number, setIdx: number) => void;
   updateSerieWeight: (exerciseIdx: number, setIdx: number, weight: number | null) => void;
   updateSerieReps: (exerciseIdx: number, setIdx: number, reps: number | null) => void;
   setExercicioAtual: (idx: number) => void;
+  setTrustScore: (score: number) => void;
   resetTreino: () => void;
 
   // Derivados
@@ -45,6 +49,7 @@ interface TreinoState {
   getSeriesTotais: () => number;
   getPontos: () => number;
   getExerciseStatus: (exerciseIdx: number) => 'pending' | 'partial' | 'complete';
+  podeMarcarSerie: (exerciseIdx: number, setType: string) => { pode: boolean; aguardar: number };
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -53,14 +58,17 @@ export const useTreinoStore = create<TreinoState>((set, get) => ({
   treinoIniciado: false,
   inicioTimestamp: null,
   workoutName: '',
+  workoutLogId: null,
   exercises: [],
   exercicioAtual: 0,
+  trustScore: 80,
 
   carregarTreino: (name, exercises) => set({
     workoutName: name,
     exercises,
     treinoIniciado: false,
     inicioTimestamp: null,
+    workoutLogId: null,
     exercicioAtual: 0,
   }),
 
@@ -68,6 +76,9 @@ export const useTreinoStore = create<TreinoState>((set, get) => ({
     treinoIniciado: true,
     inicioTimestamp: Date.now(),
   }),
+
+  setWorkoutLogId: (id) => set({ workoutLogId: id }),
+  setTrustScore: (score) => set({ trustScore: score }),
 
   toggleSerie: (exerciseIdx, setIdx) => {
     const state = get();
@@ -121,8 +132,10 @@ export const useTreinoStore = create<TreinoState>((set, get) => ({
     treinoIniciado: false,
     inicioTimestamp: null,
     workoutName: '',
+    workoutLogId: null,
     exercises: [],
     exercicioAtual: 0,
+    trustScore: 80,
   }),
 
   getSeriesConcluidas: () =>
@@ -151,5 +164,32 @@ export const useTreinoStore = create<TreinoState>((set, get) => ({
     if (done === 0) return 'pending';
     if (done === ex.sets.length) return 'complete';
     return 'partial';
+  },
+
+  podeMarcarSerie: (exerciseIdx, setType) => {
+    const MIN_SEC: Record<string, number> = { normal: 20, dropset: 8, tempo: 30, failure: 25 };
+    const state = get();
+    let minMs = (MIN_SEC[setType] ?? 20) * 1000;
+
+    // Trust score penalty
+    if (state.trustScore < 70) minMs = Math.round(minMs * 1.5);
+    if (state.trustScore < 30) return { pode: false, aguardar: 0 };
+
+    // Find last completed set across ALL exercises in this workout
+    let lastCompletedAt = 0;
+    state.exercises.forEach(ex => {
+      ex.sets.forEach(s => {
+        if (s.completed && s.completedAt && s.completedAt > lastCompletedAt) {
+          lastCompletedAt = s.completedAt;
+        }
+      });
+    });
+
+    if (lastCompletedAt === 0) return { pode: true, aguardar: 0 };
+
+    const elapsed = Date.now() - lastCompletedAt;
+    if (elapsed >= minMs) return { pode: true, aguardar: 0 };
+
+    return { pode: false, aguardar: Math.ceil((minMs - elapsed) / 1000) };
   },
 }));

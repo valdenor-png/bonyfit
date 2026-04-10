@@ -58,14 +58,29 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
     return () => { if (restTimerRef.current) clearInterval(restTimerRef.current); };
   }, []);
 
+  const podeMarcarSerie = useTreinoStore((s) => s.podeMarcarSerie);
+
   const handleToggle = (setIdx: number) => {
     const set = exercise.sets[setIdx];
-    if (!set.completed && (!set.weight || !set.reps)) {
+    if (set.completed) {
+      toggleSerie(currentIdx, setIdx); // uncomplete
+      return;
+    }
+    if (!set.weight || !set.reps) {
       Alert.alert('Preencha', 'Insira peso e repetições antes de marcar.');
       return;
     }
+    const { pode, aguardar } = podeMarcarSerie(currentIdx, exercise.setType);
+    if (!pode) {
+      if (aguardar > 0) {
+        Alert.alert('Aguarde', `Espere ${aguardar}s antes de completar a próxima série.`);
+      } else {
+        Alert.alert('Bloqueado', 'Gamificação suspensa. Procure a recepção.');
+      }
+      return;
+    }
     toggleSerie(currentIdx, setIdx);
-    if (!set.completed) startRestTimer();
+    startRestTimer();
   };
 
   const handleFinish = async () => {
