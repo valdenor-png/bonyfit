@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing, radius } from '../tokens';
+import { useAuth } from '../hooks/useAuth';
 
 // ─── TYPES ──────────────────────────────────────────────
 interface LeagueUser {
@@ -57,7 +58,7 @@ const MOCK_USERS: LeagueUser[] = [
   { id: '5', name: 'Pedro Henrique', initials: 'PH', weeklyPoints: 1520, position: 5, isCurrentUser: false },
   { id: '6', name: 'Camila Rocha', initials: 'CR', weeklyPoints: 1460, position: 6, isCurrentUser: false },
   { id: '7', name: 'Thiago Alves', initials: 'TA', weeklyPoints: 1380, position: 7, isCurrentUser: false },
-  { id: '8', name: 'João Victor', initials: 'JV', weeklyPoints: 1320, position: 8, isCurrentUser: true },
+  { id: '8', name: 'Você', initials: '--', weeklyPoints: 1320, position: 8, isCurrentUser: true },
   { id: '9', name: 'Fernanda Lima', initials: 'FL', weeklyPoints: 1250, position: 9, isCurrentUser: false },
   { id: '10', name: 'Bruno Santos', initials: 'BS', weeklyPoints: 1180, position: 10, isCurrentUser: false },
   { id: '11', name: 'Juliana Matos', initials: 'JM', weeklyPoints: 1100, position: 11, isCurrentUser: false },
@@ -78,7 +79,17 @@ interface Props {
 }
 
 export default function LigasScreen({ navigation }: Props) {
-  const currentUser = MOCK_USERS.find((u) => u.isCurrentUser)!;
+  const authUser = useAuth((s) => s.user);
+
+  // Override mock current user with real data
+  const mockMe = MOCK_USERS.find((u) => u.isCurrentUser)!;
+  const currentUser = {
+    ...mockMe,
+    name: authUser?.name || mockMe.name,
+    initials: authUser?.name
+      ? authUser.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+      : mockMe.initials,
+  };
 
   const getZoneStyle = (position: number) => {
     if (position <= 5) return styles.promotionZone;
@@ -120,8 +131,13 @@ export default function LigasScreen({ navigation }: Props) {
     return null;
   };
 
+  // Replace mock data for current user in list
+  const displayUsers = MOCK_USERS.map(u =>
+    u.isCurrentUser ? { ...u, name: currentUser.name, initials: currentUser.initials } : u
+  );
+
   const renderItem = ({ item, index }: { item: LeagueUser; index: number }) => {
-    const prevPosition = index > 0 ? MOCK_USERS[index - 1].position : null;
+    const prevPosition = index > 0 ? displayUsers[index - 1].position : null;
     const zoneStyle = getZoneStyle(item.position);
     const zoneLabel = getZoneLabel(item.position);
 
@@ -179,7 +195,7 @@ export default function LigasScreen({ navigation }: Props) {
       <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
 
       <FlatList
-        data={MOCK_USERS}
+        data={displayUsers}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
