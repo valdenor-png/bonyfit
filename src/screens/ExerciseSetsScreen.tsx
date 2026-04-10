@@ -70,13 +70,9 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
       Alert.alert('Preencha', 'Insira peso e repetições antes de marcar.');
       return;
     }
-    const { pode, aguardar } = podeMarcarSerie(currentIdx, exercise.setType);
+    const { pode, aguardar } = podeMarcarSerie(exercise.setType);
     if (!pode) {
-      if (aguardar > 0) {
-        Alert.alert('Aguarde', `Espere ${aguardar}s antes de completar a próxima série.`);
-      } else {
-        Alert.alert('Bloqueado', 'Gamificação suspensa. Procure a recepção.');
-      }
+      Alert.alert('Aguarde', `Espere ${aguardar}s antes de completar a próxima série.`);
       return;
     }
     toggleSerie(currentIdx, setIdx);
