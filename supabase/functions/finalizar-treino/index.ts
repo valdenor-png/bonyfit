@@ -129,6 +129,9 @@ const handler = createHandler(async (req, supabase) => {
       duration_seconds: Math.round(duracao * 60),
     }).eq('id', body.workout_log_id)
 
+    // Check auto-blacklist (3 invalidações em 30 dias = ban 7 dias)
+    await supabase.rpc('check_auto_blacklist', { p_user_id: user.id }).catch(() => {})
+
     await logAudit(supabase, {
       userId: user.id, action: 'treino_invalidado', entityType: 'workout_log',
       entityId: body.workout_log_id, metadata: { motivo: motivoInvalidacao },

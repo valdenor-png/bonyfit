@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { colors, fonts } from '../tokens';
 import { useTreinoStore } from '../stores/treinoStore';
 import { useUI } from '../hooks/useUI';
@@ -71,12 +72,14 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
     if (!authUser) return null;
 
     const elapsed = inicioTimestamp ? Math.floor((Date.now() - inicioTimestamp) / 1000) : 0;
+    const deviceId = Constants.installationId ?? `${Platform.OS}-${Constants.sessionId ?? 'unknown'}`;
     const { data, error } = await supabase.from('workout_logs_v2').insert({
       user_id: authUser.id,
       name: workoutName || 'Treino',
       started_at: new Date(inicioTimestamp || Date.now()).toISOString(),
       duration_seconds: elapsed,
       volume_total: 0,
+      device_id: deviceId,
       points_earned: 0,
       workout_date: new Date().toISOString().split('T')[0],
     }).select('id').single();
@@ -117,6 +120,7 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
       if (!logId) { setSubmitting(false); return; }
 
       // Call Edge Function — ALL validation happens server-side
+      const deviceId = Constants.installationId ?? `${Platform.OS}-${Constants.sessionId ?? 'unknown'}`;
       const { data, error } = await supabase.functions.invoke('registrar-serie', {
         body: {
           workout_log_id: logId,
@@ -126,6 +130,7 @@ export default function ExerciseSetsScreen({ navigation, route }: any) {
           kg_real: set.weight,
           reps_real: set.reps,
           set_type: exercise.setType,
+          device_id: deviceId,
         },
       });
 

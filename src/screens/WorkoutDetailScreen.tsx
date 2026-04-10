@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { colors, fonts, spacing } from '../tokens';
 import { useTreinoStore } from '../stores/treinoStore';
 import StatusBar from '../components/treino/StatusBar';
@@ -34,7 +35,35 @@ export default function WorkoutDetailScreen({ navigation, route }: any) {
   const progress = seriesTotal > 0 ? seriesFeitas / seriesTotal : 0;
   const minutos = Math.floor(elapsed / 60);
 
+  const [checkinOk, setCheckinOk] = useState<boolean | null>(null);
+  const [checkingCheckin, setCheckingCheckin] = useState(false);
+
+  // Check catraca on mount
+  useEffect(() => {
+    (async () => {
+      setCheckingCheckin(true);
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('checkins')
+        .select('id')
+        .eq('user_id', user?.id)
+        .gte('created_at', today)
+        .lt('created_at', today + 'T23:59:59Z')
+        .maybeSingle();
+      setCheckinOk(!!data);
+      setCheckingCheckin(false);
+    })();
+  }, [user?.id]);
+
+  const getDeviceId = () => {
+    return Constants.installationId ?? `${Platform.OS}-${Constants.sessionId ?? 'unknown'}`;
+  };
+
   const handleStart = () => {
+    if (checkinOk === false) {
+      Alert.alert('Sem entrada registrada', 'Passe na catraca da academia antes de iniciar o treino.');
+      return;
+    }
     iniciarTreino();
   };
 
@@ -66,9 +95,24 @@ export default function WorkoutDetailScreen({ navigation, route }: any) {
 
         {/* Iniciar / Progresso */}
         {!treinoIniciado ? (
-          <TouchableOpacity style={styles.startBtn} onPress={handleStart} activeOpacity={0.8}>
-            <Text style={styles.startBtnText}>Iniciar Treino</Text>
-          </TouchableOpacity>
+          <>
+            {checkinOk === false && (
+              <View style={styles.blockedBox}>
+                <Ionicons name="lock-closed" size={18} color="#F26522" />
+                <Text style={styles.blockedText}>Passe na catraca da academia para liberar o treino</Text>
+              </View>
+            )}
+            <TouchableOpacity
+              style={[styles.startBtn, checkinOk === false && styles.startBtnDisabled]}
+              onPress={handleStart}
+              activeOpacity={0.8}
+              disabled={checkingCheckin || checkinOk === false}
+            >
+              <Text style={styles.startBtnText}>
+                {checkingCheckin ? 'Verificando...' : checkinOk === false ? 'Catraca não registrada' : 'Iniciar Treino'}
+              </Text>
+            </TouchableOpacity>
+          </>
         ) : (
           <ProgressBar progress={progress} />
         )}
@@ -77,7 +121,9 @@ export default function WorkoutDetailScreen({ navigation, route }: any) {
         <Text style={styles.hint}>
           {treinoIniciado
             ? 'Toque no exercício para ver séries'
-            : 'Inicie o treino para registrar séries'}
+            : checkinOk === false
+              ? 'Registre sua entrada na academia primeiro'
+              : 'Inicie o treino para registrar séries'}
         </Text>
 
         {/* Exercise list */}
@@ -121,5 +167,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   startBtnText: { color: '#FFF', fontSize: 15, fontFamily: fonts.bodyBold },
+  startBtnDisabled: { backgroundColor: '#333' },
+  blockedBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(242,101,34,0.1)',
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(242,101,34,0.3)',
+  },
+  blockedText: { color: '#F26522', fontSize: 13, fontFamily: fonts.bodyMedium, flex: 1 },
   hint: { color: '#888', fontSize: 12, fontFamily: fonts.body, textAlign: 'center', marginBottom: 14 },
 });
