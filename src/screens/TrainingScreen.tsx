@@ -102,16 +102,40 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
       <View style={styles.headerRow}>
         <Text style={styles.screenTitle}>Meus Treinos</Text>
 
-        <TouchableOpacity
-          style={styles.headerBtn}
-          onPress={() => navigation.navigate('Calendar')}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.headerBtnIcon, styles.headerBtnIconActive]}>
-            <Text style={{ fontSize: 20 }}>📅</Text>
-          </View>
-          <Text style={styles.headerBtnLabel}>Agenda</Text>
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigation.navigate('Calendar')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.headerBtnIcon, styles.headerBtnIconActive]}>
+              <Text style={{ fontSize: 20 }}>📅</Text>
+            </View>
+            <Text style={styles.headerBtnLabel}>Agenda</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigation.navigate('Periodizacao')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.headerBtnIcon, styles.headerBtnIconActive]}>
+              <Text style={{ fontSize: 20 }}>📊</Text>
+            </View>
+            <Text style={styles.headerBtnLabel}>Período</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigation.navigate('Ranking')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.headerBtnIcon, styles.headerBtnIconActive]}>
+              <Text style={{ fontSize: 20 }}>🏆</Text>
+            </View>
+            <Text style={styles.headerBtnLabel}>Ranking</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ── VIP Banner ──────────────────────────────────────────────────── */}
