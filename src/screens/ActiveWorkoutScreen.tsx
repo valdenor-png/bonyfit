@@ -101,7 +101,7 @@ export default function ActiveWorkoutScreen() {
   const [selectedSetInfo, setSelectedSetInfo] = useState<{ exId: string; setIdx: number; currentType: string; setNum: number } | null>(null);
 
   // State
-  const [workoutName] = useState('Treino A - Peito e Bíceps');
+  const [workoutName] = useState('Treino A — Peito + Tríceps');
   const [exercises, setExercises] = useState<WorkoutExercise[]>(createInitialExercises);
   const [elapsed, setElapsed] = useState(0);
   const [restActive, setRestActive] = useState(false);

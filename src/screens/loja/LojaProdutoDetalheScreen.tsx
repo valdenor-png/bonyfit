@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { colors, fonts, spacing } from '../../tokens';
+import { useUI } from '../../hooks/useUI';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useLojaStore } from '../../stores/lojaStore';
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function LojaProdutoDetalheScreen({ navigation, route }: Props) {
+  const { toast } = useUI();
   const produtoId: string = route?.params?.produtoId ?? '';
   const produto = ALL_PRODUCTS.find((p) => p.id === produtoId);
   const categoria = produto
@@ -117,6 +119,7 @@ export default function LojaProdutoDetalheScreen({ navigation, route }: Props) {
     });
     setAddedFeedback(true);
     setTimeout(() => setAddedFeedback(false), 1500);
+    toast({ type: 'success', title: 'Adicionado ao carrinho!', message: produto.nome });
   };
 
   return (

@@ -189,7 +189,7 @@ export default function ComentariosScreen({ navigation, route }: Props) {
       // Remove optimistic on failure
       setComments((prev) => prev.filter((c) => c.id !== tempId));
       setText(trimmed);
-      Alert.alert('Erro', 'Nao foi possivel enviar o comentario.');
+      Alert.alert('Erro', 'Não foi possível enviar o comentário.');
     } finally {
       setSending(false);
     }
@@ -197,7 +197,7 @@ export default function ComentariosScreen({ navigation, route }: Props) {
 
   const handleDelete = useCallback(
     async (commentId: string) => {
-      Alert.alert('Excluir comentario', 'Tem certeza?', [
+      Alert.alert('Excluir comentário', 'Tem certeza?', [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Excluir',
@@ -232,7 +232,7 @@ export default function ComentariosScreen({ navigation, route }: Props) {
         >
           <Ionicons name="chevron-back" size={24} color={colors.orange} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Comentarios</Text>
+        <Text style={styles.headerTitle}>Comentários</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -262,7 +262,7 @@ export default function ComentariosScreen({ navigation, route }: Props) {
             <View style={styles.emptyState}>
               <Text style={styles.emptyEmoji}>💬</Text>
               <Text style={styles.emptyText}>
-                Nenhum comentario ainda.{'\n'}Seja o primeiro!
+                Nenhum comentário ainda.{'\n'}Seja o primeiro!
               </Text>
             </View>
           }
@@ -279,7 +279,7 @@ export default function ComentariosScreen({ navigation, route }: Props) {
       <View style={styles.inputBar}>
         <TextInput
           style={styles.input}
-          placeholder="Escreva um comentario..."
+          placeholder="Escreva um comentário..."
           placeholderTextColor={colors.textMuted}
           value={text}
           onChangeText={setText}

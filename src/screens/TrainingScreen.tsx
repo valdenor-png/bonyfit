@@ -180,8 +180,7 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
       )}
 
       {/* ── SECTION 2: Today's workout card ─────────────────────────────── */}
-      {!personalPlan && (
-        <View style={styles.card}>
+      <View style={styles.card}>
           {todayWorkout ? (
             <>
               <Text style={styles.todayLabel}>TREINO DE HOJE</Text>
@@ -219,7 +218,6 @@ export default function TrainingScreen({ navigation }: { navigation: any }) {
             </>
           )}
         </View>
-      )}
 
       {/* ── Empty workout card ──────────────────────────────────────────── */}
       <TouchableOpacity

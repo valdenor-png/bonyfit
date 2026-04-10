@@ -320,7 +320,7 @@ export default function CalendarScreen({ navigation }: { navigation: any }) {
             <Text style={styles.detailLabel}>Horário de funcionamento</Text>
             {gymHours ? (
               <Text style={styles.detailName}>
-                {gymHours.opens} \u2014 {gymHours.closes}
+                {gymHours.opens} — {gymHours.closes}
               </Text>
             ) : (
               <Text style={[styles.detailName, { color: colors.danger }]}>Fechado</Text>
@@ -343,7 +343,7 @@ export default function CalendarScreen({ navigation }: { navigation: any }) {
           {selectedData.events.map((ev, i) => (
             <View key={`event-${i}`} style={styles.eventItem}>
               <Text style={styles.eventText}>
-                {ev.title} \u2014 {ev.startTime} às {ev.endTime}
+                {ev.title} — {ev.startTime} às {ev.endTime}
               </Text>
             </View>
           ))}
